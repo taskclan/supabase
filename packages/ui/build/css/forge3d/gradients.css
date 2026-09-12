@@ -1,0 +1,17 @@
+/* Forge3D (Sitterly) gradients. The hero darkens its two lead stops in dark
+   mode; same selector adaptation as colors.css. */
+:root {
+  --gradient-hero: linear-gradient(135deg, #130240, #4A2BA0, #6A43D7);
+  --gradient-card: linear-gradient(135deg, #6A43D7, #8B6BE0, #BBA8EF);
+  --gradient-button: linear-gradient(135deg, #6A43D7, #5533B8);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='taskclan-light']) {
+    --gradient-hero: linear-gradient(135deg, #1A1030, #3A2280, #6A43D7);
+  }
+}
+:root[data-theme='dark'],
+:root[data-theme='taskclan-dark'] {
+  --gradient-hero: linear-gradient(135deg, #1A1030, #3A2280, #6A43D7);
+}

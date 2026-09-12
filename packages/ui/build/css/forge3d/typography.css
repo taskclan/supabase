@@ -1,0 +1,22 @@
+/* Forge3D (Sitterly) typography.
+
+   Figtree carries body AND display — headings are the same grotesque, heavy and
+   tight, with weight and tracking doing the work rather than a contrasting
+   serif. Imported from Google Fonts because this package has no next/font
+   pipeline; the engine's own copy uses next/font instead.
+
+   The Google Fonts @import lives at the TOP of apps/studio/styles/globals.css,
+   not here: a nested @import is flattened to this file's position, which is
+   after other files' rules, and CSS requires every @import to precede all
+   rules. Turbopack fails the build rather than ignoring it. */
+
+:root {
+  --font-body: 'Figtree', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: 'Figtree', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display-weight: 700;
+  --font-display-tracking: -0.022em;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semi-bold: 600;
+  --font-weight-bold: 700;
+}

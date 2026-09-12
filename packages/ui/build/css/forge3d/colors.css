@@ -1,0 +1,162 @@
+/* Forge3D (Sitterly) colours.
+
+   Adapted from the design project: each dark selector also matches
+   `taskclan-dark`, and the system-dark guard also excludes `taskclan-light`.
+   Studio's theme attribute carries 'taskclan-dark' / 'taskclan-light', so
+   without this the dark palette never fires and every token stays light while
+   the page around it goes black. */
+:root {
+  --color-primary: #6A43D7;
+  --color-primary-light: #8B6BE0;
+  --color-primary-dark: #4A2BA0;
+  --color-primary-faint: #F6F3FD;
+  --color-accent: #FBCE3E;
+  --color-accent-dark: #D9A820;
+  --color-support: #3EFBE4;
+  --color-background: #FDFDFF;
+  --color-surface: #FFFFFF;
+  --color-surface-elevated: #F6F3FD;
+  --color-background-secondary: #F8F8FA;
+  --color-text-primary: #130240;
+  --color-text-secondary: #635D71;
+  --color-text-muted: #9A94A8;
+  --color-text-on-primary: #FFFFFF;
+  --color-text-on-accent: #130240;
+  --color-input-background: #F5F5F7;
+  --color-input-border: #E8E8E8;
+  --color-input-border-focused: #6A43D7;
+  --color-input-text: #130240;
+  --color-placeholder: #9A94A8;
+  --color-error: #EF4444;
+  --color-error-light: #FEE2E2;
+  --color-success: #10B981;
+  --color-success-light: #D1FAE5;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FEF3C7;
+  --color-info: #3B82F6;
+  --color-info-light: #DBEAFE;
+  --color-border: #E8E8E8;
+  --color-divider: #EEEEEE;
+  --color-border-active: #C9B6F1;
+  --color-google: #4285F4;
+  --color-overlay: rgba(19, 2, 64, 0.5);
+}
+
+/* System preference, unless an explicit light theme opted out. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):not([data-theme='taskclan-light']) {
+  --color-primary: #8B6BE0;
+  --color-primary-light: #9B7DE5;
+  --color-primary-dark: #6A43D7;
+  --color-primary-faint: rgba(139, 107, 224, 0.16);
+  --color-accent: #FBCE3E;
+  --color-accent-dark: #D9A820;
+  --color-support: #3EFBE4;
+  --color-background: #0A0A0D;
+  --color-surface: #121217;
+  --color-surface-elevated: #1A1A21;
+  --color-background-secondary: #0F0F13;
+  --color-text-primary: #F4F4F7;
+  --color-text-secondary: #A8A8B3;
+  --color-text-muted: #6F6F7A;
+  --color-text-on-primary: #FFFFFF;
+  --color-text-on-accent: #130240;
+  --color-input-background: #16161C;
+  --color-input-border: #26262F;
+  --color-input-border-focused: #8B6BE0;
+  --color-input-text: #F4F4F7;
+  --color-placeholder: #6F6F7A;
+  --color-error: #EF4444;
+  --color-error-light: rgba(239, 68, 68, 0.16);
+  --color-success: #10B981;
+  --color-success-light: rgba(16, 185, 129, 0.16);
+  --color-warning: #F59E0B;
+  --color-warning-light: rgba(245, 158, 11, 0.16);
+  --color-info: #3B82F6;
+  --color-info-light: rgba(59, 130, 246, 0.16);
+  --color-border: #26262F;
+  --color-divider: #1F1F27;
+  --color-border-active: #5C42A8;
+  --color-google: #4285F4;
+  --color-overlay: rgba(0, 0, 0, 0.72);
+  }
+}
+
+/* Explicit dark, either naming. */
+:root[data-theme='dark'],
+:root[data-theme='taskclan-dark'] {
+  --color-primary: #8B6BE0;
+  --color-primary-light: #9B7DE5;
+  --color-primary-dark: #6A43D7;
+  --color-primary-faint: rgba(139, 107, 224, 0.16);
+  --color-accent: #FBCE3E;
+  --color-accent-dark: #D9A820;
+  --color-support: #3EFBE4;
+  --color-background: #0A0A0D;
+  --color-surface: #121217;
+  --color-surface-elevated: #1A1A21;
+  --color-background-secondary: #0F0F13;
+  --color-text-primary: #F4F4F7;
+  --color-text-secondary: #A8A8B3;
+  --color-text-muted: #6F6F7A;
+  --color-text-on-primary: #FFFFFF;
+  --color-text-on-accent: #130240;
+  --color-input-background: #16161C;
+  --color-input-border: #26262F;
+  --color-input-border-focused: #8B6BE0;
+  --color-input-text: #F4F4F7;
+  --color-placeholder: #6F6F7A;
+  --color-error: #EF4444;
+  --color-error-light: rgba(239, 68, 68, 0.16);
+  --color-success: #10B981;
+  --color-success-light: rgba(16, 185, 129, 0.16);
+  --color-warning: #F59E0B;
+  --color-warning-light: rgba(245, 158, 11, 0.16);
+  --color-info: #3B82F6;
+  --color-info-light: rgba(59, 130, 246, 0.16);
+  --color-border: #26262F;
+  --color-divider: #1F1F27;
+  --color-border-active: #5C42A8;
+  --color-google: #4285F4;
+  --color-overlay: rgba(0, 0, 0, 0.72);
+}
+
+/* Explicit light has to restate the light values: it must win over the media
+   query above, and a bare :root would not. */
+:root[data-theme='light'],
+:root[data-theme='taskclan-light'] {
+  --color-primary: #6A43D7;
+  --color-primary-light: #8B6BE0;
+  --color-primary-dark: #4A2BA0;
+  --color-primary-faint: #F6F3FD;
+  --color-accent: #FBCE3E;
+  --color-accent-dark: #D9A820;
+  --color-support: #3EFBE4;
+  --color-background: #FDFDFF;
+  --color-surface: #FFFFFF;
+  --color-surface-elevated: #F6F3FD;
+  --color-background-secondary: #F8F8FA;
+  --color-text-primary: #130240;
+  --color-text-secondary: #635D71;
+  --color-text-muted: #9A94A8;
+  --color-text-on-primary: #FFFFFF;
+  --color-text-on-accent: #130240;
+  --color-input-background: #F5F5F7;
+  --color-input-border: #E8E8E8;
+  --color-input-border-focused: #6A43D7;
+  --color-input-text: #130240;
+  --color-placeholder: #9A94A8;
+  --color-error: #EF4444;
+  --color-error-light: #FEE2E2;
+  --color-success: #10B981;
+  --color-success-light: #D1FAE5;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FEF3C7;
+  --color-info: #3B82F6;
+  --color-info-light: #DBEAFE;
+  --color-border: #E8E8E8;
+  --color-divider: #EEEEEE;
+  --color-border-active: #C9B6F1;
+  --color-google: #4285F4;
+  --color-overlay: rgba(19, 2, 64, 0.5);
+}

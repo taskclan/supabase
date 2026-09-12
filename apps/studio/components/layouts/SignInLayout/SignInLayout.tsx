@@ -211,8 +211,8 @@ export const SignInLayout = ({
                   <img
                     src={
                       mounted && resolvedTheme?.includes('dark')
-                        ? `${BASE_PATH}/img/supabase-dark.svg`
-                        : `${BASE_PATH}/img/supabase-light.svg`
+                        ? `${BASE_PATH}/img/taskclan-wordmark.svg`
+                        : `${BASE_PATH}/img/taskclan-wordmark.svg`
                     }
                     alt="Supabase Logo"
                     className={largeLogo ? 'h-[48px]' : 'h-[24px]'}

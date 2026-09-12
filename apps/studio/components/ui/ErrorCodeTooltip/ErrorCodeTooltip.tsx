@@ -95,10 +95,10 @@ export const ErrorCodeTooltip = ({ errorCode, service, children }: ErrorCodeTool
                 <Image
                   src={
                     resolvedTheme?.includes('dark')
-                      ? `${BASE_PATH}/img/supabase-dark.svg`
-                      : `${BASE_PATH}/img/supabase-light.svg`
+                      ? `${BASE_PATH}/img/taskclan-wordmark.svg`
+                      : `${BASE_PATH}/img/taskclan-wordmark.svg`
                   }
-                  alt="Supabase"
+                  alt="Taskclan"
                   height={14}
                   width={72}
                 />

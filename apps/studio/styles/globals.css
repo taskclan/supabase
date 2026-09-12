@@ -1,7 +1,14 @@
+/* Figtree — the Sitterly face. First line: every @import must precede all
+   rules, and the token files below carry rules. */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap');
 @import 'config/tailwind.config.css';
 @import './../../../packages/ui/build/css/themes/classic-dark.css';
 @import './../../../packages/ui/build/css/themes/taskclan-dark.css';
 @import './../../../packages/ui/build/css/themes/taskclan-light.css';
+/* Taskclan's own token vocabulary (--color-primary, --space-md, --radius-lg…),
+   for components we write. Additive: the themes above are what re-skin the
+   upstream components. See ../forge3d/README.md. */
+@import './../../../packages/ui/build/css/forge3d/index.css';
 @import 'config/typography.css';
 
 @source '../pages/**/*.{js,ts,jsx,tsx}';

@@ -20,7 +20,7 @@ export const ProjectClaimLayout = ({
         <div className="flex items-center gap-2">
           <span className="sr-only">Supabase</span>
           <Image
-            src={`${BASE_PATH}/img/supabase-logo.svg`}
+            src={`${BASE_PATH}/img/taskclan-mark.svg`}
             alt="Supabase Logo"
             height={20}
             width={20}
