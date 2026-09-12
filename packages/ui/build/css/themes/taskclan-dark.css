@@ -27,6 +27,19 @@
  * because that is the seam the upstream project maintains. Restyling the
  * components instead would collide with every rebase.
  */
+/*
+ * Also claims plain `dark`.
+ *
+ * Taskclan theming is THE theming here, not a variant someone opts into — a
+ * default of Supabase green is not a neutral starting point for a Taskclan
+ * product. Upstream's dark.css still loads (via
+ * packages/config/tailwind.config.css) and is not edited, so a rebase stays
+ * clean; this file imports after it at identical specificity, so source order
+ * decides. classic-dark keeps its own name for comparing a screen against the
+ * original.
+ */
+[data-theme='dark'],
+.dark,
 [data-theme='taskclan-dark'],
 .taskclan-dark {
   --helpers-os-appearance: Dark;

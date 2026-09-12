@@ -13,6 +13,9 @@
  * the pale steps sit behind content and the dark ones carry text, so 200 is
  * Sitterly's --color-primary-faint and link/600 take --color-primary-dark.
  */
+/* Also claims plain `light` — see taskclan-dark.css for why. */
+[data-theme='light'],
+.light,
 [data-theme='taskclan-light'],
 .taskclan-light {
   --helpers-os-appearance: Light;

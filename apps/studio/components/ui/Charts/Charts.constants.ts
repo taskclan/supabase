@@ -14,7 +14,11 @@ export const CHART_COLORS = {
 }
 
 const LIGHT_STACKED_CHART_COLORS = [
-  '#3ECF8E',
+  // Sitterly primary. Only the lead series is rebranded — the remaining seven
+  // are a qualitative scale picked for distinguishability, and recolouring
+  // those is a design call, not a theming one. A single-series chart uses [0],
+  // which is why this one could not stay Supabase green.
+  '#6A43D7',
   '#DA760B',
   '#097c4f',
   '#EDC35E',
@@ -36,7 +40,8 @@ const LIGHT_STACKED_CHART_FILLS = [
 ]
 
 const DARK_STACKED_CHART_COLORS = [
-  '#3ECF8E',
+  // Sitterly primary for dark (--color-primary at H 256, lifted for contrast).
+  '#8B6BE0',
   '#A3FFC2',
   '#DA760B',
   '#EDD35E',
