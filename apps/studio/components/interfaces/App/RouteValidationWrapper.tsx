@@ -11,6 +11,7 @@ import { useLastVisitedOrganization } from '@/hooks/misc/useLastVisitedOrganizat
 import { useLatest } from '@/hooks/misc/useLatest'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 import { IS_PLATFORM } from '@/lib/constants'
+import { classifyProjectError, messageFor, shouldStay } from '@/lib/taskclan/routeError'
 
 // Ideally these could all be within a _middleware when we use Next 12
 export const RouteValidationWrapper = ({ children }: PropsWithChildren<{}>) => {
@@ -82,10 +83,14 @@ export const RouteValidationWrapper = ({ children }: PropsWithChildren<{}>) => {
 
     // A successful request to project details will validate access to both project and branches
     if (!!ref && isErrorProject) {
-      // 404 means the project no longer exists (e.g. was deleted), not an access error
-      if (projectError?.code !== 404) {
-        toast.error('You do not have access to this project')
-      }
+      // Upstream said "you do not have access" for every non-404 and bounced
+      // home, so a Taskclan Cloud hiccup read as "you were removed from this
+      // app" — and the redirect hid the cause, because the home page needs the
+      // same backend. See lib/taskclan/routeError.ts for the reasoning.
+      const kind = classifyProjectError(projectError?.code)
+      const message = messageFor(kind)
+      if (message) toast.error(message)
+      if (shouldStay(kind)) return
       router.push(DEFAULT_HOME)
       return
     }
