@@ -1,5 +1,7 @@
 @import 'config/tailwind.config.css';
 @import './../../../packages/ui/build/css/themes/classic-dark.css';
+@import './../../../packages/ui/build/css/themes/taskclan-dark.css';
+@import './../../../packages/ui/build/css/themes/taskclan-light.css';
 @import 'config/typography.css';
 
 @source '../pages/**/*.{js,ts,jsx,tsx}';

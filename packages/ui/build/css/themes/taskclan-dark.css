@@ -1,0 +1,90 @@
+/*
+ * Taskclan Cloud — dark.
+ *
+ * Sitterly expressed in Studio's theme system rather than bolted on top of it.
+ * That is possible because the two are the same shape: Studio derives its
+ * neutrals from one hue plus a chroma and a surface lightness, and Sitterly's
+ * dark palette is exactly that — near-neutral greys carrying a faint purple
+ * cast, with the brand as the only real colour.
+ *
+ * The numbers are measured, not picked. Converting Sitterly's dark hexes to
+ * OKLCH gives:
+ *
+ *   --color-background       #0A0A0D   L 0.146  C 0.0064  H 285.6
+ *   --color-surface          #121217   L 0.185  C 0.0101  H 285.4
+ *   --color-surface-elevated #1A1A21   L 0.221  C 0.0136  H 285.2
+ *   --color-border           #26262F   L 0.272  C 0.0166  H 285.2
+ *   --color-text-primary     #F4F4F7   L 0.968  C 0.0040  H 286.3
+ *
+ * Studio's own dark.css sits at --surface: 0.19 / --chroma: 0.005, so Sitterly's
+ * 0.185 / 0.010 needed no retuning of the elevation or contrast machinery —
+ * only the hue moved, 159 -> 285. The surface steps above fall out of
+ * --elevation-step on their own; checked against the measured ladder
+ * (0.185 -> 0.221 -> 0.272, so roughly 0.025 a step, which is what Studio
+ * already uses).
+ *
+ * Kept as a theme file, in Studio's own format and alongside its own themes,
+ * because that is the seam the upstream project maintains. Restyling the
+ * components instead would collide with every rebase.
+ */
+[data-theme='taskclan-dark'],
+.taskclan-dark {
+  --helpers-os-appearance: Dark;
+
+  /* Sitterly's greys measure H 285. 159 is Supabase green. */
+  --hue: 285;
+  /* Sitterly's cast is about twice Supabase's, and deliberately so: v2 chose
+     near-neutral greys precisely so the purple brand is the only hue on the
+     page. Above ~0.02 the surfaces read as lilac and start competing with it. */
+  --chroma: 0.01;
+  --surface: 0.185;
+  --elevation-step: 0.025;
+  --contrast: 0.5;
+  --foreground-lightness: 0.968;
+  --muted-foreground-level: 0.8;
+  --tertiary-foreground-level: 0.65;
+  /* Same reason as upstream dark: the light default disappears on dark plates. */
+  --field-alpha: 0.12;
+
+  /* Code blocks are legibility, not brand — upstream's dark values, unchanged. */
+  --code-block-5: 13.8deg 89.7% 69.6%;
+  --code-block-4: 276.1deg 67.7% 74.5%;
+  --code-block-3: 83.8deg 61.7% 63.1%;
+  --code-block-2: 33.2deg 90.3% 75.7%;
+  --code-block-1: 170.8deg 43.1% 61.4%;
+
+  /*
+   * Brand ramp: Sitterly purple.
+   *
+   * #6A43D7 measures 255.8deg 64.9% 55.3%, and Supabase's own brand-default is
+   * 153.1deg 60.2% 52.7% — the same saturation and lightness, 103 degrees
+   * apart. So the ramp is a rotation, and upstream's steps stay valid rather
+   * than needing to be re-picked by eye.
+   *
+   * The 200-500 steps are dark fills that sit *behind* content, so they run
+   * far darker than the mid-tone, following upstream's direction.
+   */
+  --brand-link: 256.4deg 65.4% 64.9%;   /* primary-light — links lift off the page */
+  --brand-default: 255.8deg 64.9% 55.3%; /* --color-primary */
+  --brand-600: 256.4deg 65.4% 64.9%;    /* --color-primary-light */
+  --brand-500: 255.9deg 57.6% 25.0%;
+  --brand-400: 256.0deg 60.0% 15.0%;
+  --brand-300: 256.0deg 62.0% 11.0%;
+  --brand-200: 258.0deg 60.0% 6.0%;
+
+  /* Status colours are Sitterly's, which are the standard Tailwind-ish set.
+     Held identical to the engine's tokens so a red in the console and a red in
+     Studio are the same red. */
+  --warning-default: 37.7deg 92.1% 50.2%;  /* #F59E0B */
+  --warning-600: 37.7deg 92.1% 50.2%;
+  --warning-500: 34.8deg 90.9% 21.6%;
+  --warning-400: 33.2deg 100% 14.5%;
+  --warning-300: 32.3deg 100% 10.2%;
+  --warning-200: 36.6deg 100% 8%;
+  --destructive-default: 0deg 84.2% 60.2%; /* #EF4444 */
+  --destructive-600: 0deg 84.2% 65.0%;
+  --destructive-500: 0deg 71.6% 29%;
+  --destructive-400: 0deg 60% 20.6%;
+  --destructive-300: 0deg 51.3% 15.3%;
+  --destructive-200: 0deg 23.4% 9.2%;
+}
