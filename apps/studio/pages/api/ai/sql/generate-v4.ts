@@ -30,6 +30,7 @@ import { apiWrapper } from '@/lib/api/apiWrapper'
 import { executeQuery } from '@/lib/api/self-hosted/query'
 import { getURL } from '@/lib/helpers'
 import { trustedUserEmail } from '@/lib/server/configcat'
+import { assistantProvider } from '@/lib/ai/taskclan-provider'
 
 export const maxDuration = 120
 
@@ -166,7 +167,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, claims?: Jw
     error: modelError,
     systemProviderOptions,
   } = await getModel({
-    provider: 'openai',
+    provider: assistantProvider(),
     modelEntry: getAssistantModelEntry(effectiveModel),
   })
 

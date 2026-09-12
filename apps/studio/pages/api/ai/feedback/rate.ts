@@ -12,6 +12,7 @@ import { getModel } from '@/lib/ai/model'
 import { DEFAULT_COMPLETION_MODEL } from '@/lib/ai/model.utils'
 import { sanitizeMessagePart } from '@/lib/ai/tools/tool-sanitizer'
 import { apiWrapper } from '@/lib/api/apiWrapper'
+import { assistantProvider } from '@/lib/ai/taskclan-provider'
 
 export const maxDuration = 30
 
@@ -97,7 +98,7 @@ export async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     const { modelParams, error: modelError } = await getModel({
-      provider: 'openai',
+      provider: assistantProvider(),
       modelEntry: DEFAULT_COMPLETION_MODEL,
     })
 

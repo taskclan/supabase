@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { getModel } from '@/lib/ai/model'
 import { DEFAULT_COMPLETION_MODEL } from '@/lib/ai/model.utils'
 import { apiWrapper } from '@/lib/api/apiWrapper'
+import { assistantProvider } from '@/lib/ai/taskclan-provider'
 
 const cronSchema = z.object({
   cron_expression: z.string().describe('The generated cron expression.'),
@@ -36,7 +37,7 @@ export async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     const { modelParams, error: modelError } = await getModel({
-      provider: 'openai',
+      provider: assistantProvider(),
       modelEntry: DEFAULT_COMPLETION_MODEL,
     })
 

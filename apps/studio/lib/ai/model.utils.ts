@@ -1,4 +1,7 @@
-export type ProviderName = 'bedrock' | 'openai'
+export type ProviderName = 'bedrock' | 'openai' | 'taskclan'
+
+/** Taskclan Intelligence tiers — see lib/ai/taskclan-provider.ts. */
+export type TaskclanModel = 'T1-auto' | 'T1-core' | 'T1-flow' | 'T1-max'
 
 export type BedrockModel = 'anthropic.claude-3-7-sonnet-20250219-v1:0' | 'openai.gpt-oss-120b-1:0'
 
@@ -119,7 +122,7 @@ export function getAssistantModelEntry(id: AssistantModelId): (typeof ASSISTANT_
   return ASSISTANT_MODELS_MAP[id]
 }
 
-export type Model = BedrockModel | OpenAIModelId
+export type Model = BedrockModel | OpenAIModelId | TaskclanModel
 
 export type ProviderModelConfig = {
   /** Optional providerOptions to attach to the system message for this model */
@@ -129,6 +132,10 @@ export type ProviderModelConfig = {
 }
 
 export type ProviderRegistry = {
+  taskclan: {
+    models: Record<TaskclanModel, ProviderModelConfig>
+    providerOptions?: Record<string, any>
+  }
   bedrock: {
     models: Record<BedrockModel, ProviderModelConfig>
     providerOptions?: Record<string, any>
@@ -140,6 +147,17 @@ export type ProviderRegistry = {
 }
 
 export const PROVIDERS: ProviderRegistry = {
+  // Taskclan Intelligence. Default is T1-auto, which routes per request —
+  // pinning a tier here would override that routing for every call, including
+  // the cheap ones, which is how a bill grows without a decision being made.
+  taskclan: {
+    models: {
+      'T1-auto': { default: true },
+      'T1-core': { default: false },
+      'T1-flow': { default: false },
+      'T1-max': { default: false },
+    },
+  },
   bedrock: {
     models: {
       'anthropic.claude-3-7-sonnet-20250219-v1:0': {

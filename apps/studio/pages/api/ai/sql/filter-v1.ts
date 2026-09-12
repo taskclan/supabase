@@ -12,6 +12,7 @@ import {
   serializeOptions,
   validateFilterGroup,
 } from '@/lib/api/filterHelpers'
+import { assistantProvider } from '@/lib/ai/taskclan-provider'
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { method } = req
@@ -37,7 +38,7 @@ export async function handlePost(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     const { modelParams, error: modelError } = await getModel({
-      provider: 'openai',
+      provider: assistantProvider(),
       modelEntry: DEFAULT_COMPLETION_MODEL,
     })
 

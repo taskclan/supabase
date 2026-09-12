@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { getModel } from '@/lib/ai/model'
 import { DEFAULT_COMPLETION_MODEL } from '@/lib/ai/model.utils'
 import { apiWrapper } from '@/lib/api/apiWrapper'
+import { assistantProvider } from '@/lib/ai/taskclan-provider'
 
 export const maxDuration = 60
 
@@ -66,7 +67,7 @@ export default wrapper
 
 async function handlePost(req: NextApiRequest, res: NextApiResponse) {
   const { modelParams, error: modelError } = await getModel({
-    provider: 'openai',
+    provider: assistantProvider(),
     modelEntry: DEFAULT_COMPLETION_MODEL,
   })
 

@@ -1,4 +1,6 @@
 import { openai } from '@ai-sdk/openai'
+
+import { taskclanConfig, taskclanModel, type TaskclanModelId } from './taskclan-provider'
 import { LanguageModel } from 'ai'
 
 import { checkAwsCredentials, createRoutedBedrock } from './bedrock'
@@ -31,6 +33,19 @@ export type ModelError = {
 type ModelResponse = ModelSuccess | ModelError
 
 export type GetModelParams =
+  | {
+      provider: 'taskclan'
+      /**
+       * Accepted and ignored.
+       *
+       * Call sites pick the provider at runtime via assistantProvider() while
+       * still passing the OpenAI entry they were written with, so this arm has
+       * to admit one. Taskclan chooses its tier by name and T1-auto routes per
+       * request — an OpenAI reasoning-effort setting has nothing to say about
+       * that, and silently honouring it would override the routing.
+       */
+      modelEntry?: OpenAIModelEntry
+    }
   | {
       provider: 'openai'
       /**
@@ -81,6 +96,17 @@ export async function getModel(params: GetModelParams): Promise<ModelResponse> {
       providerRegistry.models as Record<BedrockModel, ProviderModelConfig>
     )[chosenModelId as BedrockModel]?.systemProviderOptions
     return { modelParams: { model }, systemProviderOptions }
+  }
+
+  if (provider === 'taskclan') {
+    const cfg = taskclanConfig()
+    // Surface the reason rather than a bare "unavailable" — see the note in
+    // taskclan-provider.ts about which key people actually paste.
+    if (!cfg.ok) return { error: new Error(cfg.reason) }
+    return {
+      modelParams: { model: taskclanModel(chosenModelId as TaskclanModelId) },
+      systemProviderOptions: models[chosenModelId as TaskclanModelId]?.systemProviderOptions,
+    }
   }
 
   if (provider === 'openai') {

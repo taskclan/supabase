@@ -24,6 +24,7 @@ import {
 } from '@/lib/ai/prompts'
 import { apiWrapper } from '@/lib/api/apiWrapper'
 import { executeQuery } from '@/lib/api/self-hosted/query'
+import { assistantProvider } from '@/lib/ai/taskclan-provider'
 
 export const maxDuration = 60
 
@@ -185,7 +186,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       error: modelError,
       systemProviderOptions,
     } = await getModel({
-      provider: 'openai',
+      provider: assistantProvider(),
       modelEntry: isClickhouse ? LOGS_REWRITE_MODEL : DEFAULT_COMPLETION_MODEL,
     })
 
