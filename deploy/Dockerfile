@@ -39,8 +39,26 @@ COPY deploy/app/ ./
 
 EXPOSE 8080
 
-# Run the traced server directly. `next start` is not used: it hardcodes port
-# 8082 in this repo's package.json, and the standalone server is both smaller
-# and the thing Next actually intends you to run in a container.
+# ENTRYPOINT, not CMD, and it carries its own `cd`.
+#
+# This is the difference between an image that works in Docker and one that
+# works on Cloudflare, and it cost a full day. node:22-slim ships
+# ENTRYPOINT ["docker-entrypoint.sh"], CMD ["node"]. Setting only CMD here
+# leaves that shim as the entrypoint:
+#
+#   Docker      -> docker-entrypoint.sh node server.js   -> server listens
+#   Cloudflare  -> docker-entrypoint.sh                  -> `exec node`
+#
+# Cloudflare runs the image's ENTRYPOINT without appending CMD. With no
+# arguments the shim falls through to `exec node`, node treats its closed stdin
+# as the program to run, and the process EXITS 0 in milliseconds. The edge
+# reports that as "the container is not running, consider calling start()",
+# which reads like a platform fault and is really a clean, instant success.
+#
+# So: one explicit entrypoint, no reliance on CMD being appended, and the `cd`
+# inlined rather than left to WORKDIR — a runtime that drops CMD has not earned
+# trust with the rest of the image config. exec keeps the server as PID 1 so it
+# still receives SIGTERM.
 WORKDIR /app/apps/studio
-CMD ["node", "server.js"]
+ENTRYPOINT ["/bin/sh", "-c", "cd /app/apps/studio && exec node server.js"]
+CMD []

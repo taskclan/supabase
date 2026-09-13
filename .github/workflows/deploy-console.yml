@@ -155,8 +155,40 @@ jobs:
           echo "local probe -> HTTP $code"
           docker rm -f console-smoke >/dev/null 2>&1 || true
           case "$code" in
-            200|302|307) echo "image serves" ;;
+            200|302|307) echo "image serves under Docker" ;;
             *) echo "IMAGE DOES NOT SERVE — not deploying a container that cannot start"; exit 1 ;;
+          esac
+
+      # The check above passes on images that are dead on Cloudflare.
+      #
+      # Docker starts ENTRYPOINT + CMD; Cloudflare starts the ENTRYPOINT and
+      # drops the CMD. An image whose start command lives in CMD therefore
+      # serves here and exits instantly there — node:22-slim's inherited shim
+      # falls through to `exec node`, which reads its closed stdin as the
+      # program and returns 0. The edge calls that "the container is not
+      # running", so a green smoke test above shipped a container that never
+      # came up, twice.
+      #
+      # Reproduce Cloudflare's semantics exactly: a derived image with CMD
+      # cleared. If the entrypoint alone does not serve, the deploy stops here
+      # rather than at the edge with an error that names no cause.
+      - name: Smoke-test the image the way Cloudflare starts it
+        run: |
+          echo "--- declared start config ---"
+          docker inspect -f 'Entrypoint={{json .Config.Entrypoint}}  Cmd={{json .Config.Cmd}}' console:test
+          printf 'FROM console:test\nCMD []\n' | docker build -q -t console:cloudflare -
+          docker run -d --name console-cf -p 8081:8080 -e PORT=8080 console:cloudflare
+          sleep 20
+          echo "--- container stdout (entrypoint only, no CMD) ---"
+          docker logs console-cf 2>&1 | tail -20
+          echo "--- exit state ---"
+          docker inspect -f 'Running={{.State.Running}} ExitCode={{.State.ExitCode}}' console-cf
+          code=$(curl -sS -m 15 -o /dev/null -w '%{http_code}' http://localhost:8081/ || echo 000)
+          echo "entrypoint-only probe -> HTTP $code"
+          docker rm -f console-cf >/dev/null 2>&1 || true
+          case "$code" in
+            200|302|307) echo "image serves with ENTRYPOINT alone — safe for Cloudflare" ;;
+            *) echo "START COMMAND IS IN CMD, NOT ENTRYPOINT — Cloudflare will exit 0 on boot"; exit 1 ;;
           esac
 
       - name: Deploy to Cloudflare

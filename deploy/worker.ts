@@ -22,12 +22,22 @@ export class ConsoleContainer extends Container<Env> {
   sleepAfter = '30m'
   // The console talks to the engine API, Supabase and pg-meta.
   enableInternet = true
-  // Pass every string binding through, and force PORT to the container port the
-  // way Heroku does — the standalone server reads process.env.PORT and would
-  // otherwise bind Next's default.
+  // Pass every string binding through, then force the two the edge depends on.
+  //
+  // Both are also set as ENV in the Dockerfile, and that is deliberate
+  // duplication rather than belt-and-braces for its own sake: Cloudflare
+  // demonstrably ignores part of the image config (it drops CMD — see the
+  // Dockerfile), so nothing in the image is load-bearing on its own. Set here,
+  // they hold whatever the runtime does with the image.
+  //
+  // PORT because the standalone server reads process.env.PORT and would
+  // otherwise bind Next's default; HOSTNAME because a server listening on
+  // 127.0.0.1 is invisible to the edge's port check, which is the same symptom
+  // as not starting at all.
   envVars = {
     ...Object.fromEntries(Object.entries(this.env).filter(([, v]) => typeof v === 'string')),
     PORT: '8080',
+    HOSTNAME: '0.0.0.0',
   } as Record<string, string>
 
   // Lifecycle logging, because the edge only ever says "the container just
