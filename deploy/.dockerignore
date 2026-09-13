@@ -1,0 +1,16 @@
+# The build context is `deploy/`, deliberately.
+#
+# It used to be the repo root with a `deploy/Dockerfile.dockerignore` beside the
+# Dockerfile. The docker CLI honours that per-Dockerfile file; wrangler does
+# NOT — it falls back to the context root's `.dockerignore`, which excludes
+# **/node_modules and **/.next because that is right for upstream Supabase and
+# fatal for an image made entirely of the traced server.
+#
+# Measured in one run: the smoke test transferred 765.78 MB and served, while
+# wrangler transferred 40.77 kB and shipped an image containing server.js and
+# no Next. CI and Cloudflare were building different images, which is why the
+# image was provably good here and dead there.
+#
+# Rooting the context at deploy/ removes the ambiguity: the only ignore file
+# that can apply is this one.
+probe/

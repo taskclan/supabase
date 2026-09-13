@@ -159,10 +159,39 @@ jobs:
       # an app that threw — several deploys went on inference because of it.
       # The runner has Docker, so the container's own stdout is available for
       # the cost of one step.
+      # Does the image contain the app at all?
+      #
+      # This is the check whose absence cost a day. CI built the image with the
+      # docker CLI, which honours deploy/Dockerfile.dockerignore, and got
+      # 765.78 MB that served. wrangler built it with the context root's
+      # .dockerignore — upstream Supabase's, excluding **/node_modules and
+      # **/.next — and got 40.77 kB with no Next in it. Same run, same
+      # Dockerfile, two different images, and every test here passed on the one
+      # that was not being deployed.
+      #
+      # Resolving `next` from inside the image is the cheapest question that
+      # separates them, and it fails loudly instead of at the edge with
+      # "the container is not running".
+      - name: The image must actually contain the app
+        timeout-minutes: 6
+        run: |
+          docker build -f deploy/Dockerfile -t console:test deploy
+          docker run --rm --entrypoint node console:test -e "
+            const { createRequire } = require('module')
+            const req = createRequire('/app/apps/studio/server.js')
+            const fs = require('fs')
+            for (const p of ['/app/apps/studio/.next/BUILD_ID', '/app/apps/studio/public', '/app/node_modules']) {
+              const ok = fs.existsSync(p)
+              console.log((ok ? 'ok   ' : 'MISS ') + p)
+              if (!ok) { console.error('image is missing ' + p); process.exit(1) }
+            }
+            console.log('next resolves ->', req.resolve('next'))
+          "
+
       - name: Smoke-test the image
         timeout-minutes: 8
         run: |
-          docker build -f deploy/Dockerfile -t console:test .
+          docker build -f deploy/Dockerfile -t console:test deploy
           echo "--- layout inside the image ---"
           # --entrypoint, because the image's ENTRYPOINT is the server itself.
           # Without it these arguments are passed TO the entrypoint script,
@@ -224,51 +253,6 @@ jobs:
             200|302|307) echo "image serves with ENTRYPOINT alone — safe for Cloudflare" ;;
             *) echo "START COMMAND IS IN CMD, NOT ENTRYPOINT — Cloudflare will exit 0 on boot"; exit 1 ;;
           esac
-
-      # DIAGNOSTIC — remove once the console starts on Cloudflare.
-      #
-      # Five probes have cleared the platform, the Worker class, the entrypoint
-      # form and the image payload: this exact tree with a trivial server on it
-      # returns 200. Only starting Next fails, it fails in about a second — well
-      # inside the 20s port deadline — and it leaves no trace, because container
-      # stdout never reaches Workers Logs and exit 0 is only Next's own SIGTERM
-      # handler.
-      #
-      # So the image now carries a diagnostic entrypoint that listens on the
-      # edge's port FIRST, keeping the container alive and reachable whatever
-      # Next does, then imports the real server.js in-process and serves the
-      # stack trace at /.
-      #
-      # Goes to its own Worker, so it cannot disturb the console.
-      - name: Diagnostic — make the container report what Next throws
-        timeout-minutes: 15
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          cd deploy/probe
-          npm i --no-audit --no-fund
-          cat > wrangler.bulk.jsonc <<'JSON'
-          {
-            "name": "taskclan-console-probe",
-            "main": "worker.ts",
-            "compatibility_date": "2026-09-01",
-            "compatibility_flags": ["nodejs_compat"],
-            "observability": { "enabled": true },
-            "containers": [
-              {
-                "class_name": "ProbeContainer",
-                "image": "../../deploy/probe/Dockerfile.bulk",
-                "image_build_context": "../..",
-                "instance_type": "standard-1",
-                "max_instances": 1
-              }
-            ],
-            "durable_objects": { "bindings": [{ "name": "PROBE", "class_name": "ProbeContainer" }] },
-            "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ProbeContainer"] }]
-          }
-          JSON
-          npx --yes wrangler@latest deploy --config wrangler.bulk.jsonc
 
       - name: Deploy to Cloudflare
         env:

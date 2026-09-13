@@ -41,14 +41,17 @@
       // Built from the standalone output that CI produced. wrangler builds and
       // pushes this to Cloudflare's registry on deploy.
       "image": "./deploy/Dockerfile",
-      // Build the image from the REPO ROOT, not from deploy/.
+      // Context is deploy/, and that is load-bearing.
       //
-      // wrangler defaults the build context to the Dockerfile's own directory,
-      // so `COPY apps/studio/.next/standalone/` resolved against deploy/ and
-      // found nothing. Docker reports that as "failed to compute cache key:
-      // failed to calculate checksum", which reads like a corrupt cache rather
-      // than a path that was never in the context.
-      "image_build_context": ".",
+      // wrangler does NOT honour a per-Dockerfile <name>.dockerignore the way
+      // the docker CLI does; it uses the context root's .dockerignore. With the
+      // repo root as context that is upstream Supabase's, which excludes
+      // **/node_modules and **/.next — so wrangler pushed a 40 kB image with no
+      // Next in it while CI's smoke test built a 765 MB one that served. Same
+      // run, same Dockerfile, different images.
+      //
+      // deploy/ has exactly one .dockerignore and it is ours.
+      "image_build_context": "./deploy",
       // Studio is a large Next app; `basic` is not enough to serve it warm.
       // "standard" is deprecated in favour of "standard-1"; wrangler warns on it.
       "instance_type": "standard-1",

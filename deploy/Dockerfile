@@ -32,10 +32,12 @@ WORKDIR /app
 # The whole standalone tree: server.js, its traced node_modules, .next/static
 # and public. Nothing else from the repo ships — no source, no root modules.
 #
-# Copied from deploy/app rather than apps/studio/.next/standalone: the root
-# .dockerignore excludes **/.next and **/node_modules, so the real path is
-# invisible to the build context. CI stages the tree here first.
-COPY deploy/app/ ./
+# Paths are relative to deploy/, which is the build context. Not the repo root:
+# wrangler ignores a per-Dockerfile .dockerignore and falls back to the context
+# root's, and the repo root's excludes **/.next and **/node_modules — so a
+# root-context build shipped a 40 kB image with no Next in it while the smoke
+# test built a 765 MB one that worked.
+COPY app/ ./
 
 EXPOSE 8080
 
@@ -57,6 +59,6 @@ EXPOSE 8080
 #
 # exec keeps the server as PID 1 so it still receives SIGTERM.
 WORKDIR /app/apps/studio
-COPY deploy/start.sh /usr/local/bin/start-console
+COPY start.sh /usr/local/bin/start-console
 ENTRYPOINT ["/usr/local/bin/start-console"]
 CMD []
