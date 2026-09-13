@@ -15,8 +15,16 @@
 # console.
 name: Probe container
 
+# workflow_dispatch alone is not enough: GitHub only offers it for workflows
+# present on the DEFAULT branch, and this fork's default is upstream Supabase's.
+# A push trigger scoped to this directory is the one that actually fires here.
 on:
   workflow_dispatch:
+  push:
+    branches: [taskclan/sitterly-theme]
+    paths:
+      - 'deploy/probe/**'
+      - '.github/workflows/probe-container.yml'
 
 jobs:
   probe:

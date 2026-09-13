@@ -20,6 +20,9 @@ on:
       - 'apps/studio/**'
       - 'packages/**'
       - 'deploy/**'
+      # The container probe lives under deploy/ but ships nothing to the
+      # console; rebuilding studio for it wastes seven minutes a push.
+      - '!deploy/probe/**'
       - 'wrangler.jsonc'
       - 'pnpm-lock.yaml'
       - '.github/workflows/deploy-console.yml'
