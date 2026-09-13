@@ -1,0 +1,90 @@
+# Deploy the Taskclan Cloud console straight to Cloudflare.
+#
+# Why this exists rather than deploying through Taskclan Cloud: the console IS
+# the control plane's UI. Shipping it through the control plane's own builder
+# means you cannot deploy the console when Cloud is broken — the wrong
+# dependency direction for infrastructure — and it put a very large Next build
+# through a pipeline budgeted for five-minute tenant apps.
+#
+# Four attempts on that path failed on the runner rather than on the app: a
+# 60-minute ceiling, a build cache whose paths never matched a pnpm workspace,
+# and a compile that sits right at the memory limit of a 16 GB runner. Here the
+# runner, the timeout and the cache are ours to set.
+name: Deploy console
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [taskclan/sitterly-theme]
+    paths:
+      - 'apps/studio/**'
+      - 'packages/**'
+      - 'deploy/**'
+      - 'wrangler.jsonc'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/deploy-console.yml'
+
+# One deploy at a time. Queue rather than cancel: a run partway through
+# `wrangler deploy` is the last thing that should be interrupted.
+concurrency:
+  group: deploy-console
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # The compile is the whole cost here and it is memory-hungry: it peaks near
+    # 9.7 GB and dies non-deterministically on a 16 GB runner. Set the repo or
+    # org variable CONSOLE_RUNNER to a provisioned larger-runner label (8-core,
+    # 32 GB) to give it room. Unset, this is ubuntu-latest — a label that is not
+    # provisioned does not fail, it queues forever, so the default is spelled out.
+    runs-on: ${{ vars.CONSOLE_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # Next's incremental cache. In a pnpm workspace it lives under the app, not
+      # at the repo root — the path that tripped up Cloud's builder, where every
+      # monorepo deploy recompiled from scratch while reporting a cache step that
+      # matched nothing. Keyed per run so each build writes a fresh entry, with a
+      # prefix restore so the newest one is reused.
+      - name: Restore the Next build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/studio/.next/cache
+            .turbo
+          key: console-next-${{ github.run_id }}
+          restore-keys: console-next-
+
+      - name: Build studio
+        env:
+          # Outside turbo deliberately. turbo runs with envMode: strict and this
+          # repo declares no passThroughEnv, so NODE_OPTIONS never reaches the
+          # task — a heap setting applied there is silently discarded.
+          NODE_OPTIONS: --max-old-space-size=8192
+          NEXT_TELEMETRY_DISABLED: '1'
+          # build:next otherwise uploads assets to Supabase's own CDN.
+          SKIP_ASSET_UPLOAD: '1'
+        run: |
+          pnpm turbo run build --filter='studio^...'
+          pnpm --filter studio exec next build
+          node scripts/taskclan-standalone.mjs
+
+      # wrangler builds deploy/Dockerfile, pushes the image to Cloudflare's
+      # registry and rolls the container. Docker is present on GitHub runners.
+      - name: Deploy to Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm dlx wrangler@latest deploy --config wrangler.jsonc

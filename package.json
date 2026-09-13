@@ -57,8 +57,10 @@
   },
   "devDependencies": {
     "@aws-sdk/client-secrets-manager": "^3.1041.0",
+    "@cloudflare/containers": "^0.3.7",
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
     "@types/node": "catalog:",
+    "@typescript/native": "catalog:",
     "eslint": "^9.0.0",
     "jsdom": "^28.1.0",
     "knip": "6.32.3",
@@ -70,7 +72,6 @@
     "tailwindcss": "catalog:",
     "tsx": "catalog:",
     "turbo": "2.9.14",
-    "@typescript/native": "catalog:",
     "typescript": "catalog:",
     "zod": "catalog:"
   },
@@ -82,6 +83,13 @@
     "pnpm": "11.13",
     "node": ">=22.13"
   },
-  "keywords": ["postgres", "firebase", "storage", "functions", "database", "auth"],
+  "keywords": [
+    "postgres",
+    "firebase",
+    "storage",
+    "functions",
+    "database",
+    "auth"
+  ],
   "packageManager": "pnpm@11.13.1"
 }
