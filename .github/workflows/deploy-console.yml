@@ -149,10 +149,17 @@ jobs:
           echo "--- deploy/ ---"; ls -la deploy/
           echo "--- deploy/app (top) ---"; ls -la deploy/app/ | head -10
           echo "--- server entry ---"; ls -l deploy/app/apps/studio/server.js
-          echo "--- ignore files in play ---"
-          for f in .dockerignore deploy/Dockerfile.dockerignore; do
-            [ -f "$f" ] && { echo "== $f"; cat "$f" | grep -vE '^\s*#|^\s*$'; }
+          echo "--- the ignore file that will apply ---"
+          # Only one can, now that the context is deploy/. Printing it is not
+          # decoration: two ignore files in play is precisely what let CI and
+          # wrangler build different images. `|| true` because a missing file
+          # must not become the step's exit status — that is how this step
+          # failed the build the first time.
+          for f in deploy/.dockerignore .dockerignore; do
+            if [ -f "$f" ]; then echo "== $f"; grep -vE '^[[:space:]]*#|^[[:space:]]*$' "$f" || true; fi
           done
+          echo "--- context size wrangler will transfer ---"
+          du -sh deploy | cut -f1
 
       # Run the image here before shipping it. The edge only ever says "the
       # container just exited", which cannot distinguish a missing binary from
