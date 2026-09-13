@@ -49,4 +49,10 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         working-directory: deploy/probe
-        run: npx --yes wrangler@latest deploy --config wrangler.jsonc
+        # The Worker imports @cloudflare/containers and wrangler bundles it, so
+        # it has to be resolvable from here. This workflow deliberately skips
+        # the repo's pnpm install — the point is a build with nothing else in
+        # it — so install the one dependency directly.
+        run: |
+          npm i --no-save --no-audit --no-fund @cloudflare/containers@0.3.7
+          npx --yes wrangler@latest deploy --config wrangler.jsonc
