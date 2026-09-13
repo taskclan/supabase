@@ -1,0 +1,5 @@
+*
+!deploy
+deploy/*
+!deploy/app
+!deploy/probe

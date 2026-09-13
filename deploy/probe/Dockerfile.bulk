@@ -1,0 +1,16 @@
+# The console's payload, with a trivial app in place of Next.
+#
+# Built from the same staged deploy/app tree the console ships — same bulk,
+# same file count, same pnpm symlinks — but started by a five-line HTTP server
+# instead of the Next standalone runtime.
+#
+# Serves  -> the image content is fine on Cloudflare, and the fault is in
+#            starting Next specifically.
+# Exits 0 -> the payload itself is what Cloudflare cannot run, and the size or
+#            shape of the standalone tree is the thing to attack.
+FROM node:22-slim
+ENV PORT=8080
+COPY deploy/app/ ./
+COPY deploy/probe/probe.js /srv/probe.js
+EXPOSE 8080
+ENTRYPOINT ["node", "/srv/probe.js"]

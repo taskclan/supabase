@@ -225,6 +225,45 @@ jobs:
             *) echo "START COMMAND IS IN CMD, NOT ENTRYPOINT — Cloudflare will exit 0 on boot"; exit 1 ;;
           esac
 
+      # DIAGNOSTIC — remove once the console starts on Cloudflare.
+      #
+      # The console's image exits 0 on Cloudflare with nothing on stdout, while
+      # a minimal image serves. Probes have cleared the platform, our Worker
+      # class and the entrypoint form; what is left is the payload. This ships
+      # that exact payload with a trivial server in place of Next, to separate
+      # "Cloudflare cannot run this image" from "Cloudflare cannot start Next".
+      #
+      # Goes to its own Worker, so it cannot disturb the console.
+      - name: Diagnostic — the console's payload with a trivial app
+        timeout-minutes: 15
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          cd deploy/probe
+          npm i --no-audit --no-fund
+          cat > wrangler.bulk.jsonc <<'JSON'
+          {
+            "name": "taskclan-console-probe",
+            "main": "worker.ts",
+            "compatibility_date": "2026-09-01",
+            "compatibility_flags": ["nodejs_compat"],
+            "observability": { "enabled": true },
+            "containers": [
+              {
+                "class_name": "ProbeContainer",
+                "image": "../../deploy/probe/Dockerfile.bulk",
+                "image_build_context": "../..",
+                "instance_type": "standard-1",
+                "max_instances": 1
+              }
+            ],
+            "durable_objects": { "bindings": [{ "name": "PROBE", "class_name": "ProbeContainer" }] },
+            "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ProbeContainer"] }]
+          }
+          JSON
+          npx --yes wrangler@latest deploy --config wrangler.bulk.jsonc
+
       - name: Deploy to Cloudflare
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
