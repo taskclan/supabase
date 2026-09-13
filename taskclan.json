@@ -9,7 +9,7 @@
   },
   "build": {
     "install": "corepack enable && pnpm install --frozen-lockfile",
-    "command": "pnpm turbo run build --filter='studio^...' && NODE_OPTIONS=--max-old-space-size=12288 NEXT_TELEMETRY_DISABLED=1 SKIP_ASSET_UPLOAD=1 pnpm --filter studio exec next build && node scripts/taskclan-standalone.mjs",
+    "command": "pnpm turbo run build --filter='studio^...' && NODE_OPTIONS=--max-old-space-size=8192 NEXT_TELEMETRY_DISABLED=1 SKIP_ASSET_UPLOAD=1 pnpm --filter studio exec next build && node scripts/taskclan-standalone.mjs",
     "start": "node apps/studio/.next/standalone/apps/studio/server.js"
   }
 }
