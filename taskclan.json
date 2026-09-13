@@ -1,0 +1,15 @@
+{
+  "name": "taskclan-cloud-console",
+  "type": "service",
+  "service": {
+    "port": 8080,
+    "instanceType": "standard",
+    "maxInstances": 1,
+    "region": "canada"
+  },
+  "build": {
+    "install": "corepack enable && pnpm install --frozen-lockfile",
+    "command": "SKIP_ASSET_UPLOAD=1 pnpm turbo run build --filter=studio && node scripts/taskclan-standalone.mjs",
+    "start": "node apps/studio/.next/standalone/apps/studio/server.js"
+  }
+}
