@@ -1,0 +1,18 @@
+{
+  "name": "taskclan-console-probe",
+  "main": "worker.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "containers": [
+    {
+      "class_name": "ProbeContainer",
+      "image": "../../deploy/probe/Dockerfile",
+      "image_build_context": "../..",
+      "instance_type": "standard-1",
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": { "bindings": [{ "name": "PROBE", "class_name": "ProbeContainer" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ProbeContainer"] }]
+}

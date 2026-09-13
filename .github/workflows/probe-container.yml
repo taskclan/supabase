@@ -1,0 +1,44 @@
+# A minimal Cloudflare container, to answer one question.
+#
+# The console's image is proven to serve under Docker — including with CMD
+# cleared, the way Cloudflare starts it — and still exits 0 on Cloudflare with
+# nothing on stdout. That leaves two possibilities that no amount of reading
+# the console's own logs can separate: the platform never runs the entrypoint,
+# or it runs it and the app exits.
+#
+# This deploys the smallest container that can tell them apart: same base image,
+# same instance type, same port, an explicit ENTRYPOINT and no application. If
+# it serves, the fault is in the console image and this stays as a control. If
+# it exits too, this is a reproduction small enough to hand to Cloudflare.
+#
+# Runs only on demand, and deploys to its own Worker so it cannot disturb the
+# console.
+name: Probe container
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and run it here first
+        run: |
+          docker build -f deploy/probe/Dockerfile -t probe:test .
+          docker run -d --name probe-smoke -p 8080:8080 probe:test
+          sleep 8
+          docker logs probe-smoke 2>&1 | tail -10
+          code=$(curl -sS -m 10 -o /dev/null -w '%{http_code}' http://localhost:8080/ || echo 000)
+          docker rm -f probe-smoke >/dev/null 2>&1 || true
+          echo "local probe -> HTTP $code"
+          [ "$code" = "200" ] || { echo "the probe itself is broken"; exit 1; }
+
+      - name: Deploy the probe
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        working-directory: deploy/probe
+        run: npx --yes wrangler@latest deploy --config wrangler.jsonc
