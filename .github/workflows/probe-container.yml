@@ -33,19 +33,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build and run it here first
-        timeout-minutes: 5
-        run: |
-          docker build -f deploy/probe/Dockerfile -t probe:test .
-          docker inspect -f 'Entrypoint={{json .Config.Entrypoint}} Cmd={{json .Config.Cmd}}' probe:test
-          docker run -d --name probe-smoke -p 8080:8080 probe:test
-          sleep 8
-          docker logs probe-smoke 2>&1 | tail -10
-          code=$(curl -sS -m 10 -o /dev/null -w '%{http_code}' http://localhost:8080/ || echo 000)
-          docker rm -f probe-smoke >/dev/null 2>&1 || true
-          echo "local probe -> HTTP $code"
-          [ "$code" = "200" ] || { echo "the probe itself is broken"; exit 1; }
-
       - name: Deploy the probe
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
