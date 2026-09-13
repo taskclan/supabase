@@ -32,14 +32,14 @@ concurrency:
 
 jobs:
   deploy:
-    # The compile is memory-hungry: it peaks near 9.7 GB and died
-    # non-deterministically at 9, 23 and 57 minutes on ubuntu-latest's 16 GB.
-    # ubuntu-8core is an org-hosted runner (8 cores, 32 GB) provisioned for this.
+    # ubuntu-latest, deliberately, despite an 8-core runner existing.
     #
-    # Named directly rather than through `vars`: an expression here made the run
-    # fail at startup before any step existed, and a label that is wrong queues
-    # forever rather than failing, so this is the one place worth being literal.
-    runs-on: ubuntu-8core
+    # GitHub's larger runners refuse PUBLIC repositories by default, and this is
+    # a public fork of supabase/supabase. A job that asks for one is not
+    # rejected — it queues forever. Moving ubuntu-8core into a group that allows
+    # public repos is the permanent fix and drops this build to ~15 minutes;
+    # until then a standard runner is the one that actually picks the job up.
+    runs-on: ubuntu-latest
     timeout-minutes: 120
 
     steps:
@@ -93,10 +93,14 @@ jobs:
 
       - name: Build studio
         env:
-          # Outside turbo deliberately. turbo runs with envMode: strict and this
-          # repo declares no passThroughEnv, so NODE_OPTIONS never reaches the
-          # task — a heap setting applied there is silently discarded.
-          NODE_OPTIONS: --max-old-space-size=8192
+          # No NODE_OPTIONS. Raising the heap is what killed this build, not what
+          # saved it: on a 16 GB runner, 12288 MB OOM-killed the runner at 23
+          # minutes and 8192 MB at 9. The default heap is the only setting
+          # observed to survive — it compiled for 57 minutes and was still
+          # healthy when a 60-minute ceiling (since raised to 120) stopped it.
+          #
+          # V8 collects more often under a smaller old space, which is slow but
+          # recoverable. Being OOM-killed at the process level is not.
           NEXT_TELEMETRY_DISABLED: '1'
           # build:next otherwise uploads assets to Supabase's own CDN.
           SKIP_ASSET_UPLOAD: '1'
