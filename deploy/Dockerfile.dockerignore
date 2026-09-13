@@ -1,0 +1,21 @@
+# Build context for deploy/Dockerfile.
+#
+# BuildKit reads `<dockerfile>.dockerignore` in preference to the repo root's
+# .dockerignore, which is what this file exists to sidestep. The root one
+# carries `**/.next` — correct for upstream Supabase, and fatal here, because
+# the whole point of our image is to copy apps/studio/.next/standalone. Docker
+# reported it as:
+#
+#     failed to compute cache key: failed to calculate checksum of ref ...
+#     > [3/3] COPY apps/studio/.next/standalone/ ./
+#
+# which reads like a corrupt layer cache rather than "that path is not in the
+# context".
+#
+# Editing the root .dockerignore would work and would also conflict with every
+# upstream merge, forever. This file is ours alone.
+#
+# Ignore everything, then re-include only the built output. The context is then
+# ~775 MB of traced server rather than the whole 2.9 GB workspace.
+*
+!apps/studio/.next/standalone
