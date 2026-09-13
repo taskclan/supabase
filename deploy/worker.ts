@@ -13,6 +13,7 @@
  * its responses at the edge would be wrong, and there is nothing to shard.
  */
 import { Container, getContainer } from '@cloudflare/containers'
+import type { StopParams } from '@cloudflare/containers'
 
 export class ConsoleContainer extends Container<Env> {
   defaultPort = 8080
@@ -28,6 +29,29 @@ export class ConsoleContainer extends Container<Env> {
     ...Object.fromEntries(Object.entries(this.env).filter(([, v]) => typeof v === 'string')),
     PORT: '8080',
   } as Record<string, string>
+
+  // Lifecycle logging, because the edge only ever says "the container just
+  // exited" or "the container is not running" — true, and useless for telling
+  // a missing binary from an app that threw. These surface in `wrangler tail`.
+  //
+  // The exit code is the part worth having: 127 is a command that does not
+  // exist, 1 is the app failing on its own terms, 139 is a segfault. Several
+  // deploys were spent inferring which of those it was.
+  override onStart() {
+    console.log('[console-container] started')
+  }
+
+  override onStop({ exitCode, reason }: StopParams) {
+    console.error('[console-container] stopped exitCode=%s reason=%s', exitCode, reason)
+  }
+
+  override onError(error: unknown) {
+    console.error(
+      '[console-container] error: %s',
+      error instanceof Error ? (error.stack ?? error.message) : String(error),
+    )
+    return error
+  }
 }
 
 interface Env {
