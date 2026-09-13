@@ -1,21 +1,13 @@
-# Build context for deploy/Dockerfile.
+# Build context for deploy/Dockerfile. BuildKit prefers this over the repo
+# root's .dockerignore, which excludes **/.next and **/node_modules — correct
+# for upstream Supabase, fatal for an image made entirely of the traced server.
 #
-# BuildKit reads `<dockerfile>.dockerignore` in preference to the repo root's
-# .dockerignore, which is what this file exists to sidestep. The root one
-# carries `**/.next` — correct for upstream Supabase, and fatal here, because
-# the whole point of our image is to copy apps/studio/.next/standalone. Docker
-# reported it as:
-#
-#     failed to compute cache key: failed to calculate checksum of ref ...
-#     > [3/3] COPY apps/studio/.next/standalone/ ./
-#
-# which reads like a corrupt layer cache rather than "that path is not in the
-# context".
-#
-# Editing the root .dockerignore would work and would also conflict with every
-# upstream merge, forever. This file is ours alone.
-#
-# Ignore everything, then re-include only the built output. The context is then
-# ~775 MB of traced server rather than the whole 2.9 GB workspace.
+# Docker does not descend into an excluded directory, so `*` followed by
+# `!apps/studio/.next/standalone` silently matches nothing: `apps` is already
+# excluded and never walked. Re-including a deep path needs an alternating
+# exclude/include at every level, which is why CI stages the tree to deploy/app
+# and this only has to reach two levels down.
 *
-!apps/studio/.next/standalone
+!deploy
+deploy/*
+!deploy/app

@@ -171,3 +171,4 @@ examples/**/pnpm-lock.yaml
 
 # local-only lockfile for the mcp-server registry block
 apps/ui-library/registry/default/blocks/mcp-server/supabase/functions/mcp-server/deno.lock
+deploy/app/

@@ -108,9 +108,33 @@ jobs:
           pnpm turbo run build --filter='studio^...'
           pnpm --filter studio exec next build
           node scripts/taskclan-standalone.mjs
+          # Stage the built tree somewhere shallow. The root .dockerignore
+          # carries **/.next and **/node_modules — both correct for upstream,
+          # both fatal for an image whose entire content is the traced server.
+          # Copying to deploy/app means the context rules stay simple instead of
+          # alternating include/exclude down four levels of an ignored path.
+          rm -rf deploy/app
+          mkdir -p deploy/app
+          cp -a apps/studio/.next/standalone/. deploy/app/
+          echo "staged $(du -sh deploy/app | cut -f1) to deploy/app"
+          test -f deploy/app/apps/studio/server.js || { echo 'server.js missing from staged tree'; exit 1; }
 
       # wrangler builds deploy/Dockerfile, pushes the image to Cloudflare's
       # registry and rolls the container. Docker is present on GitHub runners.
+      # Three runs failed with "failed to compute cache key" and I read it three
+      # different ways, all wrong. It means the path is not in the build context.
+      # This prints what the context actually contains, so the next failure is
+      # evidence rather than another guess.
+      - name: Show what the image will be built from
+        run: |
+          echo "--- deploy/ ---"; ls -la deploy/
+          echo "--- deploy/app (top) ---"; ls -la deploy/app/ | head -10
+          echo "--- server entry ---"; ls -l deploy/app/apps/studio/server.js
+          echo "--- ignore files in play ---"
+          for f in .dockerignore deploy/Dockerfile.dockerignore; do
+            [ -f "$f" ] && { echo "== $f"; cat "$f" | grep -vE '^\s*#|^\s*$'; }
+          done
+
       - name: Deploy to Cloudflare
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

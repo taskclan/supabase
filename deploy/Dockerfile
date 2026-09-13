@@ -23,7 +23,11 @@ WORKDIR /app
 
 # The whole standalone tree: server.js, its traced node_modules, .next/static
 # and public. Nothing else from the repo ships — no source, no root modules.
-COPY apps/studio/.next/standalone/ ./
+#
+# Copied from deploy/app rather than apps/studio/.next/standalone: the root
+# .dockerignore excludes **/.next and **/node_modules, so the real path is
+# invisible to the build context. CI stages the tree here first.
+COPY deploy/app/ ./
 
 EXPOSE 8080
 
