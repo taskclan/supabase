@@ -227,14 +227,20 @@ jobs:
 
       # DIAGNOSTIC — remove once the console starts on Cloudflare.
       #
-      # The console's image exits 0 on Cloudflare with nothing on stdout, while
-      # a minimal image serves. Probes have cleared the platform, our Worker
-      # class and the entrypoint form; what is left is the payload. This ships
-      # that exact payload with a trivial server in place of Next, to separate
-      # "Cloudflare cannot run this image" from "Cloudflare cannot start Next".
+      # Five probes have cleared the platform, the Worker class, the entrypoint
+      # form and the image payload: this exact tree with a trivial server on it
+      # returns 200. Only starting Next fails, it fails in about a second — well
+      # inside the 20s port deadline — and it leaves no trace, because container
+      # stdout never reaches Workers Logs and exit 0 is only Next's own SIGTERM
+      # handler.
+      #
+      # So the image now carries a diagnostic entrypoint that listens on the
+      # edge's port FIRST, keeping the container alive and reachable whatever
+      # Next does, then imports the real server.js in-process and serves the
+      # stack trace at /.
       #
       # Goes to its own Worker, so it cannot disturb the console.
-      - name: Diagnostic — the console's payload with a trivial app
+      - name: Diagnostic — make the container report what Next throws
         timeout-minutes: 15
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
