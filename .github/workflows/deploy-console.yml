@@ -135,6 +135,30 @@ jobs:
             [ -f "$f" ] && { echo "== $f"; cat "$f" | grep -vE '^\s*#|^\s*$'; }
           done
 
+      # Run the image here before shipping it. The edge only ever says "the
+      # container just exited", which cannot distinguish a missing binary from
+      # an app that threw — several deploys went on inference because of it.
+      # The runner has Docker, so the container's own stdout is available for
+      # the cost of one step.
+      - name: Smoke-test the image
+        run: |
+          docker build -f deploy/Dockerfile -t console:test .
+          echo "--- layout inside the image ---"
+          docker run --rm console:test sh -c 'pwd; echo; ls -la; echo; ls -la /app | head -20; node -v'
+          echo "--- start it for real ---"
+          docker run -d --name console-smoke -p 8080:8080 -e PORT=8080 console:test
+          sleep 20
+          echo "--- container stdout ---"
+          docker logs console-smoke 2>&1 | tail -40
+          echo "--- is it listening? ---"
+          code=$(curl -sS -m 15 -o /tmp/smoke.html -w '%{http_code}' http://localhost:8080/ || echo 000)
+          echo "local probe -> HTTP $code"
+          docker rm -f console-smoke >/dev/null 2>&1 || true
+          case "$code" in
+            200|302|307) echo "image serves" ;;
+            *) echo "IMAGE DOES NOT SERVE — not deploying a container that cannot start"; exit 1 ;;
+          esac
+
       - name: Deploy to Cloudflare
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
