@@ -54,5 +54,8 @@ jobs:
         # the repo's pnpm install — the point is a build with nothing else in
         # it — so install the one dependency directly.
         run: |
-          npm i --no-save --no-audit --no-fund @cloudflare/containers@0.3.7
+          # deploy/probe carries its own package.json so npm installs here
+          # instead of walking up into the pnpm workspace root, whose
+          # `catalog:` versions npm cannot parse.
+          npm i --no-audit --no-fund
           npx --yes wrangler@latest deploy --config wrangler.jsonc

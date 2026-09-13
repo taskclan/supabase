@@ -1,0 +1,9 @@
+{
+  "name": "taskclan-console-probe",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Minimal Cloudflare container, deployed on its own to isolate console start failures.",
+  "dependencies": {
+    "@cloudflare/containers": "0.3.7"
+  }
+}
