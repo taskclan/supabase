@@ -141,10 +141,16 @@ jobs:
       # The runner has Docker, so the container's own stdout is available for
       # the cost of one step.
       - name: Smoke-test the image
+        timeout-minutes: 8
         run: |
           docker build -f deploy/Dockerfile -t console:test .
           echo "--- layout inside the image ---"
-          docker run --rm console:test sh -c 'pwd; echo; ls -la; echo; ls -la /app | head -20; node -v'
+          # --entrypoint, because the image's ENTRYPOINT is the server itself.
+          # Without it these arguments are passed TO the entrypoint script,
+          # which ignores them and starts Next in the foreground — the step then
+          # blocks until the job times out, 12 minutes of which were spent
+          # learning this.
+          docker run --rm --entrypoint sh console:test -c 'pwd; echo; ls -la; echo; ls -la /app | head -20; node -v'
           echo "--- start it for real ---"
           docker run -d --name console-smoke -p 8080:8080 -e PORT=8080 console:test
           sleep 20
@@ -173,6 +179,7 @@ jobs:
       # cleared. If the entrypoint alone does not serve, the deploy stops here
       # rather than at the edge with an error that names no cause.
       - name: Smoke-test the image the way Cloudflare starts it
+        timeout-minutes: 8
         run: |
           echo "--- declared start config ---"
           docker inspect -f 'Entrypoint={{json .Config.Entrypoint}}  Cmd={{json .Config.Cmd}}' console:test
