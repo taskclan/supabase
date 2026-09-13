@@ -45,12 +45,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: pnpm
+
+      # pnpm via corepack rather than pnpm/action-setup. This org allows only
+      # GitHub-owned actions (verified_allowed: false, patterns_allowed: []), so
+      # a third-party action fails the run at startup before any step exists —
+      # with no job to inspect, which makes it look like a broken workflow file.
+      # corepack reads packageManager from package.json, so the version stays
+      # pinned by the repo rather than by a workflow input.
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare --activate
+          pnpm --version
+
+      # The pnpm store, cached by hand because setup-node's `cache: pnpm` needs
+      # pnpm on PATH before setup-node runs — which corepack cannot do earlier
+      # without a Node to run it.
+      - name: Locate the pnpm store
+        run: echo "PNPM_STORE=$(pnpm store path --silent)" >> "$GITHUB_ENV"
+
+      - name: Restore the pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PNPM_STORE }}
+          key: pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-store-
 
       - name: Install
         run: pnpm install --frozen-lockfile
