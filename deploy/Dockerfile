@@ -19,6 +19,14 @@ ENV NODE_ENV=production
 ENV PORT=8080
 ENV HOSTNAME=0.0.0.0
 
+# The traced server is at apps/studio/server.js inside the standalone tree, and
+# Next resolves .next and public relative to the CURRENT DIRECTORY, not to
+# __dirname. Running `node apps/studio/server.js` from /app therefore starts a
+# server that cannot find its own build. Locally it worked only because it was
+# run from inside that directory.
+#
+# node_modules still resolves: Node walks up from /app/apps/studio and finds
+# /app/node_modules, where the traced dependencies live.
 WORKDIR /app
 
 # The whole standalone tree: server.js, its traced node_modules, .next/static
@@ -34,4 +42,5 @@ EXPOSE 8080
 # Run the traced server directly. `next start` is not used: it hardcodes port
 # 8082 in this repo's package.json, and the standalone server is both smaller
 # and the thing Next actually intends you to run in a container.
-CMD ["node", "apps/studio/server.js"]
+WORKDIR /app/apps/studio
+CMD ["node", "server.js"]
