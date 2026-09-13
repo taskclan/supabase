@@ -1,14 +1,16 @@
 {
-  // Second probe: the CONSOLE's own image, under the minimal Worker.
+  // Third probe: the tiny image again, started the way the console starts.
   //
-  // The first probe proved Cloudflare honours an image ENTRYPOINT and that our
-  // instance type, port and bindings are fine. That leaves two suspects for the
-  // console: its image, or its Worker class (envVars, enableInternet,
-  // sleepAfter, the gate). This separates them without a seven-minute rebuild,
-  // by pointing at the image already in the registry.
+  // Probe 1: tiny image, exec entrypoint  -> served, HTTP 200.
+  // Probe 2: the console's own image       -> exited, under this same Worker.
+  //   So the fault is the console's image, not ConsoleContainer.
+  // Probe 3 (here): tiny image again, but started through a shell the way the
+  //   console is: ENTRYPOINT ["/bin/sh","-c","cd ... && exec node ..."].
   //
-  // Serves  -> the image is fine; the fault is in ConsoleContainer.
-  // Exits 0 -> the image is at fault, whatever the Worker does.
+  // Serves  -> the entrypoint form is fine and the console's image differs some
+  //            other way (size is the next suspect).
+  // Exits 0 -> the form is the fault, and a single-argument exec entrypoint is
+  //            the fix.
   "name": "taskclan-console-probe",
   "main": "worker.ts",
   "compatibility_date": "2026-09-01",
@@ -17,7 +19,8 @@
   "containers": [
     {
       "class_name": "ProbeContainer",
-      "image": "registry.cloudflare.com/f4f001adb3aa142f207f1e5d736efafa/taskclan-cloud-console-consolecontainer@sha256:b3333fca2a95f59d4f794938071aca3176468ff2646375345af48b9b8bd9c208",
+      "image": "../../deploy/probe/Dockerfile",
+      "image_build_context": "../..",
       "instance_type": "standard-1",
       "max_instances": 1
     }
