@@ -32,12 +32,14 @@ concurrency:
 
 jobs:
   deploy:
-    # The compile is the whole cost here and it is memory-hungry: it peaks near
-    # 9.7 GB and dies non-deterministically on a 16 GB runner. Set the repo or
-    # org variable CONSOLE_RUNNER to a provisioned larger-runner label (8-core,
-    # 32 GB) to give it room. Unset, this is ubuntu-latest — a label that is not
-    # provisioned does not fail, it queues forever, so the default is spelled out.
-    runs-on: ${{ vars.CONSOLE_RUNNER || 'ubuntu-latest' }}
+    # The compile is memory-hungry: it peaks near 9.7 GB and died
+    # non-deterministically at 9, 23 and 57 minutes on ubuntu-latest's 16 GB.
+    # ubuntu-8core is an org-hosted runner (8 cores, 32 GB) provisioned for this.
+    #
+    # Named directly rather than through `vars`: an expression here made the run
+    # fail at startup before any step existed, and a label that is wrong queues
+    # forever rather than failing, so this is the one place worth being literal.
+    runs-on: ubuntu-8core
     timeout-minutes: 120
 
     steps:
