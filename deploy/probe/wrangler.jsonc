@@ -13,10 +13,11 @@
   "containers": [
     {
       "class_name": "ProbeContainer",
-      "image": "registry.cloudflare.com/f4f001adb3aa142f207f1e5d736efafa/taskclan-cloud-console-consolecontainer@sha256:303e0888b2459d3d136b16947de6929089ed3062eb5d42b518b13116bb94fbd9",
+      "image": "../../deploy/probe/Dockerfile.bulk",
+      "image_build_context": "../..",
       // standard-1 is 0.5 vCPU. Studio's boot is CPU-bound, so this doubles it
       // for the duration of the experiment only.
-      "instance_type": "standard-2",
+      "instance_type": "standard-1",
       "max_instances": 1
     }
   ],
