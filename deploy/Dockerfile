@@ -60,5 +60,6 @@ EXPOSE 8080
 # trust with the rest of the image config. exec keeps the server as PID 1 so it
 # still receives SIGTERM.
 WORKDIR /app/apps/studio
-ENTRYPOINT ["/bin/sh", "-c", "cd /app/apps/studio && exec node server.js"]
+COPY deploy/start.sh /usr/local/bin/start-console
+ENTRYPOINT ["/usr/local/bin/start-console"]
 CMD []

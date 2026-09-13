@@ -11,3 +11,4 @@
 !deploy
 deploy/*
 !deploy/app
+!deploy/start.sh

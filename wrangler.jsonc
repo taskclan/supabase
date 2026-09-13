@@ -15,6 +15,26 @@
     "enabled": true
   },
 
+  // Non-secret configuration for the container.
+  //
+  // The Worker spreads every string binding into the container's environment,
+  // so anything here (and every `wrangler secret put`) reaches the console as a
+  // plain env var. Without this block the container received nothing but PORT —
+  // it would have started and then failed on its first call to the engine.
+  //
+  // The secrets are set out of band and deliberately absent from this file:
+  //   TASKCLAN_CLOUD_API_KEY  the console's Cloud API key
+  //   CRYPTO_KEY              pg-meta's key for x-connection-encrypted
+  //   PG_META_CRYPTO_KEY      the same value, as Studio names it
+  //   TC_ACCESS_TOKEN         optional; enables the Worker's private-site gate
+  "vars": {
+    "TASKCLAN_CLOUD_URL": "https://engine.taskclan.com",
+    // pg-meta runs inside this container, started by deploy/start.sh. Loopback
+    // on purpose: the encrypted connection strings never leave the container.
+    "STUDIO_PG_META_URL": "http://127.0.0.1:8090",
+    "NODE_ENV": "production"
+  },
+
   "containers": [
     {
       "class_name": "ConsoleContainer",

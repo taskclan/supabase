@@ -116,6 +116,22 @@ jobs:
           rm -rf deploy/app
           mkdir -p deploy/app
           cp -a apps/studio/.next/standalone/. deploy/app/
+          # pg-meta ships inside the image, beside the console.
+          #
+          # Studio's database screens are not self-contained: the Table editor,
+          # the SQL editor and every schema view proxy through pg-meta over
+          # HTTP. It is not a Studio dependency, so Next's tracing does not pull
+          # it into the standalone output, and without this step the console
+          # starts and every database screen fails against a pg-meta that isn't
+          # there — which is how it would have shipped.
+          #
+          # Pinned: pg-meta's API moves with the Postgres version it targets,
+          # and a floating version would change the console's behaviour on an
+          # unrelated deploy.
+          npm i --prefix deploy/app/pgmeta --omit=dev --no-audit --no-fund @supabase/postgres-meta@0.99.0
+          test -f deploy/app/pgmeta/node_modules/@supabase/postgres-meta/dist/server/server.js \
+            || { echo 'pg-meta did not install'; exit 1; }
+
           echo "staged $(du -sh deploy/app | cut -f1) to deploy/app"
           test -f deploy/app/apps/studio/server.js || { echo 'server.js missing from staged tree'; exit 1; }
 
@@ -159,6 +175,14 @@ jobs:
           echo "--- is it listening? ---"
           code=$(curl -sS -m 15 -o /tmp/smoke.html -w '%{http_code}' http://localhost:8080/ || echo 000)
           echo "local probe -> HTTP $code"
+          # pg-meta answers on loopback inside the container, so ask from
+          # inside — and ask with node, which is certainly present. node:22-slim
+          # is Debian slim and carries no curl guarantee; probing with a tool
+          # that may not exist reports "pg-meta is down" when it is fine.
+          docker exec console-smoke node -e "
+            fetch('http://127.0.0.1:8090/health')
+              .then(r => console.log('pg-meta /health -> HTTP', r.status))
+              .catch(e => console.log('pg-meta unreachable:', e.message))" || true
           docker rm -f console-smoke >/dev/null 2>&1 || true
           case "$code" in
             200|302|307) echo "image serves under Docker" ;;
