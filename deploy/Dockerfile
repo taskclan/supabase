@@ -39,26 +39,23 @@ COPY deploy/app/ ./
 
 EXPOSE 8080
 
-# ENTRYPOINT, not CMD, and it carries its own `cd`.
+# An explicit ENTRYPOINT rather than CMD.
 #
-# This is the difference between an image that works in Docker and one that
-# works on Cloudflare, and it cost a full day. node:22-slim ships
-# ENTRYPOINT ["docker-entrypoint.sh"], CMD ["node"]. Setting only CMD here
-# leaves that shim as the entrypoint:
+# node:22-slim ships ENTRYPOINT ["docker-entrypoint.sh"], CMD ["node"], so
+# setting only CMD here left that shim as the entrypoint. Being explicit costs
+# nothing and removes the shim from the picture entirely.
 #
-#   Docker      -> docker-entrypoint.sh node server.js   -> server listens
-#   Cloudflare  -> docker-entrypoint.sh                  -> `exec node`
+# It is NOT, however, why this container would not start on Cloudflare. I
+# claimed that, and a minimal container disproved it: an image ENTRYPOINT with
+# no CMD serves there, and so does this exact `sh -c "cd ... && exec ..."` form.
+# The claim never fit the evidence either — the pre-fix image would have worked
+# if Cloudflare appended CMD, this one if it dropped CMD, and both exited 0.
 #
-# Cloudflare runs the image's ENTRYPOINT without appending CMD. With no
-# arguments the shim falls through to `exec node`, node treats its closed stdin
-# as the program to run, and the process EXITS 0 in milliseconds. The edge
-# reports that as "the container is not running, consider calling start()",
-# which reads like a platform fault and is really a clean, instant success.
+# What the probes did establish: the platform, the Worker class and the
+# entrypoint form are all fine, and this image's payload is the thing that will
+# not start. See the diagnostic step in deploy-console.yml.
 #
-# So: one explicit entrypoint, no reliance on CMD being appended, and the `cd`
-# inlined rather than left to WORKDIR — a runtime that drops CMD has not earned
-# trust with the rest of the image config. exec keeps the server as PID 1 so it
-# still receives SIGTERM.
+# exec keeps the server as PID 1 so it still receives SIGTERM.
 WORKDIR /app/apps/studio
 COPY deploy/start.sh /usr/local/bin/start-console
 ENTRYPOINT ["/usr/local/bin/start-console"]
