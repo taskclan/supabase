@@ -23,7 +23,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 const handlePost = async (req: NextApiRequest, res: NextApiResponse) => {
   const { query } = req.body
   const headers = constructHeaders(req.headers)
-  const { data, error } = await executeQuery({ query, headers })
+  // `ref` names the app whose database this query is for. It is in the route
+  // path — /api/platform/pg-meta/[ref]/query — and dropping it here is not a
+  // no-op: executeQuery then falls back to the process-wide connection, so the
+  // SQL editor for EVERY app queries the shared database, including the one
+  // holding cloud_api_keys. Proven before this line existed: pg-meta logged
+  // `"pg":"db"` (the compose default) for a forge3d query.
+  const ref = typeof req.query.ref === 'string' ? req.query.ref : undefined
+  const { data, error } = await executeQuery({ query, headers, ref })
 
   if (error) {
     if (error instanceof PgMetaDatabaseError) {

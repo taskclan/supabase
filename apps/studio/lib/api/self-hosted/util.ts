@@ -1,3 +1,4 @@
+import { constructHeaders } from '../apiHelpers'
 import crypto from 'crypto-js'
 
 import {
@@ -61,4 +62,26 @@ export async function getConnectionStringForRef({
       `Provision a scoped role with scripts/provision-studio-role, or unset ` +
       `TASKCLAN_CLOUD_API_KEY to use the shared connection.`
   )
+}
+
+/**
+ * Headers for a pg-meta proxy call, carrying the app's own connection.
+ *
+ * The `[ref]` pg-meta routes forward `x-connection-encrypted` when the incoming
+ * request has it — but a browser never sends it, so nothing was setting it and
+ * every one of them fell through to the process-wide connection. The Table
+ * editor for any app therefore listed the SHARED database's tables, which is
+ * the database holding cloud_api_keys.
+ *
+ * Building it here rather than at ten call sites means a new pg-meta route gets
+ * the behaviour by importing this, instead of by remembering to.
+ */
+export async function pgMetaHeaders(
+  req: { headers: Record<string, unknown>; query: Record<string, unknown> },
+  opts: { readOnly?: boolean } = {},
+): Promise<Record<string, string>> {
+  const base = constructHeaders(req.headers as { [prop: string]: unknown }) as Record<string, string>
+  const ref = typeof req.query.ref === 'string' ? req.query.ref : undefined
+  const connectionString = await getConnectionStringForRef({ readOnly: opts.readOnly ?? true, ref })
+  return { ...base, 'x-connection-encrypted': encryptString(connectionString) }
 }

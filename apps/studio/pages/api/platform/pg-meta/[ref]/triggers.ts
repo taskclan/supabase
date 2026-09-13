@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import { fetchGet } from '@/data/fetchers'
-import { constructHeaders } from '@/lib/api/apiHelpers'
 import { apiWrapper } from '@/lib/api/apiWrapper'
+import { pgMetaHeaders } from '@/lib/api/self-hosted/util'
 import { PG_META_URL } from '@/lib/constants'
 
 export default (req: NextApiRequest, res: NextApiResponse) =>
@@ -21,7 +21,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 const handleGetAll = async (req: NextApiRequest, res: NextApiResponse) => {
-  const headers = constructHeaders(req.headers)
+  const headers = await pgMetaHeaders(req)
   const response = await fetchGet(`${PG_META_URL}/triggers`, { headers })
 
   if (response.error) {
