@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/nextjs'
 
 import { constructHeaders } from '../apiHelpers'
 import { databaseErrorSchema, PgMetaDatabaseError, WrappedResult } from './types'
-import { assertSelfHosted, encryptString, getConnectionString } from './util'
+import { assertSelfHosted, encryptString, getConnectionStringForRef } from './util'
 import { PG_META_URL } from '@/lib/constants/index'
 
 export type QueryOptions = {
@@ -10,6 +10,15 @@ export type QueryOptions = {
   parameters?: unknown[]
   readOnly?: boolean
   headers?: HeadersInit
+  /**
+   * Which Taskclan app this query belongs to.
+   *
+   * Optional, and omitting it means the process-wide connection — upstream's
+   * behaviour, correct for a single-project install. Handlers that serve a
+   * specific project should pass `req.query.ref`, or the query runs against
+   * the shared database instead of the app's own.
+   */
+  ref?: string
 }
 
 /**
@@ -22,10 +31,14 @@ export async function executeQuery<T = unknown>({
   parameters,
   readOnly = false,
   headers,
+  ref,
 }: QueryOptions): Promise<WrappedResult<T[]>> {
   assertSelfHosted()
 
-  const connectionString = getConnectionString({ readOnly })
+  // `ref` names the app whose database this query is for. Without it the
+  // process-wide connection is used, which is upstream's behaviour and correct
+  // for a single-project install.
+  const connectionString = await getConnectionStringForRef({ readOnly, ref })
   const connectionStringEncrypted = encryptString(connectionString)
 
   const requestBody: { query: string; parameters?: unknown[] } = { query }
