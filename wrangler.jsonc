@@ -21,6 +21,14 @@
       // Built from the standalone output that CI produced. wrangler builds and
       // pushes this to Cloudflare's registry on deploy.
       "image": "./deploy/Dockerfile",
+      // Build the image from the REPO ROOT, not from deploy/.
+      //
+      // wrangler defaults the build context to the Dockerfile's own directory,
+      // so `COPY apps/studio/.next/standalone/` resolved against deploy/ and
+      // found nothing. Docker reports that as "failed to compute cache key:
+      // failed to calculate checksum", which reads like a corrupt cache rather
+      // than a path that was never in the context.
+      "image_build_context": ".",
       // Studio is a large Next app; `basic` is not enough to serve it warm.
       // "standard" is deprecated in favour of "standard-1"; wrangler warns on it.
       "instance_type": "standard-1",
