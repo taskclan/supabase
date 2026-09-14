@@ -90,11 +90,12 @@ export const TaskclanInstanceCard = () => {
           </span>
         ) : (
           <span className="text-foreground-light">
-            Instances{' '}
-            <span className="text-foreground">
-              {inst.active} running
-              {inst.healthy < inst.active ? ` (${inst.healthy} healthy)` : ''}
-            </span>
+            {/* Just the running count. The engine's `healthy` counter is not
+                reliably populated for containers — forge3d serves 6k requests
+                at 100% success and still reports 0 healthy — so a "(0 healthy)"
+                note read as a fault on a working app. Overall health already
+                has its own card. */}
+            Instances <span className="text-foreground">{inst.active} running</span>
           </span>
         )}
       </div>
