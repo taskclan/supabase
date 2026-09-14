@@ -4,6 +4,7 @@ import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { InstanceConfiguration } from '../Settings/Infrastructure/InfrastructureConfiguration/InstanceConfiguration'
 import { ActivityStats } from '@/components/interfaces/ProjectHome/ActivityStats'
+import { TaskclanOverview } from '@/components/interfaces/ProjectHome/TaskclanOverview'
 import { ProjectConnectionPopover } from '@/components/interfaces/ProjectHome/ProjectConnectionPopover'
 import { ProjectPausedState } from '@/components/layouts/ProjectLayout/PausedState/ProjectPausedState'
 import { InlineLink } from '@/components/ui/InlineLink'
@@ -82,10 +83,16 @@ export const TopSection = () => {
               <ProjectConnectionPopover projectRef={project?.ref} />
             </div>
           </div>
-          {IS_PLATFORM && (
+          {IS_PLATFORM ? (
             <div className="mt-8">
               <ActivityStats />
             </div>
+          ) : (
+            // Self-hosted: ActivityStats and the infra panel below are wired to
+            // Supabase's platform APIs and render nothing here. This is the
+            // Taskclan Cloud equivalent — real per-app status, compute, repo and
+            // last deploy — so the home page is an overview rather than a title.
+            <TaskclanOverview />
           )}
         </div>
         {IS_PLATFORM && (
