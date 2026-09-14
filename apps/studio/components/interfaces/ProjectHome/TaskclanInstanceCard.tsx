@@ -80,13 +80,23 @@ export const TaskclanInstanceCard = () => {
             {inst.cpuPct != null ? `${inst.cpuPct.toFixed(inst.cpuPct < 1 ? 2 : 0)}%` : '—'}
           </span>
         </span>
-        <span className="text-foreground-light">
-          Instances{' '}
-          <span className="text-foreground">
-            {inst.active}
-            {inst.active > 0 && inst.healthy < inst.active ? ` (${inst.healthy} healthy)` : ''}
+        {/* Zero running instances is the normal idle state, not a fault: a
+            Taskclan container sleeps when unused and wakes on the next request
+            (that is what per-second billing buys). "Instances 0" next to a
+            "Healthy" status read as broken, so idle says so in words. */}
+        {inst.active === 0 ? (
+          <span className="text-foreground-light">
+            <span className="text-foreground">Asleep</span> · wakes on request
           </span>
-        </span>
+        ) : (
+          <span className="text-foreground-light">
+            Instances{' '}
+            <span className="text-foreground">
+              {inst.active} running
+              {inst.healthy < inst.active ? ` (${inst.healthy} healthy)` : ''}
+            </span>
+          </span>
+        )}
       </div>
     </div>
   )
