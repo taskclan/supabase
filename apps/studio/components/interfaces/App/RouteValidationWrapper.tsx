@@ -1,4 +1,5 @@
 import { useIsLoggedIn, useIsMFAEnabled, useParams } from 'common'
+import { IS_PLATFORM } from '@/lib/constants'
 import { useRouter } from 'next/router'
 import { PropsWithChildren, useEffect } from 'react'
 import { toast } from 'sonner'
@@ -10,7 +11,6 @@ import { useDashboardHistory } from '@/hooks/misc/useDashboardHistory'
 import { useLastVisitedOrganization } from '@/hooks/misc/useLastVisitedOrganization'
 import { useLatest } from '@/hooks/misc/useLatest'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
-import { IS_PLATFORM } from '@/lib/constants'
 import { classifyProjectError, messageFor, shouldStay } from '@/lib/taskclan/routeError'
 
 // Ideally these could all be within a _middleware when we use Next 12
@@ -25,11 +25,21 @@ export const RouteValidationWrapper = ({ children }: PropsWithChildren<{}>) => {
   const { setLastVisitedSnippet, setLastVisitedTable } = useDashboardHistory()
   const { lastVisitedOrganization, setLastVisitedOrganization } = useLastVisitedOrganization()
 
-  const DEFAULT_HOME = IS_PLATFORM
-    ? !!lastVisitedOrganization
-      ? `/org/${lastVisitedOrganization}`
-      : '/organizations'
-    : '/project/default'
+  /**
+   * Where to send someone whose project could not be resolved.
+   *
+   * Upstream's self-hosted branch was '/project/default', which on Taskclan
+   * Cloud is a loop: no app has the ref "default", so the project 404s, this
+   * wrapper redirects to /project/default, and that 404s again. The reader sits
+   * on "Welcome to your project" with a blank name forever, and any unrelated
+   * hiccup paints its toast over a page that was never going to recover.
+   *
+   * The org's project list is the honest destination in both modes — there is
+   * more than one app here, so there is no single project to fall back to.
+   */
+  const DEFAULT_HOME = !!lastVisitedOrganization
+    ? `/org/${lastVisitedOrganization}`
+    : '/organizations'
 
   /**
    * Array of urls/routes that should be ignored
@@ -79,7 +89,13 @@ export const RouteValidationWrapper = ({ children }: PropsWithChildren<{}>) => {
 
   useEffect(() => {
     // check if current route is excempted from route validation check
-    if (isExceptUrl() || !isLoggedIn) return
+    //
+    // `isLoggedIn` is gated on IS_PLATFORM because this build has no sign-in:
+    // NEXT_PUBLIC_IS_PLATFORM is unset, useUser() is always null, and the
+    // original `!isLoggedIn` therefore made this entire check dead code. A link
+    // to an app that does not exist could never redirect, so the reader sat on
+    // "Welcome to your project" with a blank name and no way out.
+    if (isExceptUrl() || (IS_PLATFORM && !isLoggedIn)) return
 
     // A successful request to project details will validate access to both project and branches
     if (!!ref && isErrorProject) {
