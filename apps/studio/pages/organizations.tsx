@@ -1,7 +1,8 @@
 import { Plus, Search } from 'lucide-react'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button, Skeleton } from 'ui'
 import { Input } from 'ui-patterns/DataInputs/Input'
 
@@ -28,6 +29,7 @@ const OrganizationsPage: NextPageWithLayout = () => {
     brand: appTitle || 'Supabase',
   })
 
+  const router = useRouter()
   const {
     data: organizations = [],
     error,
@@ -37,6 +39,28 @@ const OrganizationsPage: NextPageWithLayout = () => {
   } = useOrganizationsQuery()
 
   const organizationCreationEnabled = useIsFeatureEnabled('organizations:create')
+
+  /**
+   * One organisation means this page is a list of one, and a click that could
+   * only ever go to one place. Taskclan Cloud is a single org today, so `/`
+   * would otherwise land a reader on a page whose entire job is to say "here is
+   * your org" before showing them their apps.
+   *
+   * `replace`, not `push`: this is a pass-through, and the Back button should
+   * return to wherever the reader came from rather than to a page that will
+   * immediately bounce them forward again.
+   *
+   * `?all=1` opts out, so the list stays reachable for creating a second org
+   * rather than becoming a page that cannot be opened. Gating on the create
+   * feature instead would not work: nothing is disabled in this build, so the
+   * redirect would never fire and this would be dead code.
+   */
+  useEffect(() => {
+    if (!isSuccess || router.query.all !== undefined) return
+    if (organizations.length === 1) {
+      router.replace(`/org/${organizations[0].slug}`)
+    }
+  }, [isSuccess, organizations, router])
   const filteredOrganizations =
     search.length === 0
       ? organizations
