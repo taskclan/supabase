@@ -450,7 +450,7 @@ select
         : safeSql``
     }
   from pg_stat_statements as statements
-    inner join pg_authid as auth on statements.userid = auth.oid
+    inner join pg_roles as auth on statements.userid = auth.oid
   -- skip queries that were never actually executed
   WHERE statements.calls > 0 ${where ? rewriteWhereToAnd(where) : safeSql``}
   ${orderBy || safeSql`order by statements.calls desc`}
@@ -505,7 +505,7 @@ select
         : safeSql``
     }
   from pg_stat_statements as statements
-    inner join pg_authid as auth on statements.userid = auth.oid
+    inner join pg_roles as auth on statements.userid = auth.oid
   -- skip queries that were never actually executed
   WHERE statements.calls > 0 ${where ? rewriteWhereToAnd(where) : safeSql``}
   ${orderBy || safeSql`order by total_time desc`}
@@ -558,7 +558,7 @@ select
         : safeSql``
     }
   from pg_stat_statements as statements
-    inner join pg_authid as auth on statements.userid = auth.oid
+    inner join pg_roles as auth on statements.userid = auth.oid
   -- skip queries that were never actually executed
   WHERE statements.calls > 0 ${where ? rewriteWhereToAnd(where) : safeSql``}
   ${orderBy || safeSql`order by max_time desc`}
@@ -633,7 +633,7 @@ select
               0
             ) as prop_total_time
           from pg_stat_statements as statements
-            inner join pg_authid as auth on statements.userid = auth.oid
+            inner join pg_roles as auth on statements.userid = auth.oid
           -- skip queries that were never actually executed
           WHERE statements.calls > 0 ${where ? rewriteWhereToAnd(where) : safeSql``}
           ${orderBy || safeSql`order by total_time desc`}
