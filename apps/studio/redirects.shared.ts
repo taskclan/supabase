@@ -30,13 +30,26 @@ export const PLATFORM_REDIRECTS: StudioRedirect[] = [
   { source: '/project/:ref/building', destination: '/project/:ref', permanent: false },
 ]
 
+/**
+ * Self-hosted upstream assumes ONE project, so every entry point landed on
+ * `/project/default`. Taskclan Cloud has twenty-two apps and `default` is not
+ * one of them: the page opened on "Welcome to your project" with a blank name,
+ * because no app answers to that ref.
+ *
+ * `/` goes to the org's project list instead — the same place supabase.com
+ * lands you, and the only honest answer when there is more than one app.
+ *
+ * The auth paths keep going somewhere useful rather than 404ing: this build has
+ * no sign-in (NEXT_PUBLIC_IS_PLATFORM is unset), so /signin and friends are
+ * links people have bookmarked, not a flow.
+ */
 export const SELF_HOSTED_REDIRECTS: StudioRedirect[] = [
-  { source: '/', destination: '/project/default', permanent: false },
-  { source: '/register', destination: '/project/default', permanent: false },
-  { source: '/signup', destination: '/project/default', permanent: false },
-  { source: '/signin', destination: '/project/default', permanent: false },
-  { source: '/login', destination: '/project/default', permanent: false },
-  { source: '/log-in', destination: '/project/default', permanent: false },
+  { source: '/', destination: '/organizations', permanent: false },
+  { source: '/register', destination: '/organizations', permanent: false },
+  { source: '/signup', destination: '/organizations', permanent: false },
+  { source: '/signin', destination: '/organizations', permanent: false },
+  { source: '/login', destination: '/organizations', permanent: false },
+  { source: '/log-in', destination: '/organizations', permanent: false },
   { source: '/project/:ref/building', destination: '/project/:ref', permanent: false },
 ]
 
