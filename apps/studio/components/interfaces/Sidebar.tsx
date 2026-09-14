@@ -1,4 +1,5 @@
 import { LOCAL_STORAGE_KEYS, useFlag, useIsMFAEnabled, useParams } from 'common'
+import { IS_PLATFORM } from '@/lib/constants'
 import { AnimatePresence, motion, MotionProps } from 'framer-motion'
 import { Home } from 'icons'
 import { isUndefined } from 'lodash'
@@ -281,11 +282,15 @@ const ProjectLinks = () => {
   const computeEnabled = useFlag('compute')
 
   const toolRoutes = useGenerateToolRoutes()
+  // Auth, Storage, Realtime and Edge Functions are Supabase per-project
+  // services that a shared-database Taskclan app does not have — the per-app
+  // role cannot read auth/storage, and there is no per-app realtime or
+  // edge-function runtime. Hidden in self-hosted rather than left to error.
   const productRoutes = generateProductRoutes(ref, project, {
-    auth: authEnabled,
-    edgeFunctions: edgeFunctionsEnabled,
-    storage: storageEnabled,
-    realtime: realtimeEnabled,
+    auth: IS_PLATFORM && authEnabled,
+    edgeFunctions: IS_PLATFORM && edgeFunctionsEnabled,
+    storage: IS_PLATFORM && storageEnabled,
+    realtime: IS_PLATFORM && realtimeEnabled,
     authOverviewPage: authOverviewPageEnabled,
     compute: computeEnabled,
   })

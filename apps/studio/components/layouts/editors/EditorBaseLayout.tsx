@@ -5,6 +5,7 @@ import { cn } from 'ui'
 
 import { EditorNavigationButton } from '../EditorNavigationButton'
 import { ProjectLayoutWithAuth } from '../ProjectLayout'
+import { TaskclanNoDatabase, useTaskclanDbStatus } from '@/components/interfaces/TaskclanNoDatabase'
 import { CollapseButton } from '../Tabs/CollapseButton'
 import { EditorTabs } from '../Tabs/Tabs'
 import { useEditorType } from './EditorsLayout.hooks'
@@ -27,6 +28,7 @@ export const EditorBaseLayout = ({
   productMenu,
   browserTitle,
 }: ExplorerLayoutProps) => {
+  const dbStatus = useTaskclanDbStatus()
   const { ref } = useParams()
   const pathname = usePathname()
   const editor = useEditorType()
@@ -78,7 +80,7 @@ export const EditorBaseLayout = ({
         >
           {hideTabs ? <CollapseButton hideTabs={hideTabs} /> : <EditorTabs />}
         </div>
-        <div className="h-full">{children}</div>
+        <div className="h-full">{dbStatus && dbStatus.configured === false ? <TaskclanNoDatabase /> : children}</div>
       </div>
     </ProjectLayoutWithAuth>
   )

@@ -1,4 +1,5 @@
 'use client'
+import { IS_PLATFORM } from '@/lib/constants'
 
 import { useFlag, useParams } from 'common'
 import { Home } from 'icons'
@@ -71,10 +72,12 @@ export function MobileMenuContent({
   const productRoutes = useMemo(
     () =>
       generateProductRoutes(ref, project, {
-        auth: authEnabled,
-        edgeFunctions: edgeFunctionsEnabled,
-        storage: storageEnabled,
-        realtime: realtimeEnabled,
+        // Shared-only services (auth/storage/realtime/edge functions) are hidden
+        // in self-hosted — a shared-database app has none of them per app.
+        auth: IS_PLATFORM && authEnabled,
+        edgeFunctions: IS_PLATFORM && edgeFunctionsEnabled,
+        storage: IS_PLATFORM && storageEnabled,
+        realtime: IS_PLATFORM && realtimeEnabled,
         authOverviewPage: authOverviewPageEnabled,
         compute: computeEnabled,
       }),

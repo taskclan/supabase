@@ -2,6 +2,7 @@ import { useRouter } from 'next/router'
 import type { PropsWithChildren } from 'react'
 
 import { ProjectLayout } from '../ProjectLayout'
+import { TaskclanNoDatabase, useTaskclanDbStatus } from '@/components/interfaces/TaskclanNoDatabase'
 import { useGenerateDatabaseMenu } from './DatabaseMenu.utils'
 import { ProductMenu } from '@/components/ui/ProductMenu'
 import { ProductMenuShortcuts } from '@/components/ui/ProductMenu/ProductMenuShortcuts'
@@ -20,6 +21,7 @@ export const DatabaseProductMenu = () => {
 }
 
 const DatabaseLayout = ({ children, title }: PropsWithChildren<DatabaseLayoutProps>) => {
+  const dbStatus = useTaskclanDbStatus()
   const router = useRouter()
   const page = router.pathname.split('/')[4]
   const menu = useGenerateDatabaseMenu()
@@ -32,7 +34,7 @@ const DatabaseLayout = ({ children, title }: PropsWithChildren<DatabaseLayoutPro
       isBlocking={false}
     >
       <ProductMenuShortcuts menu={menu} />
-      {children}
+      {dbStatus && dbStatus.configured === false ? <TaskclanNoDatabase /> : children}
     </ProjectLayout>
   )
 }
