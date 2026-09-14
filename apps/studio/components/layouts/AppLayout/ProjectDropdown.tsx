@@ -63,10 +63,6 @@ function ProjectDropdownNewProjectActions({
   )
 }
 
-const ProjectDropdownNonPlatformView = ({ projectName }: { projectName: string }) => {
-  return <div className="text-sm px-3 py-1">{projectName}</div>
-}
-
 interface ProjectDropdownPlatformViewProps {
   projectRef: string | undefined
   projectName: string
@@ -179,14 +175,17 @@ export const ProjectDropdown = ({
       <OrganizationProjectSelector {...selectorProps} embedded className={className} fetchOnMount />
     )
 
-  return IS_PLATFORM ? (
+  // The switcher view in both modes. Its project list comes from
+  // OrganizationProjectSelector -> useOrgProjectsInfiniteQuery, which the
+  // /platform/organizations/{slug}/projects handler answers from Taskclan Cloud
+  // — so self-hosted gets the same click-to-switch project picker as platform,
+  // instead of a bare, unclickable project name.
+  return (
     <ProjectDropdownPlatformView
       projectRef={project?.ref}
       projectName={selectedProject?.name ?? ''}
       projectManagedBy={selectedProjectManagedBy}
       selectorProps={selectorProps}
     />
-  ) : (
-    <ProjectDropdownNonPlatformView projectName={selectedProject?.name ?? ''} />
   )
 }

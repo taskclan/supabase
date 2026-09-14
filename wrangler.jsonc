@@ -32,6 +32,12 @@
     // pg-meta runs inside this container, started by deploy/start.sh. Loopback
     // on purpose: the encrypted connection strings never leave the container.
     "STUDIO_PG_META_URL": "http://127.0.0.1:8090",
+    // Where the SQL editor stores saved queries. The fork keeps snippets on the
+    // container filesystem; unset, the content endpoints throw and the editor
+    // hangs on a spinner. /tmp is writable in the container. NOTE: this disk is
+    // per-instance and does not survive a container restart, so saved queries
+    // are session-scoped until snippets move to the database.
+    "SNIPPETS_MANAGEMENT_FOLDER": "/tmp/tc-snippets",
     "NODE_ENV": "production"
   },
 
