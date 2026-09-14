@@ -132,16 +132,20 @@ export const TaskclanActivity = () => {
           No requests in this window.
         </p>
       ) : (
-        <div className="flex h-24 items-end gap-px" aria-hidden>
+        <div className="flex h-24 items-end gap-1.5" aria-hidden>
           {data.series.map((p) => {
             const h = Math.max(2, Math.round((p.requests / peak) * 96))
+            // Each bucket gets an equal-width cell; the bar sits narrow and
+            // centered inside it, so the chart reads as thin bars with air
+            // between them (Supabase's look) rather than a solid block.
             return (
-              <div
-                key={p.t}
-                className="flex-1 rounded-sm bg-brand/70"
-                style={{ height: `${h}px` }}
-                title={`${new Date(p.t).toLocaleString()} — ${p.requests} requests${p.errors ? `, ${p.errors} errors` : ''}`}
-              />
+              <div key={p.t} className="flex flex-1 items-end justify-center">
+                <div
+                  className="w-[6px] max-w-full rounded-sm bg-brand/70"
+                  style={{ height: `${h}px` }}
+                  title={`${new Date(p.t).toLocaleString()} — ${p.requests} requests${p.errors ? `, ${p.errors} errors` : ''}`}
+                />
+              </div>
             )
           })}
         </div>

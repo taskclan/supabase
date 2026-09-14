@@ -17,6 +17,7 @@ import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 import { formatAgo, formatDuration } from '@/lib/taskclan/deployments'
 import type { Overview } from '@/lib/taskclan/overview'
 import { TaskclanActivity } from './TaskclanActivity'
+import { TaskclanInstanceCard } from './TaskclanInstanceCard'
 
 const TONE: Record<Overview['status']['tone'], string> = {
   healthy: 'text-brand',
@@ -171,6 +172,8 @@ export const TaskclanOverview = () => {
           <ExternalLink size={13} />
         </a>
       )}
+
+      <TaskclanInstanceCard />
 
       <TaskclanActivity />
     </div>

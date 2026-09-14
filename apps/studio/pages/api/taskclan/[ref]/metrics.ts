@@ -29,6 +29,11 @@ interface EngineMetrics {
   }
   summary?: { requestsPerMinute?: number; errorRatePct?: number; deltas?: { requests?: number } }
   availability?: { uptimePct?: number }
+  container?: {
+    allocation?: { vcpu?: number; memory?: string; memoryMib?: number; disk?: string }
+  }
+  cpu?: { utilizationPct?: number }
+  instances?: { active?: number; healthy?: number; starting?: number; failed?: number }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -76,9 +81,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const answered = (status.success ?? 0) + errors
     const successRate = answered > 0 ? (100 * (status.success ?? 0)) / answered : null
 
+    const alloc = body.container?.allocation ?? {}
+    const inst = body.instances ?? {}
     return res.status(200).json({
       configured: m.configured ?? false,
       range,
+      // The container the app runs on — the honest per-app equivalent of
+      // Supabase's Primary Database card, which describes a database this app
+      // does not own alone.
+      instance: {
+        region: (site as { region?: string }).region || 'auto',
+        vcpu: alloc.vcpu ?? null,
+        memoryMib: alloc.memoryMib ?? null,
+        disk: alloc.disk ?? null,
+        cpuPct: body.cpu?.utilizationPct ?? null,
+        active: inst.active ?? 0,
+        healthy: inst.healthy ?? 0,
+      },
       requests,
       errors,
       disconnected: status.clientDisconnected ?? 0,
