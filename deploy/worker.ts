@@ -84,9 +84,32 @@ const ACCESS_COOKIE = 'tc_access'
  * probe that treats 401 as healthy is measuring the gate, not the app. The
  * engine's probe now sends the token for exactly this reason.
  */
+/**
+ * Paths the gate lets through unauthenticated.
+ *
+ * Only the front door and the assets that render it. A landing page behind a
+ * 401 is not a landing page, but the exemption has to be narrow: the console
+ * has no sign-in of its own, so everything the gate does not name is the only
+ * thing standing between the open internet and a SQL editor over every app's
+ * database.
+ *
+ * `/_next/static/` is here because the landing cannot render without its CSS
+ * and JS. Those are compiled bundles that any Next site serves publicly; they
+ * carry no data and no credentials. Note what is NOT exempt: `/_next/data/`,
+ * which is page props — that would leak the very thing the gate protects.
+ */
+function isPublicPath(pathname: string): boolean {
+  if (pathname === '/landing') return true
+  if (pathname.startsWith('/_next/static/')) return true
+  if (pathname === '/favicon.ico' || pathname.startsWith('/favicon/')) return true
+  return false
+}
+
 function gate(env: Env, request: Request): Response | null {
   const want = typeof env.TC_ACCESS_TOKEN === 'string' ? env.TC_ACCESS_TOKEN.trim() : ''
   if (!want) return null
+
+  if (isPublicPath(new URL(request.url).pathname)) return null
 
   const auth = request.headers.get('authorization') || ''
   const bearer = auth.slice(0, 7).toLowerCase() === 'bearer ' ? auth.slice(7).trim() : ''

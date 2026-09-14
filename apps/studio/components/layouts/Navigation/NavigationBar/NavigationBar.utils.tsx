@@ -9,7 +9,7 @@ import {
   Storage,
   TableEditor,
 } from 'icons'
-import { Blocks, Lightbulb, List, Settings, Telescope } from 'lucide-react'
+import { Blocks, Lightbulb, List, Rocket, Settings, Telescope } from 'lucide-react'
 
 import {
   useIsExplorerEnabled,
@@ -255,6 +255,20 @@ export const generateOtherRoutes = (
       icon: <Blocks size={ICON_SIZE} strokeWidth={ICON_STROKE_WIDTH} />,
       link: ref && (isProjectBuilding ? buildingUrl : `/project/${ref}/integrations`),
       shortcutId: SHORTCUT_IDS.NAV_INTEGRATIONS,
+    },
+    // Taskclan: an app here is a deployed service, not only a database.
+    //
+    // Not gated on isProjectActive, deliberately — unlike every route above it.
+    // Those need a running database to show anything; this one is most needed
+    // exactly when the app is NOT up, because the deploy history is where the
+    // reason lives. Disabling it while an app is down would hide the screen
+    // that explains why.
+    {
+      key: 'deployments',
+      label: 'Deployments',
+      disabled: false,
+      icon: <Rocket size={ICON_SIZE} strokeWidth={ICON_STROKE_WIDTH} />,
+      link: ref && `/project/${ref}/deployments`,
     },
   ]
 }
