@@ -54,6 +54,12 @@ export const useGenerateSettingsMenu = () => {
             items: [],
           },
           {
+            name: 'Secrets',
+            key: 'secrets',
+            url: `/project/${ref}/settings/secrets`,
+            items: [],
+          },
+          {
             name: 'JWT Keys',
             key: 'jwt',
             url: legacyJwtKeysEnabled
