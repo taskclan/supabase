@@ -57,3 +57,41 @@ export function useTaskclanConnectionPooler(): ConnectionStringPooler | null {
     ipv4SupportedForDedicatedPooler: false,
   }
 }
+
+
+interface TaskclanConnectInfo {
+  apiUrl: string | null
+  anonKey: string | null
+  publishableKey: string | null
+  mcpUrl: string | null
+}
+
+/**
+ * The shared, non-secret Connect values: the shared Supabase REST URL + anon
+ * key (the real supabase-js connection method — the anon key is already public,
+ * shipped in every app bundle) and the Taskclan Cloud MCP URL. Ref-independent:
+ * these are identical for every app. Fetched once; null until loaded.
+ *
+ * The service_role key is never included — it is a real secret.
+ */
+export function useTaskclanConnectInfo(): TaskclanConnectInfo | null {
+  const [data, setData] = useState<TaskclanConnectInfo | null>(null)
+
+  useEffect(() => {
+    let live = true
+    ;(async () => {
+      try {
+        const res = await fetch(`/api/taskclan/connect-info`)
+        const body = await res.json()
+        if (live) setData(res.ok ? body : null)
+      } catch {
+        if (live) setData(null)
+      }
+    })()
+    return () => {
+      live = false
+    }
+  }, [])
+
+  return data
+}

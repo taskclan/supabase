@@ -11,6 +11,7 @@ import {
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 import type { StepContentProps } from '@/components/interfaces/ConnectSheet/Connect.types'
+import { useTaskclanConnectInfo } from '@/components/interfaces/ConnectSheet/useTaskclanConnection'
 import { IS_PLATFORM } from '@/lib/constants'
 import { useTrack } from '@/lib/telemetry/track'
 
@@ -39,6 +40,8 @@ function McpCursorContentInner({
   state: StepContentProps['state']
 }) {
   const track = useTrack()
+  // Taskclan's MCP is the Cloud control-plane MCP, not `${apiUrl}/mcp`.
+  const taskclanMcpUrl = useTaskclanConnectInfo()?.mcpUrl ?? undefined
 
   const selectedClient = useMemo(() => {
     const clientKey = String(state.mcpClient ?? '')
@@ -69,9 +72,11 @@ function McpCursorContentInner({
   const { clientConfig } = getMcpUrl({
     projectRef,
     isPlatform: IS_PLATFORM,
-    apiUrl: projectKeys.apiUrl ?? undefined,
-    readonly,
-    features: selectedFeaturesSupported,
+    // Taskclan mode: force the Cloud MCP URL, drop the project-MCP knobs.
+    apiUrl: IS_PLATFORM ? (projectKeys.apiUrl ?? undefined) : undefined,
+    nonPlatformUrl: IS_PLATFORM ? undefined : taskclanMcpUrl,
+    readonly: IS_PLATFORM ? readonly : false,
+    features: IS_PLATFORM ? selectedFeaturesSupported : [],
     selectedClient,
   })
 

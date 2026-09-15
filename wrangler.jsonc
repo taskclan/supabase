@@ -29,6 +29,14 @@
   //   TC_ACCESS_TOKEN         optional; enables the Worker's private-site gate
   "vars": {
     "TASKCLAN_CLOUD_URL": "https://engine.taskclan.com",
+    // The shared Supabase project every Taskclan app connects to via
+    // supabase-js. The Connect panel's Framework/Mobile/Server tabs surface this
+    // REST URL + the anon key (TASKCLAN_SUPABASE_ANON_KEY, a Worker secret). The
+    // anon key is public by design — it already ships in every app's client
+    // bundle — so this is not a new exposure; it maps to the shared `anon` role
+    // (RLS-governed), NOT per-app isolation. Per-app isolation is the connection
+    // string (a scoped role). The service_role key is never surfaced.
+    "TASKCLAN_SUPABASE_URL": "https://ydpfystsgydquencpfyy.supabase.co",
     // pg-meta runs inside this container, started by deploy/start.sh. Loopback
     // on purpose: the encrypted connection strings never leave the container.
     "STUDIO_PG_META_URL": "http://127.0.0.1:8090",

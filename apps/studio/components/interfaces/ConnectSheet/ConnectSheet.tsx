@@ -12,8 +12,10 @@ import { useAvailableConnectModes } from './useAvailableConnectModes'
 import { useConnectSheetParams } from './useConnectSheetParams'
 import { useConnectSheetShortcut } from './useConnectSheetShortcut'
 import { useConnectState } from './useConnectState'
+import { useTaskclanConnectInfo } from './useTaskclanConnection'
 import { WarehouseModePanel } from './WarehouseModePanel/WarehouseModePanel'
 import { useAPIKeys } from '@/data/api-keys/api-keys-query'
+import { IS_PLATFORM } from '@/lib/constants'
 import { useProjectApiUrl } from '@/data/config/project-endpoint-query'
 import { useAsyncCheckPermissions } from '@/hooks/misc/useCheckPermissions'
 import { useTrack } from '@/lib/telemetry/track'
@@ -114,14 +116,26 @@ export const ConnectSheet = () => {
   )
   const { data: apiKeysData } = useAPIKeys({ projectRef }, { enabled: canReadAPIKeys })
 
+  // Self-hosted Taskclan has no per-app REST endpoint or API-key service; the
+  // real supabase-js connection is the shared project's URL + anon key (already
+  // public — it ships in every app bundle). See useTaskclanConnectInfo.
+  const taskclanConnectInfo = useTaskclanConnectInfo()
+
   const projectKeys: ProjectKeys = useMemo(() => {
+    if (!IS_PLATFORM && taskclanConnectInfo) {
+      return {
+        apiUrl: taskclanConnectInfo.apiUrl ?? '',
+        anonKey: taskclanConnectInfo.anonKey ?? null,
+        publishableKey: taskclanConnectInfo.publishableKey ?? null,
+      }
+    }
     const { anonKey, publishableKey } = apiKeysData ?? {}
     return {
       apiUrl: endpoint,
       anonKey: anonKey?.api_key ?? null,
       publishableKey: publishableKey?.api_key ?? null,
     }
-  }, [endpoint, apiKeysData])
+  }, [endpoint, apiKeysData, taskclanConnectInfo])
 
   const availableModes = useMemo(
     () => schema.modes.filter((m) => availableModeIds.includes(m.id)),
