@@ -15,6 +15,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const { data, error } = await getLints({
         headers: constructHeaders(req.headers),
         exposedSchemas: DEFAULT_EXPOSED_SCHEMAS,
+        // Lint the app's own database via its scoped role, not the process-wide
+        // connection (which on a shared database is the wrong target).
+        ref: typeof req.query.ref === 'string' ? req.query.ref : undefined,
       })
 
       if (error) {

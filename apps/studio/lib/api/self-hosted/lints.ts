@@ -7,13 +7,16 @@ import { DOCS_URL } from '@/lib/constants'
 interface GetLintsOptions {
   headers?: HeadersInit
   exposedSchemas?: string
+  /** The app whose database to lint; without it the process-wide connection is used. */
+  ref?: string
 }
 
-export async function getLints({ headers, exposedSchemas }: GetLintsOptions) {
+export async function getLints({ headers, exposedSchemas, ref }: GetLintsOptions) {
   const sql = getLintsSQL({ docsUrl: DOCS_URL })
   return await executeQuery<ResponseData[number]>({
     query: enrichLintsQuery(sql, exposedSchemas),
     headers,
+    ref,
   })
 }
 
