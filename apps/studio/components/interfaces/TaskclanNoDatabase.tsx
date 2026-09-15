@@ -16,6 +16,7 @@ import { useParams } from 'common'
 import { Check, Database } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from 'ui'
 
 import { TaskclanProvisionDatabase } from './TaskclanProvisionDatabase'
@@ -48,9 +49,34 @@ export function useTaskclanDbStatus(): DbStatus {
   return status
 }
 
+/**
+ * Surface the result of the one-click Supabase OAuth round trip. The engine
+ * callback redirects back here with ?supabase_oauth=connected|error; show it
+ * once and strip the params so a refresh doesn't repeat the toast.
+ */
+function useSupabaseOAuthReturn() {
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const u = new URL(window.location.href)
+    const status = u.searchParams.get('supabase_oauth')
+    if (!status) return
+    if (status === 'connected') {
+      toast.success('Supabase connected — your database is provisioning and will be ready shortly.')
+    } else {
+      const reason = u.searchParams.get('reason') || 'something went wrong'
+      toast.error(`Could not connect Supabase: ${reason}`)
+    }
+    u.searchParams.delete('supabase_oauth')
+    u.searchParams.delete('reason')
+    u.searchParams.delete('db')
+    window.history.replaceState({}, '', u.toString())
+  }, [])
+}
+
 export const TaskclanNoDatabase = () => {
   const { ref } = useParams()
   const [provisioned, setProvisioned] = useState(false)
+  useSupabaseOAuthReturn()
 
   if (provisioned) {
     return (

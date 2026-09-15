@@ -47,9 +47,11 @@ interface DbInfo {
   supabasePlans?: Plan[]
   plans?: Plan[]
   managedPostgresProviders?: string[]
+  supabaseOAuth?: boolean
 }
 
 const BYO = 'byo'
+const OWN_SUPABASE = 'supabase-oauth'
 
 /** 1 credit = $0.001, so credits/1000 = dollars/month. */
 const price = (credits: number) => (credits === 0 ? 'Free' : `$${Math.round(credits / 1000)}/mo`)
@@ -108,6 +110,15 @@ export function TaskclanProvisionDatabase({ onProvisioned }: { onProvisioned?: (
         })
       }
     }
+    if (info?.supabaseOAuth) {
+      out.push({
+        value: OWN_SUPABASE,
+        provider: OWN_SUPABASE,
+        title: 'Your own Supabase (one-click)',
+        blurb: 'Authorize your Supabase account — a dedicated project is created in your org',
+        price: '$3/mo service fee',
+      })
+    }
     out.push({
       value: BYO,
       provider: BYO,
@@ -130,6 +141,23 @@ export function TaskclanProvisionDatabase({ onProvisioned }: { onProvisioned?: (
     setBusy(true)
     setError(null)
     try {
+      if (choice === OWN_SUPABASE) {
+        // One-click: mint the authorize URL server-side, then hand the browser
+        // to Supabase. The engine callback provisions and returns here.
+        const res = await fetch(`/api/taskclan/${ref}/provision-supabase-oauth`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ plan: 'starter', name: name.trim() || undefined, returnUrl: window.location.href }),
+        })
+        const body = await res.json().catch(() => ({}))
+        if (!res.ok || !body.url) {
+          setError(body.error || 'Could not start the Supabase connection.')
+          setBusy(false)
+          return
+        }
+        window.location.href = body.url as string
+        return
+      }
       let payload: Record<string, unknown>
       if (isByo) {
         if (!byoUrl.trim()) {
@@ -250,7 +278,7 @@ export function TaskclanProvisionDatabase({ onProvisioned }: { onProvisioned?: (
             Cancel
           </Button>
           <Button type="button" variant="primary" loading={busy} disabled={busy || loading} onClick={submit}>
-            {isByo ? 'Connect database' : 'Provision database'}
+            {choice === OWN_SUPABASE ? 'Connect Supabase' : isByo ? 'Connect database' : 'Provision database'}
           </Button>
         </DialogFooter>
       </DialogContent>
