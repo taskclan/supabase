@@ -26,7 +26,7 @@ import { useProjectUpdateMutation } from '@/data/projects/project-update-mutatio
 import { useAsyncCheckPermissions } from '@/hooks/misc/useCheckPermissions'
 import { useDeploymentMode } from '@/hooks/misc/useDeploymentMode'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
-import { DOCS_URL } from '@/lib/constants'
+import { DOCS_URL, TASKCLAN_DOCS_URL } from '@/lib/constants'
 
 export const General = () => {
   const { ref } = useParams()
@@ -129,9 +129,9 @@ export const General = () => {
           {isSelfHosted && (
             <Admonition
               type="default"
-              title="Self-hosted Supabase"
+              title="Taskclan Cloud"
               description={<p>Project settings are configured via environment variables.</p>}
-              actions={<DocsButton href={`${DOCS_URL}/guides/self-hosting`} />}
+              actions={<DocsButton href={TASKCLAN_DOCS_URL} />}
             />
           )}
         </PageSectionContent>

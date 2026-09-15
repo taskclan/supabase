@@ -68,6 +68,9 @@ export const STRIPE_PUBLIC_KEY =
 export const USAGE_APPROACHING_THRESHOLD = 0.75
 
 export const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL || 'https://supabase.com/docs'
+// Taskclan's own docs. Kept separate from DOCS_URL because most DOCS_URL links
+// use Supabase's page paths, which don't exist on the Taskclan docs site.
+export const TASKCLAN_DOCS_URL = process.env.NEXT_PUBLIC_TASKCLAN_DOCS_URL || 'https://docs.taskclan.com'
 export const SPECIAL_SYMBOLS_IN_PASSWORDS_DOCS_URL = `${DOCS_URL}/guides/database/postgres/roles#special-symbols-in-passwords`
 
 export const OPT_IN_TAGS = {
