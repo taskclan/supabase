@@ -13,10 +13,12 @@
  * empty editor.
  */
 import { useParams } from 'common'
-import { Database } from 'lucide-react'
+import { Check, Database } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Button } from 'ui'
+
+import { TaskclanProvisionDatabase } from './TaskclanProvisionDatabase'
 
 type DbStatus = { configured: boolean; reason?: string } | undefined
 
@@ -48,22 +50,43 @@ export function useTaskclanDbStatus(): DbStatus {
 
 export const TaskclanNoDatabase = () => {
   const { ref } = useParams()
+  const [provisioned, setProvisioned] = useState(false)
+
+  if (provisioned) {
+    return (
+      <div className="flex h-full items-center justify-center p-8">
+        <div className="max-w-md text-center">
+          <div className="mx-auto mb-4 flex size-11 items-center justify-center rounded-lg bg-brand/15 text-brand">
+            <Check size={20} strokeWidth={2} />
+          </div>
+          <h2 className="text-base text-foreground">Database is being set up</h2>
+          <p className="mt-2 text-sm text-foreground-light">
+            The connection is stored as this app&apos;s <code>DATABASE_URL</code> and takes effect on
+            the next deploy. A freshly provisioned Supabase project needs a minute or two to come up.
+          </p>
+          <div className="mt-6 flex items-center justify-center gap-2">
+            <Button asChild variant="primary">
+              <Link href={ref ? `/project/${ref}/deployments` : '/'}>Deploy now</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-full items-center justify-center p-8">
       <div className="max-w-md text-center">
         <div className="mx-auto mb-4 flex size-11 items-center justify-center rounded-lg bg-surface-200 text-foreground-lighter">
           <Database size={20} strokeWidth={1.5} />
         </div>
-        <h2 className="text-base text-foreground">This app has no managed database</h2>
+        <h2 className="text-base text-foreground">This app has no database yet</h2>
         <p className="mt-2 text-sm text-foreground-light">
-          The Table editor, SQL editor and Database tools appear for apps that store data in
-          Taskclan&apos;s managed Postgres. This app doesn&apos;t have one, so there is nothing to
-          browse here.
+          The Table editor, SQL editor and Database tools work once this app has a database. Provision
+          a dedicated one billed to your workspace, or connect a database you already have.
         </p>
         <div className="mt-6 flex items-center justify-center gap-2">
-          <Button asChild variant="default">
-            <Link href={ref ? `/project/${ref}` : '/'}>App overview</Link>
-          </Button>
+          <TaskclanProvisionDatabase onProvisioned={() => setProvisioned(true)} />
           <Button asChild variant="default">
             <Link href={ref ? `/project/${ref}/deployments` : '/'}>Deployments</Link>
           </Button>
