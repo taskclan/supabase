@@ -25,6 +25,8 @@ import {
 } from './ConnectStepsSection.utils'
 import { CopyPromptButton } from './CopyPromptAdmonition'
 import { buildConnectionStringPooler, getConnectionStrings } from './DatabaseSettings.utils'
+import { useTaskclanConnectionPooler } from './useTaskclanConnection'
+import { IS_PLATFORM } from '@/lib/constants'
 import { getAddons } from '@/components/interfaces/Billing/Subscription/Subscription.utils'
 import { DocsButton } from '@/components/ui/DocsButton'
 import { InlineLink } from '@/components/ui/InlineLink'
@@ -50,6 +52,9 @@ interface ConnectStepsSectionProps {
  */
 function useConnectionStringPooler(deploymentMode: DeploymentMode): ConnectionStringPooler {
   const { ref: projectRef } = useParams()
+  // Self-hosted Taskclan resolves the app's real connection by ref; the
+  // Supabase pooler/supavisor config below is empty here.
+  const taskclanPooler = useTaskclanConnectionPooler()
   const { hasAccess: allowPgBouncerSelection } = useCheckEntitlements('dedicated_pooler')
   const isHighAvailability = useIsHighAvailability()
 
@@ -114,7 +119,7 @@ function useConnectionStringPooler(deploymentMode: DeploymentMode): ConnectionSt
     [connectionInfo, poolingConfigurationDedicated, projectRef]
   )
 
-  return useMemo(
+  const supabasePooler = useMemo(
     () =>
       buildConnectionStringPooler({
         deploymentMode,
@@ -133,6 +138,10 @@ function useConnectionStringPooler(deploymentMode: DeploymentMode): ConnectionSt
       isHighAvailability,
     ]
   )
+
+  // Taskclan's connection wins in self-hosted; upstream's builder produced only
+  // empty strings there.
+  return !IS_PLATFORM && taskclanPooler ? taskclanPooler : supabasePooler
 }
 
 // Vite needs `import.meta.glob` to statically discover the step content
