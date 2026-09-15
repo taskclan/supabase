@@ -5,7 +5,7 @@ import { lintKeys } from './keys'
 import type { Lint } from './lint-query'
 import { handleError, post } from '@/data/fetchers'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
-import { IS_PLATFORM, PROJECT_STATUS } from '@/lib/constants'
+import { PROJECT_STATUS } from '@/lib/constants'
 import { EMPTY_ARR } from '@/lib/void'
 import type { ResponseError, UseCustomQueryOptions } from '@/types'
 
@@ -80,7 +80,9 @@ export const useProjectHealthLintsQuery = <TData = ProjectHealthLintsData>(
   return useQuery<ProjectHealthLintsData, ProjectHealthLintsError, TData>({
     queryKey: lintKeys.healthLints(projectRef),
     queryFn: ({ signal }) => getProjectHealthLints({ projectRef }, signal),
-    enabled: enabled && IS_PLATFORM && typeof projectRef !== 'undefined' && isActive,
+    // The /v2 advisors/run endpoint is implemented for self-hosted Taskclan, so
+    // this runs off-platform too (it was IS_PLATFORM-gated).
+    enabled: enabled && typeof projectRef !== 'undefined' && isActive,
     // Every run costs a live database connection plus a metrics and a logs query, so keep
     // repeat mounts (homepage row, advisor panel) on one result and don't retry failures.
     staleTime: 60_000,
