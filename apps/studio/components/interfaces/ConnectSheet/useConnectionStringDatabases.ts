@@ -2,6 +2,7 @@ import { useParams } from 'common'
 import { useMemo } from 'react'
 
 import { CONNECTION_SOURCE_LOAD_BALANCER } from './Connect.constants'
+import { useTaskclanConnectionPooler } from './useTaskclanConnection'
 import type { DeploymentMode } from './Connect.types'
 import {
   buildConnectionStringPooler,
@@ -15,6 +16,7 @@ import { useReadReplicasQuery } from '@/data/read-replicas/replicas-query'
 import { useProjectAddonsQuery } from '@/data/subscriptions/project-addons-query'
 import { useCheckEntitlements } from '@/hooks/misc/useCheckEntitlements'
 import { useIsHighAvailability } from '@/hooks/misc/useSelectedProject'
+import { IS_PLATFORM } from '@/lib/constants'
 import { pluckObjectFields } from '@/lib/helpers'
 
 /**
@@ -28,6 +30,8 @@ export const useConnectionStringDatabases = (deploymentMode: DeploymentMode) => 
   const { ref: projectRef } = useParams()
   const { hasAccess: allowPgBouncerSelection } = useCheckEntitlements('dedicated_pooler')
   const isHighAvailability = useIsHighAvailability()
+  // Self-hosted Taskclan resolves its connection from Cloud, not supavisor.
+  const taskclanPooler = useTaskclanConnectionPooler()
 
   const { data: databases = [] } = useReadReplicasQuery({ projectRef })
   // Multigres has no pooler, so the pooler config endpoints don't apply
@@ -123,6 +127,15 @@ export const useConnectionStringDatabases = (deploymentMode: DeploymentMode) => 
       })
     }
 
+    // Self-hosted Taskclan has no supavisor/pgbouncer config, so the loop
+    // above yields empty bags (or none at all). Inject the app's real scoped
+    // connection, keyed by projectRef — which is what `connectionSource`
+    // defaults to — so the Direct tab resolves a working string instead of
+    // shimmering forever.
+    if (!IS_PLATFORM && taskclanPooler) {
+      connectionStringsByIdentifier[projectRef ?? '_'] = taskclanPooler
+    }
+
     return connectionStringsByIdentifier
   }, [
     databases,
@@ -133,5 +146,6 @@ export const useConnectionStringDatabases = (deploymentMode: DeploymentMode) => 
     projectRef,
     deploymentMode,
     isHighAvailability,
+    taskclanPooler,
   ])
 }
