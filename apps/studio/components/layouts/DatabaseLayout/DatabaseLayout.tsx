@@ -26,15 +26,26 @@ const DatabaseLayout = ({ children, title }: PropsWithChildren<DatabaseLayoutPro
   const page = router.pathname.split('/')[4]
   const menu = useGenerateDatabaseMenu()
 
+  // No managed database: suppress the Database nav too (every entry leads back to
+  // this same panel, and the schema selector has nothing to read), so the state
+  // is a clean panel rather than a sidebar of dead ends.
+  const noDatabase = dbStatus?.configured === false
+
   return (
     <ProjectLayout
       product="Database"
       browserTitle={{ section: title }}
-      productMenu={<ProductMenu page={page} menu={menu} />}
+      productMenu={noDatabase ? undefined : <ProductMenu page={page} menu={menu} />}
       isBlocking={false}
     >
-      <ProductMenuShortcuts menu={menu} />
-      {dbStatus && dbStatus.configured === false ? <TaskclanNoDatabase /> : children}
+      {noDatabase ? (
+        <TaskclanNoDatabase />
+      ) : (
+        <>
+          <ProductMenuShortcuts menu={menu} />
+          {children}
+        </>
+      )}
     </ProjectLayout>
   )
 }

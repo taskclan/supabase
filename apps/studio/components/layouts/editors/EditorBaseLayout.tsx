@@ -62,6 +62,13 @@ export const EditorBaseLayout = ({
     entity: browserTitle?.entity ?? activeEditorTabEntity,
   }
 
+  // No managed database: the schema/table sidebar and the editor tabs both drive
+  // pg-meta, which has nothing to talk to and renders "Failed to load schemas /
+  // tables" — the same outage-for-a-non-problem the panel replaces. Suppress the
+  // whole editor chrome and show only the panel. `dbStatus` is undefined while
+  // the check is in flight, so the normal editor renders until we know.
+  const noDatabase = dbStatus?.configured === false
+
   return (
     <ProjectLayoutWithAuth
       resizableSidebar
@@ -69,19 +76,23 @@ export const EditorBaseLayout = ({
       browserTitle={mergedBrowserTitle}
       productMenuBadge={editor === 'sql' ? <BackToExplorerButton /> : undefined}
       productMenuClassName={productMenuClassName}
-      productMenu={productMenu}
+      productMenu={noDatabase ? undefined : productMenu}
     >
-      <div className="flex flex-col h-full">
-        <div
-          className={cn(
-            'h-10 md:min-h-(--header-height) flex items-center',
-            !hideTabs ? 'bg-surface-200 dark:bg-alternative' : 'bg-surface-100'
-          )}
-        >
-          {hideTabs ? <CollapseButton hideTabs={hideTabs} /> : <EditorTabs />}
+      {noDatabase ? (
+        <TaskclanNoDatabase />
+      ) : (
+        <div className="flex flex-col h-full">
+          <div
+            className={cn(
+              'h-10 md:min-h-(--header-height) flex items-center',
+              !hideTabs ? 'bg-surface-200 dark:bg-alternative' : 'bg-surface-100'
+            )}
+          >
+            {hideTabs ? <CollapseButton hideTabs={hideTabs} /> : <EditorTabs />}
+          </div>
+          <div className="h-full">{children}</div>
         </div>
-        <div className="h-full">{dbStatus && dbStatus.configured === false ? <TaskclanNoDatabase /> : children}</div>
-      </div>
+      )}
     </ProjectLayoutWithAuth>
   )
 }
