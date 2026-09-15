@@ -61,10 +61,10 @@ export const TaskclanNoDatabase = () => {
           browse here.
         </p>
         <div className="mt-6 flex items-center justify-center gap-2">
-          <Button asChild type="default">
+          <Button asChild variant="default">
             <Link href={ref ? `/project/${ref}` : '/'}>App overview</Link>
           </Button>
-          <Button asChild type="default">
+          <Button asChild variant="default">
             <Link href={ref ? `/project/${ref}/deployments` : '/'}>Deployments</Link>
           </Button>
         </div>

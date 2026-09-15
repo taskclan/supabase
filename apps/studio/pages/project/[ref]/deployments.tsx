@@ -171,7 +171,7 @@ const DeploymentsPage: NextPageWithLayout = () => {
       primaryActions={
         <div className="flex items-center gap-3">
           <Button
-            type="default"
+            variant="default"
             icon={<RefreshCw size={14} className={cn(loading && 'animate-spin')} />}
             onClick={() => void load()}
             disabled={loading}
@@ -179,7 +179,7 @@ const DeploymentsPage: NextPageWithLayout = () => {
             Refresh
           </Button>
           <Button
-            type="primary"
+            variant="primary"
             loading={deploying}
             disabled={action.disabled || deploying}
             onClick={() => setConfirm(true)}

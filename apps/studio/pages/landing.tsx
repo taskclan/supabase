@@ -71,8 +71,20 @@ const INCLUDED = [
   'Custom domains with managed certificates',
 ]
 
-function Section({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <section className={`mx-auto w-full max-w-6xl px-6 ${className}`}>{children}</section>
+function Section({
+  children,
+  className = '',
+  id,
+}: {
+  children: ReactNode
+  className?: string
+  id?: string
+}) {
+  return (
+    <section id={id} className={`mx-auto w-full max-w-6xl px-6 ${className}`}>
+      {children}
+    </section>
+  )
 }
 
 export default function LandingPage() {
