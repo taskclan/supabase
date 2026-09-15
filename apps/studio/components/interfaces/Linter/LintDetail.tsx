@@ -42,6 +42,11 @@ export const LintDetail = ({
 
     onAskAssistant?.()
     openSidebar(SIDEBAR_KEYS.AI_ASSISTANT)
+    // newChat with an initialMessage sends it immediately — before the assistant
+    // panel's effect populates context.projectRef — so the request would go out
+    // without a projectRef and the API rejects it ("projectRef Required"). Set it
+    // here first; LintDetail already knows the ref.
+    snap.setContext({ projectRef })
     snap.newChat({
       name: 'Summarize lint',
       initialMessage: createLintSummaryPrompt(lint),
