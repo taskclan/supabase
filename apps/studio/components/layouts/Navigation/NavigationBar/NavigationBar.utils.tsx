@@ -284,7 +284,12 @@ export const useGenerateOtherRoutes = (): Route[] => {
   return generateOtherRoutes(ref, project, {
     unifiedLogs: unifiedLogsEnabled,
     showReports: reportsEnabled,
-    showLogs: logsEnabled,
+    // Logs is backed by Logflare, a separate log-ingestion service Taskclan
+    // Cloud does not run (the analytics endpoint fails with "fetch failed"), so
+    // the explorer only ever returns "No results found". Hidden in self-hosted
+    // like the other Supabase-managed services; Observability/Query Performance
+    // stays because it queries the database directly and works.
+    showLogs: IS_PLATFORM && logsEnabled,
   })
 }
 
