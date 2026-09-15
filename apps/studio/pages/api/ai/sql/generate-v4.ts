@@ -65,7 +65,11 @@ export default wrapper
 const requestBodySchema = z.object({
   messages: z.array(z.any()),
   projectRef: z.string(),
-  connectionString: z.string(),
+  // Optional: the Taskclan console resolves the app's connection server-side
+  // from projectRef (the browser never holds a connection string), so the
+  // client cannot supply this. Kept in the schema for the platform path, which
+  // does send it.
+  connectionString: z.string().optional(),
   schema: z.string().optional(),
   table: z.string().optional(),
   chatId: z.string().optional(),
@@ -185,7 +189,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, claims?: Jw
 
     const tools = await getTools({
       projectRef,
-      connectionString,
+      connectionString: connectionString ?? '',
       authorization,
       aiOptInLevel,
       accessToken,
@@ -211,7 +215,10 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, claims?: Jw
           'Content-Type': 'application/json',
           ...(authorization && { Authorization: authorization }),
         },
-        IS_PLATFORM ? undefined : executeQuery
+        IS_PLATFORM
+          ? undefined
+          : (opts: { query: string; headers?: HeadersInit }) =>
+              executeQuery({ ...opts, ref: projectRef, readOnly: true })
       )
 
       return schemas?.length > 0
