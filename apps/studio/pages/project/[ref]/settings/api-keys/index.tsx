@@ -9,6 +9,7 @@ import {
   ApiKeysFeedbackBanner,
 } from '@/components/interfaces/APIKeys/ApiKeysIllustrations'
 import { PublishableAPIKeys } from '@/components/interfaces/APIKeys/PublishableAPIKeys'
+import { TaskclanApiKeys } from '@/components/interfaces/APIKeys/TaskclanApiKeys'
 import { SecretAPIKeys } from '@/components/interfaces/APIKeys/SecretAPIKeys'
 import ApiKeysLayout from '@/components/layouts/APIKeys/APIKeysLayout'
 import { DefaultLayout } from '@/components/layouts/DefaultLayout'
@@ -55,23 +56,18 @@ const ApiKeysNewPage: NextPageWithLayout = () => {
             actions={<DocsButton href={`${DOCS_URL}/guides/local-development`} />}
           />
         )}
-        {isSelfHosted && (
-          <Admonition
-            type="default"
-            title="Self-hosted Supabase"
-            description={
-              <p>
-                <code className="text-code-inline">SUPABASE_PUBLISHABLE_KEY</code> and{' '}
-                <code className="text-code-inline">SUPABASE_SECRET_KEY</code> are set via
-                environment variables.
-              </p>
-            }
-            actions={<DocsButton href={`${DOCS_URL}/guides/self-hosting/self-hosted-auth-keys`} />}
-          />
+        {isSelfHosted ? (
+          // Taskclan: no per-app publishable/secret keys. Show the shared anon
+          // key + the app's own connection string (its real server credential),
+          // never the shared service_role.
+          <TaskclanApiKeys />
+        ) : (
+          <>
+            <PublishableAPIKeys />
+            <Separator />
+            <SecretAPIKeys />
+          </>
         )}
-        <PublishableAPIKeys />
-        <Separator />
-        <SecretAPIKeys />
       </div>
     )
   }

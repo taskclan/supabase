@@ -1,6 +1,6 @@
-import { Check, KeyRound } from 'lucide-react'
+import { Check, Eye, EyeOff, KeyRound } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { cn } from 'ui'
+import { Button, cn } from 'ui'
 import { CodeBlock } from 'ui-patterns/CodeBlock'
 import { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
 
@@ -74,6 +74,21 @@ function DirectConnectionContent({ state, deploymentMode }: StepContentProps) {
     [connectionMethod, useSharedPooler, connectionStringPooler]
   )
 
+  // Self-hosted Taskclan resolves the app's real connection (password included)
+  // server-side, behind the access gate; the user opted into revealing it. The
+  // platform password-reset flow doesn't exist here, so pull the real password
+  // out of the resolved string to drive a plain show/hide (decoded, so the
+  // reveal setter can re-encode it consistently).
+  const taskclanRealPassword = useMemo(() => {
+    if (!deploymentMode.isSelfHosted) return ''
+    try {
+      const pw = new URL(resolvedConnectionString).password
+      return pw ? decodeURIComponent(pw) : ''
+    } catch {
+      return ''
+    }
+  }, [deploymentMode.isSelfHosted, resolvedConnectionString])
+
   const connectionParams = useMemo(
     () => parseConnectionParams(resolvedConnectionString),
     [resolvedConnectionString]
@@ -143,7 +158,12 @@ function DirectConnectionContent({ state, deploymentMode }: StepContentProps) {
   const showTitleBadge = isLoadBalancerSelected || showPoolerTitle
   const showResetInTitle =
     deploymentMode.isPlatform && showPasswordPlaceholder && !temporaryDatabasePassword
-  const showStringTitleRow = showTitleBadge || showResetInTitle
+  const isTaskclanRevealed = !!temporaryDatabasePassword
+  const showTaskclanReveal =
+    deploymentMode.isSelfHosted &&
+    !!taskclanRealPassword &&
+    (showPasswordPlaceholder || isTaskclanRevealed)
+  const showStringTitleRow = showTitleBadge || showResetInTitle || showTaskclanReveal
 
   return (
     <div className="flex flex-col gap-3">
@@ -161,6 +181,18 @@ function DirectConnectionContent({ state, deploymentMode }: StepContentProps) {
                 triggerIcon={<KeyRound />}
                 onPasswordReset={setTemporaryDatabasePassword}
               />
+            )}
+            {showTaskclanReveal && (
+              <Button
+                size="tiny"
+                variant="default"
+                icon={isTaskclanRevealed ? <EyeOff /> : <Eye />}
+                onClick={() =>
+                  setTemporaryDatabasePassword(isTaskclanRevealed ? '' : taskclanRealPassword)
+                }
+              >
+                {isTaskclanRevealed ? 'Hide password' : 'Reveal password'}
+              </Button>
             )}
           </div>
         )}
@@ -180,6 +212,12 @@ function DirectConnectionContent({ state, deploymentMode }: StepContentProps) {
           <div className="flex items-center gap-2 border-t px-4 py-3 text-sm text-foreground-light">
             <Check size={16} className="text-brand shrink-0" />
             <span>New password shown until refresh.</span>
+          </div>
+        )}
+        {deploymentMode.isSelfHosted && temporaryDatabasePassword && (
+          <div className="flex items-center gap-2 border-t px-4 py-3 text-sm text-foreground-light">
+            <Check size={16} className="text-brand shrink-0" />
+            <span>Password revealed. Anyone who can open this console can read it.</span>
           </div>
         )}
       </div>

@@ -28,7 +28,6 @@ import { buildConnectionStringPooler, getConnectionStrings } from './DatabaseSet
 import { useTaskclanConnectionPooler } from './useTaskclanConnection'
 import { IS_PLATFORM } from '@/lib/constants'
 import { getAddons } from '@/components/interfaces/Billing/Subscription/Subscription.utils'
-import { DocsButton } from '@/components/ui/DocsButton'
 import { InlineLink } from '@/components/ui/InlineLink'
 import { useProjectSettingsV2Query } from '@/data/config/project-settings-v2-query'
 import { usePgbouncerConfigQuery } from '@/data/database/pgbouncer-config-query'
@@ -322,11 +321,30 @@ export function ConnectStepsSection({ steps, state, projectKeys }: ConnectStepsS
         {showSelfHostedMcpNotice && (
           <Admonition
             type="default"
-            title="MCP for self-hosted Supabase requires extra setup"
-            description="The configuration below points at the hosted Supabase MCP server. To use MCP against your self-hosted instance, follow the self-hosted MCP guide."
-            actions={[
-              <DocsButton key="docs" href={`${DOCS_URL}/guides/self-hosting/enable-mcp`} />,
-            ]}
+            title="This is the Taskclan Cloud MCP"
+            description={
+              <>
+                The configuration below points at Taskclan Cloud&apos;s MCP server, which manages
+                your org&apos;s cloud &mdash; deploy, env, domains, usage. Authenticate with an{' '}
+                <code className="text-code-inline">sk_cloud</code> API key from your Taskclan
+                dashboard (not a Supabase token). It is org-scoped, not per-app.
+              </>
+            }
+          />
+        )}
+        {deploymentMode.isSelfHosted && state.mode === 'framework' && (
+          <Admonition
+            type="default"
+            title="This anon key is shared and RLS-governed"
+            description={
+              <>
+                Taskclan apps share one project, so this{' '}
+                <code className="text-code-inline">anon</code> key is the same for every app and is
+                governed by row-level security &mdash; it is not a per-app isolation boundary. For an
+                isolated, server-side connection use this app&apos;s connection string (the Direct
+                tab).
+              </>
+            }
           />
         )}
 

@@ -1,5 +1,8 @@
 import { useParams } from 'common'
 
+import { TaskclanApiKeys } from '@/components/interfaces/APIKeys/TaskclanApiKeys'
+import { IS_PLATFORM } from '@/lib/constants'
+
 import { EnvRow } from '../common/EnvRow'
 import { SecretEnvRow } from '../common/SecretRow'
 import {
@@ -11,6 +14,10 @@ import { InlineLink } from '@/components/ui/InlineLink'
 
 function ServerEnvContent() {
   const { ref } = useParams()
+
+  // Self-hosted Taskclan has no shared secret/service_role key to put in a
+  // server .env; the server credential is the app's own connection string.
+  if (!IS_PLATFORM) return <TaskclanApiKeys />
   const { apiUrl, publishableKey, jwksUrl, secret, buildEnv, canReadAPIKeys } =
     useConnectServerEnv()
 
