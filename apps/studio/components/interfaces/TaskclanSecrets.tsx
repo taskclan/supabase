@@ -37,7 +37,7 @@ interface EnvResp {
   env?: EnvVar[]
   canWrite?: boolean
   canReveal?: boolean
-  pending?: string[]
+  pending?: { keys?: string[]; lastBuiltAt?: string | null }
   error?: string
 }
 
@@ -142,7 +142,7 @@ export function TaskclanSecrets() {
   const env = data?.env ?? []
   const canWrite = data?.canWrite ?? false
   const canReveal = data?.canReveal ?? false
-  const pending = new Set(data?.pending ?? [])
+  const pending = new Set(data?.pending?.keys ?? [])
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-6 lg:p-8">
