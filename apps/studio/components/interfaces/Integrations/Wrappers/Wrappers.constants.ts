@@ -25,6 +25,12 @@ export const WRAPPER_HANDLERS = {
   CLOUDFLARE_D1: 'wasm_fdw_handler',
   HUBSPOT: 'wasm_fdw_handler',
   ORB: 'wasm_fdw_handler',
+  // Provided by the wrappers extension but never listed by upstream, so the
+  // console offered no way to create them even where Postgres supports them.
+  MONGODB: 'mongodb_fdw_handler',
+  MYSQL: 'mysql_fdw_handler',
+  DUCKDB: 'duckdb_fdw_handler',
+  DYNAMODB: 'dynamo_db_fdw_handler',
 }
 
 export const SUPABASE_TARGET_SCHEMA_OPTION: ServerOption = {
@@ -4630,6 +4636,161 @@ export const WRAPPERS: WrapperMeta[] = [
             type: 'text',
           },
         ],
+      },
+    ],
+  },
+
+  /**
+   * The four wrappers below are shipped by the `wrappers` extension but were
+   * absent from this registry, so a database that could serve them offered no
+   * way to create one.
+   *
+   * Every option here was read off the extension's own validators rather than
+   * from documentation: each FDW names its next missing requirement on failure,
+   * so creating a server and table repeatedly until it succeeds yields exactly
+   * the set Postgres enforces. Verified on wrappers 0.6.3.
+   *
+   * Only required options are exposed. The validators accept unknown options
+   * silently, so optional ones cannot be discovered the same way, and guessing
+   * names would produce forms that build servers which fail at query time.
+   * Omitting an optional option cannot do that. Where a wrapper accepts both a
+   * plain credential and a Vault-backed `_id` form, the Vault form is used, as
+   * every other wrapper here does.
+   */
+  {
+    name: 'mongodb_wrapper',
+    handlerName: WRAPPER_HANDLERS.MONGODB,
+    validatorName: 'mongodb_fdw_validator',
+    icon: `${BASE_PATH}/img/icons/table-icon.svg`,
+    description: 'Document database',
+    extensionName: 'mongodbFdw',
+    label: 'MongoDB',
+    docsUrl: 'https://fdw.dev/catalog/mongodb/',
+    categories: ['data-platform'],
+    server: {
+      options: [
+        {
+          name: 'conn_string_id',
+          label: 'Connection String',
+          required: true,
+          encrypted: true,
+          secureEntry: true,
+        },
+      ],
+    },
+    tables: [
+      {
+        label: 'MongoDB Collection',
+        description: 'Map to a MongoDB collection',
+        options: [
+          { name: 'database', label: 'Database', editable: true, required: true, type: 'text' },
+          { name: 'collection', label: 'Collection', editable: true, required: true, type: 'text' },
+        ],
+      },
+    ],
+  },
+  {
+    name: 'mysql_wrapper',
+    handlerName: WRAPPER_HANDLERS.MYSQL,
+    validatorName: 'mysql_fdw_validator',
+    icon: `${BASE_PATH}/img/icons/table-icon.svg`,
+    description: 'Relational database',
+    extensionName: 'mysqlFdw',
+    label: 'MySQL',
+    docsUrl: 'https://fdw.dev/catalog/mysql/',
+    categories: ['data-platform'],
+    server: {
+      options: [
+        {
+          name: 'conn_string_id',
+          label: 'Connection String',
+          required: true,
+          encrypted: true,
+          secureEntry: true,
+        },
+      ],
+    },
+    tables: [
+      {
+        label: 'MySQL Table',
+        description: 'Map to a MySQL table',
+        options: [{ name: 'table', label: 'Table', editable: true, required: true, type: 'text' }],
+      },
+    ],
+  },
+  {
+    name: 'duckdb_wrapper',
+    handlerName: WRAPPER_HANDLERS.DUCKDB,
+    validatorName: 'duckdb_fdw_validator',
+    icon: `${BASE_PATH}/img/icons/table-icon.svg`,
+    description: 'In-process analytical database',
+    extensionName: 'duckdbFdw',
+    label: 'DuckDB',
+    docsUrl: 'https://fdw.dev/catalog/duckdb/',
+    categories: ['data-platform'],
+    server: {
+      options: [
+        {
+          // Free text rather than a list: the validator accepts any value at
+          // creation and resolves it at query time, so an enum here would be
+          // invented rather than observed.
+          name: 'type',
+          label: 'Type',
+          required: true,
+          encrypted: false,
+          secureEntry: false,
+        },
+      ],
+    },
+    tables: [
+      {
+        label: 'DuckDB Table',
+        description: 'Map to a DuckDB table',
+        options: [{ name: 'table', label: 'Table', editable: true, required: true, type: 'text' }],
+      },
+    ],
+  },
+  {
+    name: 'dynamodb_wrapper',
+    handlerName: WRAPPER_HANDLERS.DYNAMODB,
+    validatorName: 'dynamo_db_fdw_validator',
+    icon: `${BASE_PATH}/img/icons/aws-icon.svg`,
+    description: 'Serverless NoSQL key-value database',
+    extensionName: 'dynamoDbFdw',
+    label: 'DynamoDB',
+    docsUrl: 'https://fdw.dev/catalog/dynamodb/',
+    categories: ['data-platform'],
+    server: {
+      options: [
+        {
+          name: 'vault_access_key_id',
+          label: 'AWS Access Key ID',
+          required: true,
+          encrypted: true,
+          secureEntry: true,
+        },
+        {
+          name: 'vault_secret_access_key',
+          label: 'AWS Secret Access Key',
+          required: true,
+          encrypted: true,
+          secureEntry: true,
+        },
+        {
+          // Confirmed optional: a server created without it is accepted.
+          name: 'region',
+          label: 'Region',
+          required: false,
+          encrypted: false,
+          secureEntry: false,
+        },
+      ],
+    },
+    tables: [
+      {
+        label: 'DynamoDB Table',
+        description: 'Map to a DynamoDB table',
+        options: [{ name: 'table', label: 'Table', editable: true, required: true, type: 'text' }],
       },
     ],
   },
