@@ -2511,7 +2511,7 @@ export const WRAPPERS: WrapperMeta[] = [
           encrypted: false,
           secureEntry: false,
           defaultValue:
-            'https://github.com/supabase/wrappers/releases/download/wasm_cal_fdw_v0.1.0/cal_fdw.wasm',
+            'https://github.com/supabase/wrappers/releases/download/wasm_cal_fdw_v0.2.0/cal_fdw.wasm',
           hidden: true,
         },
         {
@@ -2529,7 +2529,7 @@ export const WRAPPERS: WrapperMeta[] = [
           required: true,
           encrypted: false,
           secureEntry: false,
-          defaultValue: '0.1.0',
+          defaultValue: '0.2.0',
           hidden: true,
         },
         {
@@ -2538,7 +2538,7 @@ export const WRAPPERS: WrapperMeta[] = [
           required: true,
           encrypted: false,
           secureEntry: false,
-          defaultValue: 'bca8a82d6c5f8da0aa58011940c4ddb40bb2c909c02dd89b488289c4fff890c1',
+          defaultValue: 'c9d14036b370758ce75871d69e9c842bc922703d02323b73397995f4cf14491b',
           hidden: true,
         },
         {
@@ -2719,7 +2719,7 @@ export const WRAPPERS: WrapperMeta[] = [
           encrypted: false,
           secureEntry: false,
           defaultValue:
-            'https://github.com/supabase/wrappers/releases/download/wasm_calendly_fdw_v0.1.0/calendly_fdw.wasm',
+            'https://github.com/supabase/wrappers/releases/download/wasm_calendly_fdw_v0.2.0/calendly_fdw.wasm',
           hidden: true,
         },
         {
@@ -2737,7 +2737,7 @@ export const WRAPPERS: WrapperMeta[] = [
           required: true,
           encrypted: false,
           secureEntry: false,
-          defaultValue: '0.1.0',
+          defaultValue: '0.2.0',
           hidden: true,
         },
         {
@@ -2746,7 +2746,7 @@ export const WRAPPERS: WrapperMeta[] = [
           required: true,
           encrypted: false,
           secureEntry: false,
-          defaultValue: 'aa17f1ce2b48b5d8d6cee4f61df4d6b23e9a333c3e5c7a10cec9aae619c156b9',
+          defaultValue: '1d18021cc3618440107b0d37f0a811607fdc863d9841a5da1ff9d56bc9f44df1',
           hidden: true,
         },
         {

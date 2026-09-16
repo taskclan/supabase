@@ -96,4 +96,27 @@ describe('wrapper registry', () => {
       }
     }
   })
+
+  it('pins every Wasm wrapper to a package whose checksum still verifies', () => {
+    // A stale pin does not fail at creation. It fails when the table is first
+    // queried, with `component verification failed` and no mention of a
+    // version, which is how Cal.com and Calendly sat broken while the other
+    // eight worked. Checking that a pin exists will not catch the next one —
+    // only running the module does, so these values came from the publisher's
+    // own checksum.txt and were confirmed against wrappers 0.6.3.
+    const verified: Record<string, string> = {
+      cal_wrapper: '0.2.0',
+      calendly_wrapper: '0.2.0',
+    }
+
+    for (const [name, version] of Object.entries(verified)) {
+      const wrapper = WRAPPERS.find((w) => w.name === name)!
+      const option = (o: string) => wrapper.server.options.find((x) => x.name === o)?.defaultValue
+
+      expect(option('fdw_package_version'), `${name} version`).toBe(version)
+      // The URL must name the same version it claims, or the checksum is being
+      // verified against a different build than the one downloaded.
+      expect(String(option('fdw_package_url')), `${name} url`).toContain(`_v${version}/`)
+    }
+  })
 })
