@@ -6,8 +6,26 @@ import { cn, Skeleton, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 import { useQueryPerformanceQuery } from './useQueryPerformanceQuery'
 import { NumericFilter } from '@/components/interfaces/Reports/v2/ReportsNumericFilter'
 
+/**
+ * What to show when the number is not known.
+ *
+ * These read as measurements, so they must not be invented. With the query
+ * failing — pg_stat_statements missing, for one — every fallback below
+ * resolved and the page reported "0 Slow Queries / 0% Cache Hit Rate / 0 Avg.
+ * Rows Per Call". A real zero and no answer at all are different facts, and
+ * 0% cache hit rate in particular reads as an emergency rather than as silence.
+ */
+const UNKNOWN = '—'
+
 export const QueryPerformanceMetrics = () => {
-  const { data: queryMetrics, isLoading } = useQueryPerformanceQuery({ preset: 'queryMetrics' })
+  const {
+    data: queryMetrics,
+    isLoading,
+    error,
+  } = useQueryPerformanceQuery({ preset: 'queryMetrics' })
+
+  // `error` is a string on this hook, not a react-query flag.
+  const isError = Boolean(error)
 
   const [, setSearchParams] = useQueryStates({
     totalTimeFilter: parseAsJson<NumericFilter | null>((value) =>
@@ -17,7 +35,7 @@ export const QueryPerformanceMetrics = () => {
 
   const stats = useMemo(() => {
     const slowQueriesTitle = queryMetrics?.[0]?.slow_queries === 1 ? 'Slow Query' : 'Slow Queries'
-    const slowQueriesValue = queryMetrics?.[0]?.slow_queries || '0'
+    const slowQueriesValue = isError ? UNKNOWN : queryMetrics?.[0]?.slow_queries || '0'
 
     return [
       {
@@ -34,18 +52,18 @@ export const QueryPerformanceMetrics = () => {
       },
       {
         title: 'Cache Hit Rate',
-        value: queryMetrics?.[0]?.cache_hit_rate || '0%',
+        value: isError ? UNKNOWN : queryMetrics?.[0]?.cache_hit_rate || '0%',
         tooltip:
           'Percentage of data read from cache vs disk. Higher is better - it means faster queries and less database load.',
       },
       {
         title: 'Avg. Rows Per Call',
-        value: queryMetrics?.[0]?.avg_rows_per_call || '0',
+        value: isError ? UNKNOWN : queryMetrics?.[0]?.avg_rows_per_call || '0',
         tooltip:
           'Average number of rows returned per query execution. Helps identify queries that return too much or too little data.',
       },
     ]
-  }, [queryMetrics, setSearchParams])
+  }, [queryMetrics, isError, setSearchParams])
 
   return (
     <section className="px-6 pt-2 pb-4 flex flex-wrap gap-x-6 gap-y-2 w-full">

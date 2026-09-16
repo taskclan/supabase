@@ -45,6 +45,16 @@ interface QueryPerformanceGridProps {
   aggregatedData: QueryPerformanceRow[]
   isLoading: boolean
   error?: string | null
+  /**
+   * The rows cannot be known, as opposed to being known to be empty.
+   *
+   * Without this the fallback says "No queries detected", which is a claim
+   * about the database. With pg_stat_statements missing there is nothing to
+   * detect queries WITH, so the honest answer is that there is no answer — the
+   * page's own warning already explains why, and repeating it here is what the
+   * removed duplicate error was doing.
+   */
+  isDataUnavailable?: boolean
   currentSelectedQuery?: string | null
   onCurrentSelectQuery?: (query: string) => void
   onRetry?: () => void
@@ -77,6 +87,7 @@ export const QueryPerformanceGrid = ({
   aggregatedData,
   isLoading,
   error,
+  isDataUnavailable,
   currentSelectedQuery,
   onCurrentSelectQuery,
   onRetry,
@@ -567,9 +578,13 @@ export const QueryPerformanceGrid = ({
               <div className="absolute top-20 px-6 flex flex-col items-center justify-center w-full gap-y-2">
                 <TextSearch className="text-foreground-muted" strokeWidth={1} />
                 <div className="text-center">
-                  <p className="text-foreground">No queries detected</p>
+                  <p className="text-foreground">
+                    {isDataUnavailable ? 'No query data to show' : 'No queries detected'}
+                  </p>
                   <p className="text-foreground-light">
-                    There are no actively running queries that match the criteria
+                    {isDataUnavailable
+                      ? 'Query statistics are not being collected for this database'
+                      : 'There are no actively running queries that match the criteria'}
                   </p>
                 </div>
               </div>

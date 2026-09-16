@@ -176,6 +176,25 @@ export const WithStatements = ({
     errorMessage.includes('pg_stat_statements') &&
     errorMessage.includes('does not exist')
 
+  /**
+   * The grid stays quiet about a missing extension, because the page already
+   * said it.
+   *
+   * Both were rendered: a calm warning naming the fix (Database → Extensions),
+   * and directly beneath it a red "Failed to load query performance data /
+   * relation "pg_stat_statements" does not exist" with a Try again button. Two
+   * descriptions of one situation, the louder one raw Postgres, and a button
+   * that cannot install an extension — pressing it could only reproduce the
+   * error it was offered for.
+   *
+   * Every other failure still reaches the grid, where Try again is a real
+   * remedy.
+   */
+  const gridError =
+    mainQueryError && !isPgStatStatementsNotInstalled
+      ? getErrorMessage(mainQueryError) || 'Failed to load query performance data'
+      : null
+
   return (
     <>
       {hasError && (
@@ -247,11 +266,8 @@ export const WithStatements = ({
       <QueryPerformanceGrid
         aggregatedData={processedData}
         isLoading={isLoading}
-        error={
-          mainQueryError
-            ? getErrorMessage(mainQueryError) || 'Failed to load query performance data'
-            : null
-        }
+        error={gridError}
+        isDataUnavailable={isPgStatStatementsNotInstalled}
         onRetry={handleRefresh}
         onScroll={handleScroll}
       />
@@ -288,10 +304,16 @@ export const WithStatements = ({
 
         <div className="w-[33%] flex flex-col gap-y-1 text-sm">
           <p>Inspect your database for potential issues</p>
+          {/*
+            Was "The Supabase CLI comes with a range of tools...", linking to
+            Supabase's observability docs. There is no Supabase CLI in Taskclan
+            Cloud, and the Taskclan CLI signs you in and wires git remotes — it
+            does not inspect Postgres. Advisors is the thing that actually does
+            this here, and it is one click away rather than an install.
+          */}
           <Markdown
             className="text-xs"
-            content={`The Supabase CLI comes with a range of tools to help inspect your Postgres instances for
-            potential issues. [Learn more here](${DOCS_URL}/guides/observability/inspect).`}
+            content={`Advisors checks this database for security and performance issues, including indexes and row-level security. [Open Advisors](/project/${ref}/advisors/security).`}
           />
         </div>
       </div>
