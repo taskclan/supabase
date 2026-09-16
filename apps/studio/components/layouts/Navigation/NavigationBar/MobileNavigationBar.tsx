@@ -57,17 +57,23 @@ export const MobileNavigationBar = ({
               </Link>
             </div>
           )}
+          {/*
+            Self-hosted has no org switcher, so the mark is the only way home
+            and is always shown. On platform the mark is the fallback for when
+            neither the project controls nor the org selector apply — which is
+            why it must be guarded by IS_PLATFORM rather than left as a bare
+            `else`. Unguarded it also matched self-hosted, and the header
+            rendered the logo twice on every non-project screen at mobile width.
+          */}
           {!IS_PLATFORM && <HomeIcon />}
-          {isProjectScope ? (
+          {isProjectScope && (
             <>
               <ProjectBranchSelector />
               <ConnectButton iconOnly className="w-8 h-8" />
             </>
-          ) : IS_PLATFORM && showOrgSelection ? (
-            <OrgSelector />
-          ) : (
-            <HomeIcon className="ml-1" />
           )}
+          {!isProjectScope && IS_PLATFORM && showOrgSelection && <OrgSelector />}
+          {!isProjectScope && IS_PLATFORM && !showOrgSelection && <HomeIcon className="ml-1" />}
         </div>
         <div className="flex shrink-0 gap-2">
           {IS_PLATFORM ? <UserDropdown /> : <LocalDropdown />}
