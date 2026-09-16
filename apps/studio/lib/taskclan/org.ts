@@ -14,8 +14,8 @@
  * scoped, because the round trip it saved is not worth the shape of the bug it
  * invites. If it returns, it must be keyed by caller.
  */
-import { listCloudOrgs, type CloudOrg, type CloudResult } from './client'
 import type { Caller } from './callerContext'
+import { listCloudOrgs, type CloudOrg, type CloudResult } from './client'
 import { numericIdFor } from './projects'
 
 export interface TaskclanOrg {
@@ -126,4 +126,45 @@ export async function taskclanOrg(caller: Caller): Promise<CloudResult<TaskclanO
     return { ok: false, reason: 'http_error', detail: 'the caller belongs to no organisation' }
   }
   return { ok: true, data: result.data.active }
+}
+
+/**
+ * Taskclan Cloud's roles, as Studio's org-scoped roles.
+ *
+ * Cloud has exactly three, fixed by a CHECK constraint on cloud_org_members.
+ * Studio wants numeric ids and matches a member to a role by id, so the ids are
+ * assigned here and must stay stable: they are persisted in nothing, but a
+ * member's `role_ids` is resolved against this list on every render, and
+ * renumbering would silently re-label everybody.
+ *
+ * Named as Cloud names them rather than mapped onto Supabase's Owner /
+ * Administrator / Developer / Read-only. Those four describe permissions this
+ * backend does not implement, and showing somebody "Developer" when the engine
+ * knows only "member" would be inventing a distinction that changes nothing.
+ */
+export const TASKCLAN_ROLES = [
+  { id: 1, name: 'Owner', description: 'Full control, including billing and deleting the org.' },
+  { id: 2, name: 'Admin', description: 'Manage members and apps.' },
+  { id: 3, name: 'Member', description: 'Use the org and its apps.' },
+] as const
+
+/** Cloud's role string to the id Studio matches on. */
+export function roleIdFor(role: string): number {
+  const match = TASKCLAN_ROLES.find((r) => r.name.toLowerCase() === role.toLowerCase())
+  return match?.id ?? 3
+}
+
+/**
+ * The caller's org matching `slug`, or null.
+ *
+ * Accepts the legacy name-derived slug as well as the engine's own, for the
+ * same reason `matchesSlug` does: stored URLs still hold the old spelling.
+ */
+export async function orgForSlug(
+  slug: string,
+  caller: Caller
+): Promise<CloudResult<TaskclanOrg | null>> {
+  const result = await taskclanOrgs(caller)
+  if (!result.ok) return result
+  return { ok: true, data: result.data.orgs.find((o) => matchesSlug(o, slug)) ?? null }
 }
