@@ -10,8 +10,9 @@
  *   - Name + type (web service or static site).
  *   - Source: start empty ("just locally", deploy later) OR import a GitHub repo
  *     (the engine creates the site, links the repo and kicks off a build).
- *   - Database (optional): none, or a dedicated managed database (Supabase/Neon)
- *     provisioned against the new app and billed to the org wallet.
+ *   - Database (optional): none, a managed database (Supabase/Neon, wallet-billed),
+ *     your own Supabase via one-click OAuth ($3/mo service fee), or your own
+ *     connection string — all attached to the new app after it is created.
  *
  * Orchestrated client-side so each step gives its own feedback and a later
  * failure (e.g. the database) does not lose the app that was already created.
@@ -46,6 +47,7 @@ interface DbInfo {
   supabasePlans?: Plan[]
   plans?: Plan[]
   managedPostgresProviders?: string[]
+  supabaseOAuth?: boolean
 }
 interface Repo {
   fullName: string
@@ -54,6 +56,10 @@ interface Repo {
   installationId: number
   owner: string
 }
+
+// Non-managed database choices, matching the per-app "Set up a database" dialog.
+const BYO = 'byo'
+const OWN_SUPABASE = 'supabase-oauth'
 
 /** 1 credit = $0.001, so credits/1000 = dollars/month. */
 const price = (credits: number) => (credits === 0 ? 'Free' : `$${Math.round(credits / 1000)}/mo`)
@@ -77,9 +83,10 @@ export const TaskclanProjectCreationForm = () => {
   const [repo, setRepo] = useState('')
   const [branch, setBranch] = useState('')
 
-  const [dbMode, setDbMode] = useState<'none' | 'dedicated'>('none')
+  const [dbMode, setDbMode] = useState<'none' | 'add'>('none')
   const [dbInfo, setDbInfo] = useState<DbInfo | null>(null)
-  const [dbChoice, setDbChoice] = useState('') // "supabase:starter" | "neon:standard" | ...
+  const [dbChoice, setDbChoice] = useState('') // "supabase:starter" | "neon:standard" | "byo" | "supabase-oauth"
+  const [byoUrl, setByoUrl] = useState('')
 
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -123,18 +130,39 @@ export const TaskclanProjectCreationForm = () => {
           price: price(p.priceCredits),
         })
     }
+    // Bring-your-own developers: authorize their own Supabase (a dedicated
+    // project is created in their org, $3/mo service fee), or paste any
+    // Postgres connection string. Both attach to the new app after it is
+    // created, so they belong on this form too.
+    if (dbInfo?.supabaseOAuth) {
+      out.push({
+        value: OWN_SUPABASE,
+        title: 'Your own Supabase (one-click)',
+        blurb: 'Authorize your Supabase account — a dedicated project is created in your org',
+        price: '$3/mo service fee',
+      })
+    }
+    out.push({
+      value: BYO,
+      title: 'Bring your own',
+      blurb: 'Paste a Postgres connection string',
+      price: 'Free',
+    })
     return out
   }, [dbInfo])
 
   useEffect(() => {
-    if (dbMode === 'dedicated' && !dbChoice && dbOptions.length) setDbChoice(dbOptions[0].value)
+    if (dbMode === 'add' && !dbChoice && dbOptions.length) setDbChoice(dbOptions[0].value)
   }, [dbMode, dbChoice, dbOptions])
 
+  const isByo = dbChoice === BYO
+  const isOauth = dbChoice === OWN_SUPABASE
+  const selectedDbOption = dbOptions.find((o) => o.value === dbChoice)
   const selectedRepo = repos?.find((r) => r.fullName === repo)
   const canSubmit =
     name.trim().length > 0 &&
     (source === 'empty' || (source === 'github' && repo)) &&
-    (dbMode === 'none' || !!dbChoice) &&
+    (dbMode === 'none' || (!!dbChoice && (!isByo || byoUrl.trim().length > 0))) &&
     !busy
 
   const submit = async () => {
@@ -165,24 +193,58 @@ export const TaskclanProjectCreationForm = () => {
         source === 'github' ? `Importing ${repo} into ${name.trim()}` : `Created ${name.trim()}`
       )
 
-      // 2) Provision a dedicated database against the new app, if chosen.
-      if (dbMode === 'dedicated' && dbChoice) {
-        const [provider, plan] = dbChoice.split(':')
-        toast.info('Provisioning the database…')
+      // 2) Attach a database to the new app, if chosen. Every kind resolves
+      // against the ref, which is why the app is created first.
+      const dbName = `${name.trim()} database`
+      if (dbMode === 'add' && isOauth) {
+        // One-click "your own Supabase": mint the authorize URL server-side and
+        // hand the browser to Supabase. The engine callback provisions in the
+        // customer's org, attaches to this app, and returns to the new project —
+        // so this path redirects to Supabase, not to /project/{ref}.
+        toast.info('Redirecting to Supabase to authorize…')
+        const res = await fetch(`/api/taskclan/${ref}/provision-supabase-oauth`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            plan: 'starter',
+            name: dbName,
+            returnUrl: `${window.location.origin}/project/${ref}`,
+          }),
+        })
+        const body = await res.json().catch(() => ({}))
+        if (!res.ok || !body.url) {
+          toast.error(
+            `Project created, but the Supabase connection could not be started: ${body.error || res.status}. Try again from the project's Database page.`
+          )
+          router.push(`/project/${ref}`)
+          return
+        }
+        window.location.href = body.url as string
+        return
+      }
+
+      if (dbMode === 'add' && dbChoice) {
+        const payload = isByo
+          ? { url: byoUrl.trim(), name: dbName }
+          : (() => {
+              const [provider, plan] = dbChoice.split(':')
+              return { action: 'provision', provider, plan, name: dbName }
+            })()
+        toast.info(isByo ? 'Connecting the database…' : 'Provisioning the database…')
         const dbRes = await fetch(`/api/taskclan/${ref}/databases`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ action: 'provision', provider, plan, name: `${name.trim()} database` }),
+          body: JSON.stringify(payload),
         })
         if (!dbRes.ok) {
           const b = await dbRes.json().catch(() => ({}))
           // The app exists; do not strand the user. Land them on the project and
           // tell them the database step is the part that needs another try.
           toast.error(
-            `Project created, but the database could not be provisioned: ${b.error || dbRes.status}. Add one from the project's Database page.`
+            `Project created, but the database could not be ${isByo ? 'connected' : 'provisioned'}: ${b.error || dbRes.status}. Add one from the project's Database page.`
           )
         } else {
-          toast.success('Database provisioned')
+          toast.success(isByo ? 'Database connected' : 'Database provisioned')
         }
       }
 
@@ -317,25 +379,25 @@ export const TaskclanProjectCreationForm = () => {
 
         <Panel.Content className="border-t border-default flex flex-col gap-2">
           <label className="text-sm text-foreground">Database</label>
-          <RadioGroupStacked value={dbMode} onValueChange={(v) => setDbMode(v as 'none' | 'dedicated')}>
+          <RadioGroupStacked value={dbMode} onValueChange={(v) => setDbMode(v as 'none' | 'add')}>
             <RadioGroupStackedItem
               value="none"
               label="No database yet"
               description="Use the shared database, or add one later from the project."
             />
             <RadioGroupStackedItem
-              value="dedicated"
-              label="Dedicated database"
-              description="Provision a managed database for this app (billed to the org wallet)."
+              value="add"
+              label="Add a database"
+              description="A managed database (Supabase/Neon), your own Supabase, or your own connection string."
               disabled={dbOptions.length === 0}
             />
           </RadioGroupStacked>
 
-          {dbMode === 'dedicated' && (
+          {dbMode === 'add' && (
             <div className="mt-2 flex flex-col gap-3">
               <Select value={dbChoice} onValueChange={setDbChoice}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose a plan…" />
+                  <SelectValue placeholder="Choose a database…" />
                 </SelectTrigger>
                 <SelectContent>
                   {dbOptions.map((o) => (
@@ -348,11 +410,42 @@ export const TaskclanProjectCreationForm = () => {
                   ))}
                 </SelectContent>
               </Select>
-              <Admonition
-                type="default"
-                title="Billed monthly to your org wallet"
-                description="A dedicated database is a real, paid project. It is charged on creation and monthly thereafter."
-              />
+
+              {isByo && (
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="tc-byo-url" className="text-xs text-foreground-light">
+                    Connection string
+                  </label>
+                  <Input
+                    id="tc-byo-url"
+                    type="password"
+                    value={byoUrl}
+                    onChange={(e) => setByoUrl(e.target.value)}
+                    placeholder="postgresql://user:password@host:5432/database"
+                    autoComplete="off"
+                  />
+                </div>
+              )}
+
+              {isByo ? (
+                <Admonition
+                  type="default"
+                  title="Bring your own database"
+                  description="Stored as this app's DATABASE_URL secret and injected on the next deploy. No charge."
+                />
+              ) : isOauth ? (
+                <Admonition
+                  type="default"
+                  title="You'll be redirected to Supabase"
+                  description="Authorize your Supabase account — a dedicated project is created in your own org and connected to this app. $3/mo service fee, billed to the org wallet."
+                />
+              ) : (
+                <Admonition
+                  type="default"
+                  title="Billed monthly to your org wallet"
+                  description={`A dedicated database is a real, paid project${selectedDbOption ? ` (${selectedDbOption.price})` : ''}. It is charged on creation and monthly thereafter.`}
+                />
+              )}
             </div>
           )}
         </Panel.Content>
