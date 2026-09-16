@@ -161,7 +161,32 @@ export const PublicationsList = () => {
                 </TableRow>
               )}
 
-              {!isLoading && publications.length === 0 && (
+              {/*
+                Two different situations that were sharing one message.
+
+                With no publications and nothing typed, NoSearchResults rendered
+                `Your search for "" did not return any results` next to a Reset
+                filter button with no filter to reset — describing a search the
+                reader never made. A database with no publications is the normal
+                starting point, not an edge case, so this was the default view.
+
+                Guarded on isSuccess rather than !isLoading so a failed fetch
+                shows AlertError alone, instead of also claiming there is
+                nothing here.
+              */}
+              {isSuccess && publications.length === 0 && filterString.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7}>
+                    <p className="text-sm text-foreground">No publications yet</p>
+                    <p className="text-sm text-foreground-light">
+                      Create one with SQL to choose which tables broadcast their changes. This
+                      screen manages the events an existing publication listens to.
+                    </p>
+                  </TableCell>
+                </TableRow>
+              )}
+
+              {isSuccess && publications.length === 0 && filterString.length > 0 && (
                 <TableRow>
                   <TableCell colSpan={7}>
                     <NoSearchResults
