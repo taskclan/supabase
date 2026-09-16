@@ -97,9 +97,17 @@ const handleGet = async (req: NextApiRequest, res: NextApiResponse) => {
 
   if (!taskclanConfigured()) {
     res.setHeader('x-taskclan-source', 'stub')
-    return res
-      .status(200)
-      .json({ projects: [DEFAULT_PROJECT], pagination: { count: 1, limit, offset } })
+    // `databases: []` for exactly the reason the Cloud branch below adds it —
+    // see the comment there. DEFAULT_PROJECT is upstream's constant and carries
+    // no `databases`, so the stub violated the same required field, and the
+    // grid died on the error boundary rather than rendering one placeholder
+    // card. The Cloud path was fixed when it was written; this one was missed,
+    // which hid it: the crash only reaches someone with no Cloud key — a fresh
+    // checkout, where "the console is broken" is the worst first impression.
+    return res.status(200).json({
+      projects: [{ ...DEFAULT_PROJECT, databases: [] }],
+      pagination: { count: 1, limit, offset },
+    })
   }
 
   const [org, sites] = await Promise.all([taskclanOrg(), listCloudSites()])
