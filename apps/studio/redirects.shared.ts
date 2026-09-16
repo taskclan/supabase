@@ -53,6 +53,29 @@ export const SELF_HOSTED_REDIRECTS: StudioRedirect[] = [
   { source: '/project/:ref/building', destination: '/project/:ref', permanent: false },
 ]
 
+/**
+ * Once Taskclan Cloud signs people in, the auth aliases should lead to the
+ * sign-in page rather than into the console.
+ *
+ * `/sign-in` itself was never redirected, so the page has always been
+ * reachable; what these entries fix is the bookmarked spellings, which sent
+ * somebody trying to log in to `/organizations` instead. Before there was a
+ * sign-in page that was the best available answer. Now it is the wrong one.
+ *
+ * `/` still goes to the project list. A signed-out visitor is redirected to
+ * sign-in by the auth gate, which knows whether there is a session; a redirect
+ * rule does not.
+ */
+export const TASKCLAN_AUTH_REDIRECTS: StudioRedirect[] = [
+  { source: '/', destination: '/organizations', permanent: false },
+  { source: '/register', destination: '/sign-in', permanent: false },
+  { source: '/signup', destination: '/sign-in', permanent: false },
+  { source: '/signin', destination: '/sign-in', permanent: false },
+  { source: '/login', destination: '/sign-in', permanent: false },
+  { source: '/log-in', destination: '/sign-in', permanent: false },
+  { source: '/project/:ref/building', destination: '/project/:ref', permanent: false },
+]
+
 export const SHARED_REDIRECTS: StudioRedirect[] = [
   { source: '/project/:ref/auth', destination: '/project/:ref/auth/users', permanent: true },
   {

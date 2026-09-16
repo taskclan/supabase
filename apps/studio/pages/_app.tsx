@@ -54,6 +54,7 @@ import { useRootQueryClient } from '@/data/query-client'
 import { inter, manrope, sourceCodePro } from '@/fonts'
 import { useCustomContent } from '@/hooks/custom-content/useCustomContent'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
+import { useSyncTaskclanOrg } from '@/hooks/misc/useSyncTaskclanOrg'
 import { AuthProvider } from '@/lib/auth'
 import { configureMonacoLoader } from '@/lib/configure-monaco-loader'
 import {
@@ -144,6 +145,10 @@ function CustomApp({ Component, pageProps }: AppPropsWithLayout) {
   const queryClient = useRootQueryClient()
   const { appTitle } = useCustomContent(['app:title'])
   const [isCLI, setIsCLI] = useState(false)
+
+  // Studio switches organisation by navigating to /org/{slug}. Copy that choice
+  // somewhere taskclanFetch can read it, since it has no access to the router.
+  useSyncTaskclanOrg()
 
   const getLayout = Component.getLayout ?? ((page) => page)
 

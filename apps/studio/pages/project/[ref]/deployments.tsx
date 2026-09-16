@@ -33,6 +33,7 @@ import {
   type CloudDeployment,
   type DeployState,
 } from '@/lib/taskclan/deployments'
+import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
 import type { NextPageWithLayout } from '@/types'
 
 /** While a build is running, follow it. Idle, stop asking. */
@@ -82,7 +83,7 @@ const DeploymentsPage: NextPageWithLayout = () => {
   const load = useCallback(async () => {
     if (!ref) return
     try {
-      const res = await fetch(`/api/taskclan/${ref}/deployments`)
+      const res = await taskclanFetch(`/api/taskclan/${ref}/deployments`)
       const body = (await res.json()) as Payload
       if (!res.ok) {
         setError(body.detail ?? body.error ?? `the Cloud API answered ${res.status}`)
@@ -121,7 +122,7 @@ const DeploymentsPage: NextPageWithLayout = () => {
     if (!ref) return
     setDeploying(true)
     try {
-      const res = await fetch(`/api/taskclan/${ref}/deployments`, { method: 'POST' })
+      const res = await taskclanFetch(`/api/taskclan/${ref}/deployments`, { method: 'POST' })
       const body = (await res.json()) as { error?: string; detail?: string }
       if (!res.ok) {
         toast.error(body.error ?? body.detail ?? `the deploy was refused (${res.status})`)
@@ -142,7 +143,7 @@ const DeploymentsPage: NextPageWithLayout = () => {
       const previous = autoDeploy
       setAutoDeploy(next) // optimistic: the switch must feel like a switch
       try {
-        const res = await fetch(`/api/taskclan/${ref}/deploy-mode`, {
+        const res = await taskclanFetch(`/api/taskclan/${ref}/deploy-mode`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ mode: next ? 'auto' : 'manual' }),

@@ -34,6 +34,8 @@ import {
   RadioGroupStackedItem,
 } from 'ui'
 
+import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
+
 interface Plan {
   id: string
   label: string
@@ -78,7 +80,7 @@ export function TaskclanProvisionDatabase({ onProvisioned }: { onProvisioned?: (
     if (!open || !ref) return
     setInfo(null)
     setError(null)
-    fetch(`/api/taskclan/${ref}/databases`)
+    taskclanFetch(`/api/taskclan/${ref}/databases`)
       .then((r) => r.json())
       .then((b) => setInfo(b as DbInfo))
       .catch(() => setInfo({}))
@@ -105,7 +107,9 @@ export function TaskclanProvisionDatabase({ onProvisioned }: { onProvisioned?: (
           value: `neon:${p.id}`,
           provider: 'neon',
           title: `Neon · ${p.label}`,
-          blurb: p.blurb ?? (p.minCu != null ? `${p.minCu}–${p.maxCu} compute units` : 'Managed Postgres'),
+          blurb:
+            p.blurb ??
+            (p.minCu != null ? `${p.minCu}–${p.maxCu} compute units` : 'Managed Postgres'),
           price: price(p.priceCredits),
         })
       }
@@ -144,10 +148,14 @@ export function TaskclanProvisionDatabase({ onProvisioned }: { onProvisioned?: (
       if (choice === OWN_SUPABASE) {
         // One-click: mint the authorize URL server-side, then hand the browser
         // to Supabase. The engine callback provisions and returns here.
-        const res = await fetch(`/api/taskclan/${ref}/provision-supabase-oauth`, {
+        const res = await taskclanFetch(`/api/taskclan/${ref}/provision-supabase-oauth`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ plan: 'starter', name: name.trim() || undefined, returnUrl: window.location.href }),
+          body: JSON.stringify({
+            plan: 'starter',
+            name: name.trim() || undefined,
+            returnUrl: window.location.href,
+          }),
         })
         const body = await res.json().catch(() => ({}))
         if (!res.ok || !body.url) {
@@ -170,7 +178,7 @@ export function TaskclanProvisionDatabase({ onProvisioned }: { onProvisioned?: (
         const [provider, plan] = choice.split(':')
         payload = { action: 'provision', provider, plan, name: name.trim() || undefined }
       }
-      const r = await fetch(`/api/taskclan/${ref}/databases`, {
+      const r = await taskclanFetch(`/api/taskclan/${ref}/databases`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(payload),
@@ -199,7 +207,8 @@ export function TaskclanProvisionDatabase({ onProvisioned }: { onProvisioned?: (
         <DialogHeader>
           <DialogTitle>Set up a database for this app</DialogTitle>
           <DialogDescription>
-            Provision a dedicated database billed to your workspace, or connect one you already have.
+            Provision a dedicated database billed to your workspace, or connect one you already
+            have.
           </DialogDescription>
         </DialogHeader>
 
@@ -277,8 +286,18 @@ export function TaskclanProvisionDatabase({ onProvisioned }: { onProvisioned?: (
           <Button type="button" variant="default" disabled={busy} onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button type="button" variant="primary" loading={busy} disabled={busy || loading} onClick={submit}>
-            {choice === OWN_SUPABASE ? 'Connect Supabase' : isByo ? 'Connect database' : 'Provision database'}
+          <Button
+            type="button"
+            variant="primary"
+            loading={busy}
+            disabled={busy || loading}
+            onClick={submit}
+          >
+            {choice === OWN_SUPABASE
+              ? 'Connect Supabase'
+              : isByo
+                ? 'Connect database'
+                : 'Provision database'}
           </Button>
         </DialogFooter>
       </DialogContent>

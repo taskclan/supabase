@@ -36,6 +36,7 @@ import {
 import { Admonition } from 'ui-patterns/Admonition'
 
 import Panel from '@/components/ui/Panel'
+import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
 
 interface Plan {
   id: string
@@ -94,7 +95,7 @@ export const TaskclanProjectCreationForm = () => {
   // Managed database catalogue (providers + tiers). Fetched once — it is the
   // same for every app in the org.
   useEffect(() => {
-    fetch('/api/taskclan/db-plans')
+    taskclanFetch('/api/taskclan/db-plans')
       .then((r) => r.json())
       .then((b) => setDbInfo(b as DbInfo))
       .catch(() => setDbInfo({}))
@@ -103,7 +104,7 @@ export const TaskclanProjectCreationForm = () => {
   // GitHub repos, only when the user chooses to import one.
   useEffect(() => {
     if (source !== 'github' || repos !== null) return
-    fetch('/api/taskclan/github/repos')
+    taskclanFetch('/api/taskclan/github/repos')
       .then((r) => r.json())
       .then((b) => setRepos(Array.isArray(b?.repos) ? (b.repos as Repo[]) : []))
       .catch(() => setRepos([]))
@@ -175,7 +176,11 @@ export const TaskclanProjectCreationForm = () => {
           ? await fetch('/api/platform/projects/import', {
               method: 'POST',
               headers: { 'content-type': 'application/json' },
-              body: JSON.stringify({ repo, branch: branch || selectedRepo?.defaultBranch, name: name.trim() }),
+              body: JSON.stringify({
+                repo,
+                branch: branch || selectedRepo?.defaultBranch,
+                name: name.trim(),
+              }),
             })
           : await fetch('/api/platform/projects', {
               method: 'POST',
@@ -202,7 +207,7 @@ export const TaskclanProjectCreationForm = () => {
         // customer's org, attaches to this app, and returns to the new project —
         // so this path redirects to Supabase, not to /project/{ref}.
         toast.info('Redirecting to Supabase to authorize…')
-        const res = await fetch(`/api/taskclan/${ref}/provision-supabase-oauth`, {
+        const res = await taskclanFetch(`/api/taskclan/${ref}/provision-supabase-oauth`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
@@ -231,7 +236,7 @@ export const TaskclanProjectCreationForm = () => {
               return { action: 'provision', provider, plan, name: dbName }
             })()
         toast.info(isByo ? 'Connecting the database…' : 'Provisioning the database…')
-        const dbRes = await fetch(`/api/taskclan/${ref}/databases`, {
+        const dbRes = await taskclanFetch(`/api/taskclan/${ref}/databases`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify(payload),
@@ -292,7 +297,10 @@ export const TaskclanProjectCreationForm = () => {
           {/* Type */}
           <div className="flex flex-col gap-2">
             <label className="text-sm text-foreground">App type</label>
-            <RadioGroupStacked value={type} onValueChange={(v) => setType(v as 'service' | 'static')}>
+            <RadioGroupStacked
+              value={type}
+              onValueChange={(v) => setType(v as 'service' | 'static')}
+            >
               <RadioGroupStackedItem
                 value="service"
                 label="Web service"
@@ -309,7 +317,10 @@ export const TaskclanProjectCreationForm = () => {
 
         <Panel.Content className="border-t border-default flex flex-col gap-2">
           <label className="text-sm text-foreground">Source</label>
-          <RadioGroupStacked value={source} onValueChange={(v) => setSource(v as 'empty' | 'github')}>
+          <RadioGroupStacked
+            value={source}
+            onValueChange={(v) => setSource(v as 'empty' | 'github')}
+          >
             <RadioGroupStackedItem
               value="empty"
               label="Start empty"
@@ -368,7 +379,11 @@ export const TaskclanProjectCreationForm = () => {
                   {selectedRepo && (
                     <div className="flex flex-col gap-1.5">
                       <label className="text-xs text-foreground-light">Branch</label>
-                      <Input value={branch} onChange={(e) => setBranch(e.target.value)} placeholder={selectedRepo.defaultBranch} />
+                      <Input
+                        value={branch}
+                        onChange={(e) => setBranch(e.target.value)}
+                        placeholder={selectedRepo.defaultBranch}
+                      />
                     </div>
                   )}
                 </>

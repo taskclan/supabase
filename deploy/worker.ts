@@ -58,7 +58,7 @@ export class ConsoleContainer extends Container<Env> {
   override onError(error: unknown) {
     console.error(
       '[console-container] error: %s',
-      error instanceof Error ? (error.stack ?? error.message) : String(error),
+      error instanceof Error ? (error.stack ?? error.message) : String(error)
     )
     return error
   }
@@ -100,6 +100,9 @@ const ACCESS_COOKIE = 'tc_access'
  */
 function isPublicPath(pathname: string): boolean {
   if (pathname === '/landing') return true
+  // Sign-in has to be reachable without the site password, or the console's own
+  // login sits behind a second, shared one and nobody can get to it.
+  if (pathname === '/sign-in') return true
   if (pathname.startsWith('/_next/static/')) return true
   if (pathname === '/favicon.ico' || pathname.startsWith('/favicon/')) return true
   return false

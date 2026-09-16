@@ -11,6 +11,7 @@ import { useParams } from 'common'
 import { useEffect, useState } from 'react'
 
 import type { ConnectionStringPooler } from './Connect.types'
+import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
 
 interface TaskclanConnection {
   configured: boolean
@@ -34,7 +35,7 @@ export function useTaskclanConnectionPooler(): ConnectionStringPooler | null {
     let live = true
     ;(async () => {
       try {
-        const res = await fetch(`/api/taskclan/${ref}/connection-string`)
+        const res = await taskclanFetch(`/api/taskclan/${ref}/connection-string`)
         const body = await res.json()
         if (live) setData(res.ok ? body : { configured: false })
       } catch {
@@ -58,7 +59,6 @@ export function useTaskclanConnectionPooler(): ConnectionStringPooler | null {
   }
 }
 
-
 interface TaskclanConnectInfo {
   apiUrl: string | null
   anonKey: string | null
@@ -81,7 +81,7 @@ export function useTaskclanConnectInfo(): TaskclanConnectInfo | null {
     let live = true
     ;(async () => {
       try {
-        const res = await fetch(`/api/taskclan/connect-info`)
+        const res = await taskclanFetch(`/api/taskclan/connect-info`)
         const body = await res.json()
         if (live) setData(res.ok ? body : null)
       } catch {

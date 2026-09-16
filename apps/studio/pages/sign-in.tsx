@@ -6,17 +6,18 @@ import { Button } from 'ui'
 import { SignInForm } from '@/components/interfaces/SignIn/SignInForm'
 import { SignInOptions } from '@/components/interfaces/SignIn/SignInOptions'
 import { SignInWithExternalProvider } from '@/components/interfaces/SignIn/SignInWithExternalProvider'
+import { TaskclanSignInForm } from '@/components/interfaces/SignIn/TaskclanSignInForm'
 import { AuthenticationLayout } from '@/components/layouts/AuthenticationLayout'
 import { SignInLayout } from '@/components/layouts/SignInLayout/SignInLayout'
 import { useCustomContent } from '@/hooks/custom-content/useCustomContent'
 import { useEnabledIdentityProviders } from '@/hooks/misc/useEnabledIdentityProviders'
 import { useInboundBranding } from '@/hooks/misc/useInboundBranding'
 import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
-import { IS_PLATFORM } from '@/lib/constants'
+import { IS_PLATFORM, TASKCLAN_AUTH_ENABLED, TASKCLAN_PRODUCT_NAME } from '@/lib/constants'
 import { getSignUpReturnTo } from '@/lib/gotrue'
 import type { NextPageWithLayout } from '@/types'
 
-const SignInPage: NextPageWithLayout = () => {
+const PlatformSignInPage: NextPageWithLayout = () => {
   const router = useRouter()
   const [showOtherOptions, setShowOtherOptions] = useState(false)
 
@@ -109,7 +110,7 @@ const SignInPage: NextPageWithLayout = () => {
   )
 }
 
-SignInPage.getLayout = (page) => (
+PlatformSignInPage.getLayout = (page) => (
   <AuthenticationLayout>
     <SignInLayout
       heading="Welcome back"
@@ -121,5 +122,32 @@ SignInPage.getLayout = (page) => (
     </SignInLayout>
   </AuthenticationLayout>
 )
+
+/**
+ * Taskclan Cloud signs people in against its own Supabase project and has none
+ * of the platform machinery above: no hCaptcha, no SSO, no identity providers,
+ * no sign-up. Upstream's layout is equally wrong for it, carrying Supabase's
+ * logo, customer quotes and links to supabase.com's terms.
+ *
+ * Swapped at the component level rather than with an early return inside one,
+ * so neither version calls the other's hooks. Kept at /sign-in rather than a new
+ * URL because that is already where `withAuth` and the profile 401 handler send
+ * people.
+ */
+const TaskclanSignInPage: NextPageWithLayout = () => <TaskclanSignInForm />
+
+TaskclanSignInPage.getLayout = (page) => (
+  <div className="flex min-h-screen items-center justify-center bg-studio px-6">
+    <div className="w-full max-w-sm">
+      <h1 className="mb-1 text-2xl text-foreground">Sign in to {TASKCLAN_PRODUCT_NAME}</h1>
+      <p className="mb-6 text-sm text-foreground-light">
+        Manage your apps, deployments and databases.
+      </p>
+      {page}
+    </div>
+  </div>
+)
+
+const SignInPage = TASKCLAN_AUTH_ENABLED ? TaskclanSignInPage : PlatformSignInPage
 
 export default SignInPage

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { matchRedirect, preserveQueryAndHash } from './redirects.shared'
+import {
+  matchRedirect,
+  preserveQueryAndHash,
+  SELF_HOSTED_REDIRECTS,
+  TASKCLAN_AUTH_REDIRECTS,
+} from './redirects.shared'
 
 describe('preserveQueryAndHash', () => {
   it('carries incoming query params onto the destination', () => {
@@ -214,5 +219,38 @@ describe('matchRedirect maintenance mode', () => {
         maintenanceMode: false,
       })
     ).toEqual({ destination: '/', permanent: false })
+  })
+})
+
+describe('TASKCLAN_AUTH_REDIRECTS', () => {
+  const destinationOf = (table: typeof SELF_HOSTED_REDIRECTS, source: string) =>
+    table.find((r) => r.source === source)?.destination
+
+  it('sends the bookmarked login spellings to the sign-in page', () => {
+    // Without a sign-in page these pointed at /organizations, which was the
+    // best answer available. With one, sending somebody trying to log in past
+    // the login is the wrong one.
+    for (const source of ['/signin', '/login', '/log-in', '/signup', '/register']) {
+      expect(destinationOf(TASKCLAN_AUTH_REDIRECTS, source), source).toBe('/sign-in')
+    }
+  })
+
+  it('leaves the self-hosted table alone', () => {
+    // Selected by configuration, so the no-auth build must be unaffected.
+    expect(destinationOf(SELF_HOSTED_REDIRECTS, '/signin')).toBe('/organizations')
+  })
+
+  it('does not redirect /sign-in itself', () => {
+    // The page lives there. A rule on it would bounce the login before it
+    // rendered, in either table.
+    for (const table of [TASKCLAN_AUTH_REDIRECTS, SELF_HOSTED_REDIRECTS]) {
+      expect(table.some((r) => r.source === '/sign-in')).toBe(false)
+    }
+  })
+
+  it('still lands the root on the project list', () => {
+    // Whether a signed-out visitor goes to sign-in is the auth gate's call: it
+    // knows if there is a session, and a static redirect does not.
+    expect(destinationOf(TASKCLAN_AUTH_REDIRECTS, '/')).toBe('/organizations')
   })
 })

@@ -14,6 +14,8 @@ import { Boxes, Cpu } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
+import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
+
 interface Instance {
   region: string
   vcpu: number | null
@@ -25,7 +27,11 @@ interface Instance {
 }
 
 const mem = (mib: number | null) =>
-  mib == null ? '—' : mib >= 1024 ? `${(mib / 1024).toFixed(mib % 1024 === 0 ? 0 : 1)} GiB` : `${mib} MiB`
+  mib == null
+    ? '—'
+    : mib >= 1024
+      ? `${(mib / 1024).toFixed(mib % 1024 === 0 ? 0 : 1)} GiB`
+      : `${mib} MiB`
 
 export const TaskclanInstanceCard = () => {
   const { ref } = useParams()
@@ -38,7 +44,7 @@ export const TaskclanInstanceCard = () => {
     let live = true
     ;(async () => {
       try {
-        const res = await fetch(`/api/taskclan/${ref}/metrics?range=24h`)
+        const res = await taskclanFetch(`/api/taskclan/${ref}/metrics?range=24h`)
         const body = await res.json()
         if (!live) return
         if (!res.ok || !body.instance) setError(true)
@@ -58,7 +64,9 @@ export const TaskclanInstanceCard = () => {
   if (loading || !inst) return <ShimmeringLoader className="h-[92px] w-full" />
 
   const compute =
-    inst.vcpu != null ? `${inst.vcpu} vCPU · ${mem(inst.memoryMib)}${inst.disk ? ` · ${inst.disk}` : ''}` : '—'
+    inst.vcpu != null
+      ? `${inst.vcpu} vCPU · ${mem(inst.memoryMib)}${inst.disk ? ` · ${inst.disk}` : ''}`
+      : '—'
 
   return (
     <div className="rounded-md border border-default bg-surface-100">

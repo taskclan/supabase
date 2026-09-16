@@ -1,4 +1,5 @@
 import { AuthClient, navigatorLock, User } from '@supabase/auth-js'
+
 import { isBrowser } from './helpers'
 
 /**

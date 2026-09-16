@@ -27,6 +27,8 @@ import {
 } from 'ui'
 import { Admonition } from 'ui-patterns/Admonition'
 
+import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
+
 interface EnvVar {
   key: string
   value: string
@@ -62,7 +64,7 @@ export function TaskclanSecrets() {
       setLoading(true)
       setError(null)
       try {
-        const r = await fetch(`/api/taskclan/${ref}/env${reveal ? '?reveal=1' : ''}`)
+        const r = await taskclanFetch(`/api/taskclan/${ref}/env${reveal ? '?reveal=1' : ''}`)
         const body = (await r.json()) as EnvResp
         if (!r.ok) {
           setError(body.error || 'Could not load environment variables')
@@ -93,13 +95,15 @@ export function TaskclanSecrets() {
   const save = async () => {
     const key = newKey.trim()
     if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) {
-      setAddError('Key must be letters, digits and underscores, starting with a letter or underscore.')
+      setAddError(
+        'Key must be letters, digits and underscores, starting with a letter or underscore.'
+      )
       return
     }
     setSaving(true)
     setAddError(null)
     try {
-      const r = await fetch(`/api/taskclan/${ref}/env`, {
+      const r = await taskclanFetch(`/api/taskclan/${ref}/env`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ key, value: newValue, isSecret: newSecret, scope: 'production' }),
@@ -125,7 +129,7 @@ export function TaskclanSecrets() {
 
   const remove = async (key: string, scope: string) => {
     if (!window.confirm(`Delete ${key}? It stays live until the next deploy.`)) return
-    const r = await fetch(`/api/taskclan/${ref}/env`, {
+    const r = await taskclanFetch(`/api/taskclan/${ref}/env`, {
       method: 'DELETE',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ key, scope }),
@@ -155,11 +159,7 @@ export function TaskclanSecrets() {
         </div>
         <div className="flex items-center gap-2">
           {canReveal && env.length > 0 && (
-            <Button
-              variant="default"
-              icon={revealed ? <EyeOff /> : <Eye />}
-              onClick={toggleReveal}
-            >
+            <Button variant="default" icon={revealed ? <EyeOff /> : <Eye />} onClick={toggleReveal}>
               {revealed ? 'Hide values' : 'Reveal values'}
             </Button>
           )}
@@ -230,7 +230,13 @@ export function TaskclanSecrets() {
         </div>
       </div>
 
-      {error && <Admonition type="warning" title="Could not load environment variables" description={error} />}
+      {error && (
+        <Admonition
+          type="warning"
+          title="Could not load environment variables"
+          description={error}
+        />
+      )}
 
       {loading && !data ? (
         <div className="flex items-center gap-2 py-10 text-sm text-foreground-light">
@@ -243,7 +249,9 @@ export function TaskclanSecrets() {
           </div>
           <p className="text-sm text-foreground">No environment variables yet</p>
           <p className="mt-1 text-sm text-foreground-light">
-            {canWrite ? 'Add one to inject it into this app on the next deploy.' : 'This app has no environment variables.'}
+            {canWrite
+              ? 'Add one to inject it into this app on the next deploy.'
+              : 'This app has no environment variables.'}
           </p>
         </div>
       ) : (
@@ -274,7 +282,10 @@ export function TaskclanSecrets() {
                       )}
                     </div>
                   </td>
-                  <td className="max-w-0 truncate px-4 py-2.5 font-mono text-foreground-light" title={v.value}>
+                  <td
+                    className="max-w-0 truncate px-4 py-2.5 font-mono text-foreground-light"
+                    title={v.value}
+                  >
                     {v.value}
                   </td>
                   {canWrite && (

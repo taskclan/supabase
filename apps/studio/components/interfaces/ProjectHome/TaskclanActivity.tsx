@@ -11,6 +11,8 @@ import { useEffect, useState } from 'react'
 import { cn } from 'ui'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
+import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
+
 type Range = '1h' | '24h' | '7d' | '30d'
 const RANGES: Range[] = ['1h', '24h', '7d', '30d']
 
@@ -40,7 +42,7 @@ export const TaskclanActivity = () => {
     setLoading(true)
     ;(async () => {
       try {
-        const res = await fetch(`/api/taskclan/${ref}/metrics?range=${range}`)
+        const res = await taskclanFetch(`/api/taskclan/${ref}/metrics?range=${range}`)
         const body = await res.json()
         if (!live) return
         if (!res.ok) setError(true)

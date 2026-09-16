@@ -20,6 +20,7 @@ import { toast } from 'sonner'
 import { Button } from 'ui'
 
 import { TaskclanProvisionDatabase } from './TaskclanProvisionDatabase'
+import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
 
 type DbStatus = { configured: boolean; reason?: string } | undefined
 
@@ -33,7 +34,7 @@ export function useTaskclanDbStatus(): DbStatus {
     setStatus(undefined)
     ;(async () => {
       try {
-        const res = await fetch(`/api/taskclan/${ref}/db-status`)
+        const res = await taskclanFetch(`/api/taskclan/${ref}/db-status`)
         const body = await res.json()
         if (!live) return
         setStatus(res.ok ? body : { configured: true }) // fail open: on a check error, don't hide a real DB
@@ -87,8 +88,9 @@ export const TaskclanNoDatabase = () => {
           </div>
           <h2 className="text-base text-foreground">Database is being set up</h2>
           <p className="mt-2 text-sm text-foreground-light">
-            The connection is stored as this app&apos;s <code>DATABASE_URL</code> and takes effect on
-            the next deploy. A freshly provisioned Supabase project needs a minute or two to come up.
+            The connection is stored as this app&apos;s <code>DATABASE_URL</code> and takes effect
+            on the next deploy. A freshly provisioned Supabase project needs a minute or two to come
+            up.
           </p>
           <div className="mt-6 flex items-center justify-center gap-2">
             <Button asChild variant="primary">
@@ -108,8 +110,9 @@ export const TaskclanNoDatabase = () => {
         </div>
         <h2 className="text-base text-foreground">This app has no database yet</h2>
         <p className="mt-2 text-sm text-foreground-light">
-          The Table editor, SQL editor and Database tools work once this app has a database. Provision
-          a dedicated one billed to your workspace, or connect a database you already have.
+          The Table editor, SQL editor and Database tools work once this app has a database.
+          Provision a dedicated one billed to your workspace, or connect a database you already
+          have.
         </p>
         <div className="mt-6 flex items-center justify-center gap-2">
           <TaskclanProvisionDatabase onProvisioned={() => setProvisioned(true)} />
