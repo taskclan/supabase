@@ -9,7 +9,7 @@ import {
 import { PropsWithChildren, useCallback, useEffect } from 'react'
 import { toast } from 'sonner'
 
-import { GOTRUE_ERRORS, IS_PLATFORM } from './constants'
+import { GOTRUE_ERRORS, IS_PLATFORM, TASKCLAN_AUTH_ENABLED } from './constants'
 import { useAiAssistantStateSnapshot } from '@/state/ai-assistant-state'
 
 const AuthErrorToaster = ({ children }: PropsWithChildren) => {
@@ -32,9 +32,16 @@ const AuthErrorToaster = ({ children }: PropsWithChildren) => {
   return children
 }
 
+/**
+ * `alwaysLoggedIn` is upstream's way of saying "self-hosted has no users, so
+ * treat everyone as signed in". That stops being true the moment this console
+ * does have users: left on, `useIsLoggedIn()` returns true for a signed-out
+ * visitor, and the organization, profile and permission queries all fire
+ * unauthenticated on first paint.
+ */
 export const AuthProvider = ({ children }: PropsWithChildren) => {
   return (
-    <AuthProviderInternal alwaysLoggedIn={!IS_PLATFORM}>
+    <AuthProviderInternal alwaysLoggedIn={!IS_PLATFORM && !TASKCLAN_AUTH_ENABLED}>
       <AuthErrorToaster>{children}</AuthErrorToaster>
     </AuthProviderInternal>
   )

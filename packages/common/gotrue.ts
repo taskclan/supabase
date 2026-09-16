@@ -1,6 +1,21 @@
 import { AuthClient, navigatorLock, User } from '@supabase/auth-js'
 import { isBrowser } from './helpers'
 
+/**
+ * Taskclan Cloud's own auth project.
+ *
+ * When both are set this client points at Taskclan's Supabase rather than
+ * upstream's GoTrue, which is how the console gets per-user sessions without
+ * turning on `IS_PLATFORM` (283 files deep, and it would un-hide the billing
+ * and marketplace screens this fork suppresses).
+ *
+ * Inert when unset, so every other app in the monorepo is unaffected and the
+ * console itself behaves exactly as before until the values are configured.
+ */
+const TASKCLAN_AUTH_URL = process.env.NEXT_PUBLIC_TASKCLAN_AUTH_URL?.replace(/\/+$/, '')
+const TASKCLAN_AUTH_ANON_KEY = process.env.NEXT_PUBLIC_TASKCLAN_AUTH_ANON_KEY
+const taskclanAuthEnabled = !!TASKCLAN_AUTH_URL && !!TASKCLAN_AUTH_ANON_KEY
+
 export const STORAGE_KEY = process.env.NEXT_PUBLIC_STORAGE_KEY || 'supabase.dashboard.auth.token'
 export const AUTH_DEBUG_KEY =
   process.env.NEXT_PUBLIC_AUTH_DEBUG_KEY || 'supabase.dashboard.auth.debug'
@@ -22,16 +37,17 @@ function safeGetLocalStorage(key: string) {
   }
 }
 
-const debug =
-  process.env.NEXT_PUBLIC_IS_PLATFORM === 'true' && safeGetLocalStorage(AUTH_DEBUG_KEY) === 'true'
+const authEnabled = process.env.NEXT_PUBLIC_IS_PLATFORM === 'true' || taskclanAuthEnabled
 
-const persistedDebug =
-  process.env.NEXT_PUBLIC_IS_PLATFORM === 'true' &&
-  safeGetLocalStorage(AUTH_DEBUG_PERSISTED_KEY) === 'true'
+const debug = authEnabled && safeGetLocalStorage(AUTH_DEBUG_KEY) === 'true'
 
+const persistedDebug = authEnabled && safeGetLocalStorage(AUTH_DEBUG_PERSISTED_KEY) === 'true'
+
+// Not optional once sessions are real: without the lock two tabs can race a
+// token refresh, and the loser is left holding a refresh token that has already
+// been rotated away, which signs that tab out for no visible reason.
 const shouldEnableNavigatorLock =
-  process.env.NEXT_PUBLIC_IS_PLATFORM === 'true' &&
-  !(safeGetLocalStorage(AUTH_NAVIGATOR_LOCK_DISABLED_KEY) === 'true')
+  authEnabled && !(safeGetLocalStorage(AUTH_NAVIGATOR_LOCK_DISABLED_KEY) === 'true')
 
 const shouldDetectSessionInUrl = process.env.NEXT_PUBLIC_AUTH_DETECT_SESSION_IN_URL
   ? process.env.NEXT_PUBLIC_AUTH_DETECT_SESSION_IN_URL === 'true'
@@ -180,7 +196,10 @@ async function debuggableNavigatorLock<R>(
 }
 
 export const gotrueClient = new AuthClient({
-  url: process.env.NEXT_PUBLIC_GOTRUE_URL,
+  url: taskclanAuthEnabled ? `${TASKCLAN_AUTH_URL}/auth/v1` : process.env.NEXT_PUBLIC_GOTRUE_URL,
+  // Mandatory against hosted Supabase: /auth/v1/* answers 401 without an
+  // `apikey`, which is why the engine sets it explicitly on its own calls.
+  ...(taskclanAuthEnabled ? { headers: { apikey: TASKCLAN_AUTH_ANON_KEY as string } } : null),
   storageKey: STORAGE_KEY,
   detectSessionInUrl: shouldDetectSessionInUrl,
   debug: debug ? (persistedDebug ? logIndexedDB : true) : false,
