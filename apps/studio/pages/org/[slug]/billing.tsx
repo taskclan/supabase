@@ -2,10 +2,12 @@ import { useParams } from 'common'
 import { useEffect } from 'react'
 
 import { BillingSettings } from '@/components/interfaces/Organization/BillingSettings/BillingSettings'
+import { TaskclanBilling } from '@/components/interfaces/Organization/BillingSettings/TaskclanBilling'
 import { DefaultLayout } from '@/components/layouts/DefaultLayout'
 import OrganizationLayout from '@/components/layouts/OrganizationLayout'
 import { UnknownInterface } from '@/components/ui/UnknownInterface'
 import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
+import { IS_PLATFORM } from '@/lib/constants'
 import {
   ORG_SETTINGS_PANEL_KEYS,
   useOrgSettingsPageStateSnapshot,
@@ -31,7 +33,11 @@ const OrgBillingSettings: NextPageWithLayout = () => {
     return <UnknownInterface urlBack={`/org/${slug}`} />
   }
 
-  return <BillingSettings />
+  // Upstream's page describes a subscription: an included quota, a spend cap
+  // for scaling past it, an invoice accruing through a billing cycle. Cloud
+  // sells prepaid credits and meters against the balance, so that page had
+  // nothing to retrieve and said so four times over.
+  return IS_PLATFORM ? <BillingSettings /> : <TaskclanBilling />
 }
 
 OrgBillingSettings.getLayout = (page) => (

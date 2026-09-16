@@ -76,8 +76,16 @@ export function taskclanConfigured(): boolean {
   return taskclanConfig().ok
 }
 
-/** Beyond this we give up rather than hold a dashboard request open. */
-const TIMEOUT_MS = 8000
+/**
+ * Beyond this we give up rather than hold a dashboard request open.
+ *
+ * Raised from 8s after it started firing on real page loads: the console's own
+ * proxies allow 15s, and Cloud answering a cold /orgs in nine seconds was
+ * turning into "Failed to load organizations" across the header and every panel
+ * on the page. An error banner for a request that was merely slow is worse than
+ * waiting, because it reads as an outage and there is nothing to retry.
+ */
+const TIMEOUT_MS = 15000
 
 export type CloudResult<T> =
   | { ok: true; data: T }
