@@ -73,6 +73,20 @@ describe('the auth client', () => {
     expect(client.headers?.apikey).toBeUndefined()
   })
 
+  it('stays off when the variables are set but empty', async () => {
+    // This is how an unset GitHub repo variable arrives: `${{ vars.X }}`
+    // expands to an empty string rather than being absent. If empty counted as
+    // configured, wiring the workflow would switch auth on by itself, before
+    // anybody had chosen a project.
+    process.env.NEXT_PUBLIC_TASKCLAN_AUTH_URL = ''
+    process.env.NEXT_PUBLIC_TASKCLAN_AUTH_ANON_KEY = ''
+
+    const client = await buildClient()
+
+    expect(client.url).toBe('https://upstream.example.com/auth/v1')
+    expect(client.headers?.apikey).toBeUndefined()
+  })
+
   it('needs both halves before it switches', async () => {
     // Half-configured is the dangerous state: a URL with no key would point the
     // console at Taskclan and be refused on every request. Falling back is the

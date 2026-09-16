@@ -107,6 +107,21 @@ jobs:
           NEXT_TELEMETRY_DISABLED: '1'
           # build:next otherwise uploads assets to Supabase's own CDN.
           SKIP_ASSET_UPLOAD: '1'
+          # Per-user auth. NEXT_PUBLIC_* is inlined by Next at build time, which
+          # is why these live here and not in wrangler.jsonc: turning auth ON
+          # needs a rebuild. Turning the OLD path off is TASKCLAN_SHARED_KEY_FALLBACK,
+          # deliberately a runtime Worker variable so a rollback does not wait on one.
+          #
+          # Repo variables rather than secrets: the project URL is public and the
+          # anon key already ships in every client bundle, so neither is secret,
+          # but keeping them out of git means switching projects is a settings
+          # change rather than a commit.
+          #
+          # Unset, both arrive as empty strings, TASKCLAN_AUTH_ENABLED is false,
+          # and the console builds exactly as it does today. That is the off
+          # switch: auth is enabled by setting these, not by shipping code.
+          NEXT_PUBLIC_TASKCLAN_AUTH_URL: ${{ vars.TASKCLAN_AUTH_URL }}
+          NEXT_PUBLIC_TASKCLAN_AUTH_ANON_KEY: ${{ vars.TASKCLAN_AUTH_ANON_KEY }}
         run: |
           pnpm turbo run build --filter='studio^...'
           pnpm --filter studio exec next build
