@@ -141,12 +141,44 @@ function gate(env: Env, request: Request): Response | null {
   return new Response('Not authorised', { status: 401, headers: { 'cache-control': 'no-store' } })
 }
 
+/**
+ * Strip the site password before the request reaches the console.
+ *
+ * The gate accepts the token three ways, and one of them is
+ * `Authorization: Bearer <token>`. That header means something else to the app:
+ * it is where a signed-in person's own access token arrives, and the console
+ * forwards it to Taskclan Cloud as their identity. Passing the site password
+ * along in that slot would have the console offer it to Cloud as a user token,
+ * which Cloud rejects, turning a correctly authenticated request into a 401
+ * with a confusing cause.
+ *
+ * Nothing in this repo authenticates that way today (a browser goes through
+ * `?tc_access=` and gets a cookie), so this is closing the hole rather than
+ * fixing a break. It is also just correct: the Worker consumed that credential
+ * for its own gate, and the app has no business seeing the site password.
+ *
+ * Only removed when it actually is the token. A real user bearer passes
+ * through untouched, which is the whole point.
+ */
+function withoutSitePassword(request: Request, env: Env): Request {
+  const want = typeof env.TC_ACCESS_TOKEN === 'string' ? env.TC_ACCESS_TOKEN.trim() : ''
+  if (!want) return request
+
+  const auth = request.headers.get('authorization') || ''
+  const bearer = auth.slice(0, 7).toLowerCase() === 'bearer ' ? auth.slice(7).trim() : ''
+  if (bearer !== want) return request
+
+  const headers = new Headers(request.headers)
+  headers.delete('authorization')
+  return new Request(request, { headers })
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const denied = gate(env, request)
     if (denied) return denied
     // One instance: the console holds no per-request state worth sharding, and
     // a single warm container is cheaper and simpler than several cold ones.
-    return getContainer(env.CONSOLE, 'main').fetch(request)
+    return getContainer(env.CONSOLE, 'main').fetch(withoutSitePassword(request, env))
   },
 }
