@@ -5,14 +5,23 @@
  * apps instead of its hardcoded stubs. Server-side only — the key must never
  * reach the browser, so nothing here is imported from a component.
  *
- * Auth is an `sk_cloud_*` API key, which Cloud already supports for CLI, MCP
- * and CI callers: it resolves to an org with its own scopes, so org scoping
- * and RBAC stay Cloud's job rather than being reimplemented here. Deliberately
- * NOT a user access token — those live 60 minutes, and a dashboard that stops
- * listing apps an hour after someone set it up is worse than one that never
- * started.
+ * Auth comes from a `Caller` rather than being read here, because the console
+ * now has two kinds. An `sk_cloud_*` API key is right for callers with no user
+ * behind them (the deploy probe, CI, the CLI, MCP): it resolves to an org with
+ * its own scopes, so org scoping and RBAC stay Cloud's job rather than being
+ * reimplemented here. A signed-in browser request carries the person's own
+ * Supabase JWT, which Cloud accepts on the same routes.
+ *
+ * This file used to say a user token was deliberately avoided, because those
+ * expire in an hour and a dashboard that stops listing apps is worse than one
+ * that never started. That is still true of a token pasted into a server
+ * environment variable, which is what it described: nothing refreshes it. It is
+ * not true of a browser session, where auth-js refreshes on read, so every
+ * request carries a fresh token. The shared key survives for the callers that
+ * genuinely have no session; what it stops being is a stand-in for identity.
  */
-import { CloudSite } from './projects'
+import { authHeadersFor, type Caller } from './callerContext'
+import { findSiteByRef, type CloudSite } from './projects'
 
 const KEY_PREFIX = 'sk_cloud_'
 
@@ -45,6 +54,19 @@ export function taskclanConfig(): { ok: true; config: TaskclanConfig } | { ok: f
   return { ok: true, config: { url: url.replace(/\/+$/, ''), key } }
 }
 
+/**
+ * Where Cloud lives, independent of how the request authenticates.
+ *
+ * A user caller brings its own credential, so it needs the URL without needing
+ * a key to be configured at all. Kept separate from `taskclanConfig` so that
+ * once the shared key is retired, a missing key stops meaning "not configured".
+ */
+export function cloudBaseUrl(): { ok: true; url: string } | { ok: false; reason: string } {
+  const url = process.env.TASKCLAN_CLOUD_URL?.trim()
+  if (!url) return { ok: false, reason: 'TASKCLAN_CLOUD_URL is not set' }
+  return { ok: true, url: url.replace(/\/+$/, '') }
+}
+
 export function taskclanConfigured(): boolean {
   return taskclanConfig().ok
 }
@@ -56,15 +78,19 @@ export type CloudResult<T> =
   | { ok: true; data: T }
   | { ok: false; reason: 'not_configured' | 'http_error' | 'network_error'; detail: string }
 
-async function cloudGet<T>(path: string, pick: (body: unknown) => T): Promise<CloudResult<T>> {
-  const cfg = taskclanConfig()
-  if (!cfg.ok) return { ok: false, reason: 'not_configured', detail: cfg.reason }
+async function cloudGet<T>(
+  path: string,
+  caller: Caller,
+  pick: (body: unknown) => T
+): Promise<CloudResult<T>> {
+  const base = cloudBaseUrl()
+  if (!base.ok) return { ok: false, reason: 'not_configured', detail: base.reason }
 
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
   try {
-    const res = await fetch(`${cfg.config.url}${path}`, {
-      headers: { authorization: `Bearer ${cfg.config.key}`, accept: 'application/json' },
+    const res = await fetch(`${base.url}${path}`, {
+      headers: authHeadersFor(caller),
       signal: controller.signal,
     })
     if (!res.ok) {
@@ -84,7 +110,7 @@ async function cloudGet<T>(path: string, pick: (body: unknown) => T): Promise<Cl
 }
 
 /**
- * POST to Cloud's API with the org key.
+ * POST to Cloud's API as `caller`.
  *
  * The mirror of cloudGet for the handful of console screens that create things
  * (a new app, an import). Same error vocabulary so callers report a cause
@@ -94,22 +120,19 @@ async function cloudGet<T>(path: string, pick: (body: unknown) => T): Promise<Cl
 async function cloudPost<T>(
   path: string,
   body: unknown,
+  caller: Caller,
   pick: (body: unknown, status: number) => T,
   timeoutMs = TIMEOUT_MS
 ): Promise<CloudResult<T>> {
-  const cfg = taskclanConfig()
-  if (!cfg.ok) return { ok: false, reason: 'not_configured', detail: cfg.reason }
+  const base = cloudBaseUrl()
+  if (!base.ok) return { ok: false, reason: 'not_configured', detail: base.reason }
 
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
   try {
-    const res = await fetch(`${cfg.config.url}${path}`, {
+    const res = await fetch(`${base.url}${path}`, {
       method: 'POST',
-      headers: {
-        authorization: `Bearer ${cfg.config.key}`,
-        accept: 'application/json',
-        'content-type': 'application/json',
-      },
+      headers: { ...authHeadersFor(caller), 'content-type': 'application/json' },
       body: JSON.stringify(body ?? {}),
       signal: controller.signal,
     })
@@ -144,13 +167,14 @@ async function cloudPost<T>(
  * `type` is 'service' | 'static'; the engine coerces anything else to 'static'.
  * Returns the created site so the caller can route to it by its subdomain.
  */
-export function createCloudSite(input: {
-  name: string
-  type?: 'service' | 'static'
-}): Promise<CloudResult<CloudSite>> {
+export function createCloudSite(
+  input: { name: string; type?: 'service' | 'static' },
+  caller: Caller
+): Promise<CloudResult<CloudSite>> {
   return cloudPost(
     '/api/cloud/v1/sites',
     { name: input.name, type: input.type ?? 'service' },
+    caller,
     (body) => (body as { site?: CloudSite }).site as CloudSite
   )
 }
@@ -163,11 +187,10 @@ export function createCloudSite(input: {
  * form chose) so the two paths share one provisioning code path. Returns the
  * new site's id; the caller resolves its subdomain from the sites list.
  */
-export function importCloudApp(input: {
-  repo: string
-  name?: string
-  branch?: string
-}): Promise<CloudResult<{ siteId: string }>> {
+export function importCloudApp(
+  input: { repo: string; name?: string; branch?: string },
+  caller: Caller
+): Promise<CloudResult<{ siteId: string }>> {
   return cloudPost(
     '/api/cloud/v1/import/run',
     {
@@ -178,6 +201,7 @@ export function importCloudApp(input: {
       dbMode: 'connect',
       generic: { envText: '' },
     },
+    caller,
     (body) => {
       const r = (body as { result?: { siteId?: string } }).result
       return { siteId: r?.siteId ?? '' }
@@ -189,19 +213,63 @@ export function importCloudApp(input: {
 }
 
 /** The org's apps. Scoped by the API key's org — this cannot see another org's. */
-export function listCloudSites(): Promise<CloudResult<CloudSite[]>> {
-  return cloudGet('/api/cloud/v1/sites', (body) => {
+export function listCloudSites(caller: Caller): Promise<CloudResult<CloudSite[]>> {
+  return cloudGet('/api/cloud/v1/sites', caller, (body) => {
     const sites = (body as { sites?: unknown })?.sites
     return Array.isArray(sites) ? (sites as CloudSite[]) : []
   })
 }
 
 /** The org the key belongs to, for the organization handler. */
-export function getCloudOrg(): Promise<CloudResult<{ id: string; name: string } | null>> {
-  return cloudGet('/api/cloud/v1/orgs', (body) => {
-    const b = body as { orgs?: Array<{ id: string; name: string }>; activeOrgId?: string }
-    const orgs = Array.isArray(b?.orgs) ? b.orgs : []
-    if (!orgs.length) return null
-    return orgs.find((o) => o.id === b?.activeOrgId) ?? orgs[0]
+export interface CloudOrg {
+  id: string
+  name: string
+  /** The engine's own slug. Studio routes org URLs on it, so it must not be re-derived. */
+  slug?: string
+}
+
+/** Every org the caller belongs to, and which one is active. */
+export function listCloudOrgs(
+  caller: Caller
+): Promise<CloudResult<{ orgs: CloudOrg[]; activeOrgId: string | null }>> {
+  return cloudGet('/api/cloud/v1/orgs', caller, (body) => {
+    const b = body as { orgs?: CloudOrg[]; activeOrgId?: string }
+    return {
+      orgs: Array.isArray(b?.orgs) ? b.orgs : [],
+      activeOrgId: typeof b?.activeOrgId === 'string' ? b.activeOrgId : null,
+    }
   })
+}
+
+/** The caller's active org. */
+export async function getCloudOrg(caller: Caller): Promise<CloudResult<CloudOrg | null>> {
+  const result = await listCloudOrgs(caller)
+  if (!result.ok) return result
+  const { orgs, activeOrgId } = result.data
+  if (!orgs.length) return { ok: true, data: null }
+  return { ok: true, data: orgs.find((o) => o.id === activeOrgId) ?? orgs[0] }
+}
+
+/**
+ * The caller's app matching `ref`.
+ *
+ * Folded into one place from the seven routes that each had their own copy.
+ * Resolving the ref against the caller's OWN site list is what makes a ref
+ * belonging to another org return nothing, so this is the tenancy check as much
+ * as it is a lookup, and it should not be reimplemented per route again.
+ *
+ * Returns a result rather than `CloudSite | null` so that "looked, and there is
+ * no such app" stays distinct from "could not look". Collapsing them tells
+ * somebody their app does not exist when Cloud is merely unreachable, which
+ * reads as data loss and sends them looking in the wrong place.
+ */
+export async function siteForCaller(
+  ref: string,
+  caller: Caller
+): Promise<CloudResult<CloudSite | null>> {
+  const result = await listCloudSites(caller)
+  if (!result.ok) return result
+  // The same picker the project handlers use, so an app cannot resolve to one
+  // id for its page and a different one for its database.
+  return { ok: true, data: findSiteByRef(result.data, ref) ?? null }
 }

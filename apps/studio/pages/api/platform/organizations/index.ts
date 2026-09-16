@@ -2,7 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next'
 
 import { apiWrapper } from '@/lib/api/apiWrapper'
 import { taskclanConfigured } from '@/lib/taskclan/client'
-import { taskclanOrg } from '@/lib/taskclan/org'
+import { taskclanOrgs } from '@/lib/taskclan/org'
+import { callerFromRequest } from '@/lib/taskclan/callerContext'
 
 export default (req: NextApiRequest, res: NextApiResponse) => apiWrapper(req, res, handler)
 
@@ -34,38 +35,44 @@ const STUB_ORG = {
  * derivations of the same thing would not error — they would render an org
  * with no apps and apps belonging to nothing.
  *
- * Only ever one org: an sk_cloud_* key resolves to exactly one. Studio copes
- * with a single-org list (it is what self-hosted mode has always returned) and
- * the switcher simply has nothing to switch to.
+ * Every org the caller belongs to, not one. An sk_cloud_* key still resolves
+ * to exactly one, so the shared-key path is unchanged; a signed-in person can
+ * belong to several, and the switcher needs them all to switch between.
  */
-const handleGetAll = async (_req: NextApiRequest, res: NextApiResponse) => {
+const handleGetAll = async (req: NextApiRequest, res: NextApiResponse) => {
   if (!taskclanConfigured()) {
     res.setHeader('x-taskclan-source', 'stub')
     return res.status(200).json([STUB_ORG])
   }
 
-  const org = await taskclanOrg()
-  if (!org.ok) {
-    console.error('[taskclan] resolving the org failed: %s — %s', org.reason, org.detail)
+  const caller = callerFromRequest(req)
+  if (!caller.ok) {
+    return res.status(caller.status).json({ data: null, error: { message: caller.reason } })
+  }
+
+  const result = await taskclanOrgs(caller.caller)
+  if (!result.ok) {
+    console.error('[taskclan] resolving orgs failed: %s, %s', result.reason, result.detail)
     return res
       .status(502)
-      .json({ data: null, error: { message: `Taskclan Cloud did not answer: ${org.detail}` } })
+      .json({ data: null, error: { message: `Taskclan Cloud did not answer: ${result.detail}` } })
   }
 
   res.setHeader('x-taskclan-source', 'cloud')
-  return res.status(200).json([
-    {
-      id: org.data.id,
-      name: org.data.name,
-      // Studio routes org URLs on the slug, so it has to be URL-safe. Derived
-      // from the name rather than carried, since Cloud has no slug column.
-      slug: org.data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'taskclan',
+  return res.status(200).json(
+    result.data.orgs.map((org) => ({
+      id: org.id,
+      name: org.name,
+      // The engine's own slug, carried rather than re-derived. It generates it
+      // with a uniqueness loop; deriving one from the name here would give two
+      // orgs called "Acme" the same slug, and Studio routes org URLs on it.
+      slug: org.slug,
       // Cloud bills in credits against its own ledger, not per-org plans, and
       // it does not expose a billing email here. Left null rather than faked:
       // Studio renders these read-only, and an invented address is the kind of
       // thing someone would try to send an invoice to.
       billing_email: null,
       plan: { id: 'enterprise', name: 'Taskclan Cloud' },
-    },
-  ])
+    }))
+  )
 }

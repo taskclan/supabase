@@ -11,8 +11,8 @@
  */
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-import { taskclanConfig } from '@/lib/taskclan/client'
-import { findSiteByRef, type CloudSite } from '@/lib/taskclan/projects'
+import { cloudBaseUrl, siteForCaller } from '@/lib/taskclan/client'
+import { authHeadersFor, callerFromRequest } from '@/lib/taskclan/callerContext'
 import { buildOverview, type CloudGit, type CloudSiteDetail } from '@/lib/taskclan/overview'
 import type { CloudDeployment } from '@/lib/taskclan/deployments'
 
@@ -27,18 +27,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const ref = typeof req.query.ref === 'string' ? req.query.ref : ''
   if (!ref) return res.status(400).json({ error: 'missing app ref' })
 
-  const cfg = taskclanConfig()
-  if (!cfg.ok) return res.status(501).json({ error: 'not_configured', detail: cfg.reason })
+  const resolved = callerFromRequest(req)
+  if (!resolved.ok) return res.status(resolved.status).json({ error: resolved.reason })
+  const caller = resolved.caller
 
-  const auth = { authorization: `Bearer ${cfg.config.key}`, accept: 'application/json' }
+  const cloud = cloudBaseUrl()
+  if (!cloud.ok) return res.status(501).json({ error: 'not_configured', detail: cloud.reason })
+
+  const auth = authHeadersFor(caller)
   const api = (path: string) =>
-    fetch(`${cfg.config.url}${path}`, { headers: auth, signal: AbortSignal.timeout(TIMEOUT_MS) })
+    fetch(`${cloud.url}${path}`, { headers: auth, signal: AbortSignal.timeout(TIMEOUT_MS) })
 
   try {
-    const listRes = await api('/api/cloud/v1/sites')
-    if (!listRes.ok) return res.status(502).json({ error: 'could not list Taskclan apps' })
-    const listed = (await listRes.json()) as { sites?: CloudSite[] }
-    const site = findSiteByRef(Array.isArray(listed.sites) ? listed.sites : [], ref)
+    const lookup = await siteForCaller(ref, caller)
+    // Distinguish "no such app for this caller" from "could not reach Cloud":
+    // answering 404 for an outage tells someone their app has vanished.
+    if (!lookup.ok) return res.status(502).json({ error: lookup.detail })
+    const site = lookup.data
     if (!site) return res.status(404).json({ error: `no Taskclan app matches "${ref}"` })
 
     // git and deployments are allowed to fail independently: an app can be real

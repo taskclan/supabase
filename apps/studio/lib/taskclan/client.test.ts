@@ -15,6 +15,9 @@ let saved: Record<string, string | undefined> = {}
 
 const GOOD_KEY = 'sk_cloud_' + 'a'.repeat(48)
 
+/** The console's own key, as a caller. Threaded explicitly now rather than read from env. */
+const SHARED = { kind: 'shared', key: GOOD_KEY } as const
+
 beforeEach(() => {
   saved = Object.fromEntries(KEYS.map((k) => [k, process.env[k]]))
   for (const k of KEYS) delete process.env[k]
@@ -74,7 +77,7 @@ describe('listCloudSites', () => {
     }))
     vi.stubGlobal('fetch', fetchMock)
 
-    const r = await listCloudSites()
+    const r = await listCloudSites(SHARED)
     expect(r).toMatchObject({ ok: true })
     expect((r as { data: unknown[] }).data).toHaveLength(1)
 
@@ -87,30 +90,33 @@ describe('listCloudSites', () => {
     // An empty list would render as "you have no apps", which is a different
     // and much more alarming statement than "Cloud said 401".
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false, status: 401, text: async () => 'unauthorized' })))
-    const r = await listCloudSites()
+    const r = await listCloudSites(SHARED)
     expect(r).toMatchObject({ ok: false, reason: 'http_error' })
     expect((r as { detail: string }).detail).toContain('401')
   })
 
   it('reports a network failure instead of throwing into the handler', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('ECONNREFUSED') }))
-    const r = await listCloudSites()
+    const r = await listCloudSites(SHARED)
     expect(r).toMatchObject({ ok: false, reason: 'network_error' })
     expect((r as { detail: string }).detail).toContain('ECONNREFUSED')
   })
 
   it('treats a response with no sites key as empty, not as a crash', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: true, status: 200, json: async () => ({}) })))
-    const r = await listCloudSites()
+    const r = await listCloudSites(SHARED)
     expect(r).toMatchObject({ ok: true })
     expect((r as { data: unknown[] }).data).toEqual([])
   })
 
   it('returns not_configured without calling the network', async () => {
-    delete process.env.TASKCLAN_CLOUD_API_KEY
+    // Deleting the key would no longer prove this: the caller carries its own
+    // credential, so a missing key is not a missing configuration any more. The
+    // base URL is what a request cannot be built without.
+    delete process.env.TASKCLAN_CLOUD_URL
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
-    const r = await listCloudSites()
+    const r = await listCloudSites(SHARED)
     expect(r).toMatchObject({ ok: false, reason: 'not_configured' })
     expect(fetchMock).not.toHaveBeenCalled()
   })

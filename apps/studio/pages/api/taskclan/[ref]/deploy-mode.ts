@@ -11,8 +11,8 @@
  */
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-import { taskclanConfig } from '@/lib/taskclan/client'
-import { findSiteByRef, type CloudSite } from '@/lib/taskclan/projects'
+import { cloudBaseUrl, siteForCaller } from '@/lib/taskclan/client'
+import { authHeadersFor, callerFromRequest } from '@/lib/taskclan/callerContext'
 
 const TIMEOUT_MS = 15000
 
@@ -33,24 +33,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "mode must be 'auto' or 'manual'" })
   }
 
-  const cfg = taskclanConfig()
-  if (!cfg.ok) return res.status(501).json({ error: 'not_configured', detail: cfg.reason })
+  const resolved = callerFromRequest(req)
+  if (!resolved.ok) return res.status(resolved.status).json({ error: resolved.reason })
+  const caller = resolved.caller
+
+  const cloud = cloudBaseUrl()
+  if (!cloud.ok) return res.status(501).json({ error: 'not_configured', detail: cloud.reason })
 
   try {
-    const listed = await fetch(`${cfg.config.url}/api/cloud/v1/sites`, {
-      headers: { authorization: `Bearer ${cfg.config.key}`, accept: 'application/json' },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    })
-    if (!listed.ok) return res.status(502).json({ error: 'could not list Taskclan apps' })
-    const body = (await listed.json()) as { sites?: CloudSite[] }
-    const site = findSiteByRef(Array.isArray(body.sites) ? body.sites : [], ref)
+    const lookup = await siteForCaller(ref, caller)
+    // Distinguish "no such app for this caller" from "could not reach Cloud":
+    // answering 404 for an outage tells someone their app has vanished.
+    if (!lookup.ok) return res.status(502).json({ error: lookup.detail })
+    const site = lookup.data
     if (!site) return res.status(404).json({ error: `no Taskclan app matches "${ref}"` })
 
-    const r = await fetch(`${cfg.config.url}/api/cloud/v1/sites/${site.id}/deploy-mode`, {
+    const r = await fetch(`${cloud.url}/api/cloud/v1/sites/${site.id}/deploy-mode`, {
       method: 'POST',
       headers: {
-        authorization: `Bearer ${cfg.config.key}`,
-        accept: 'application/json',
+        ...authHeadersFor(caller),
         'content-type': 'application/json',
       },
       body: JSON.stringify({ mode }),

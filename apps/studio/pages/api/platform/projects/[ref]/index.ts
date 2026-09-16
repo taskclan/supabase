@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { apiWrapper } from '@/lib/api/apiWrapper'
 import { DEFAULT_PROJECT, PROJECT_REST_URL } from '@/lib/constants/api'
 import { listCloudSites, taskclanConfigured } from '@/lib/taskclan/client'
+import { callerFromRequest } from '@/lib/taskclan/callerContext'
 import { findSiteByRef, toStudioProject } from '@/lib/taskclan/projects'
 import { taskclanOrg } from '@/lib/taskclan/org'
 
@@ -39,7 +40,13 @@ const handleGet = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 
   const ref = String(req.query.ref ?? '')
-  const [org, sites] = await Promise.all([taskclanOrg(), listCloudSites()])
+  const resolved = callerFromRequest(req)
+  if (!resolved.ok) {
+    return res.status(resolved.status).json({ data: null, error: { message: resolved.reason } })
+  }
+  const caller = resolved.caller
+
+  const [org, sites] = await Promise.all([taskclanOrg(caller), listCloudSites(caller)])
   if (!org.ok) {
     return res.status(502).json({ data: null, error: { message: `Taskclan Cloud did not answer: ${org.detail}` } })
   }

@@ -16,6 +16,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 import { credentialForRef, perAppCredentialsEnabled } from '@/lib/taskclan/db-credential'
+import { callerFromRequest } from '@/lib/taskclan/callerContext'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -30,7 +31,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(501).json({ error: 'per-app credentials are not enabled' })
   }
 
-  const result = await credentialForRef(ref)
+  const resolved = callerFromRequest(req)
+  if (!resolved.ok) return res.status(resolved.status).json({ error: resolved.reason })
+
+  const result = await credentialForRef(ref, resolved.caller)
   if (!result.ok) {
     // not_configured is the ordinary "this app has no database" case; surface it
     // so the panel can say so rather than showing a broken string.

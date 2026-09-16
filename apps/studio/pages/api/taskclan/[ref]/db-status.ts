@@ -14,6 +14,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 import { credentialForRef, perAppCredentialsEnabled } from '@/lib/taskclan/db-credential'
+import { callerFromRequest } from '@/lib/taskclan/callerContext'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -30,7 +31,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ configured: true })
   }
 
-  const result = await credentialForRef(ref)
+  const resolved = callerFromRequest(req)
+  if (!resolved.ok) return res.status(resolved.status).json({ error: resolved.reason })
+
+  const result = await credentialForRef(ref, resolved.caller)
   if (result.ok) return res.status(200).json({ configured: true })
 
   // not_configured is the ordinary "this app has no database" case; the others

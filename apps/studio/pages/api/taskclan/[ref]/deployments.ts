@@ -7,6 +7,10 @@
  * It must never be handed to a page. The browser asks this route by app ref;
  * this route is the only thing that holds the key.
  *
+ * A signed-in caller is forwarded under their own token instead, so the app is
+ * resolved against their apps rather than the key's org. The key remains the
+ * fallback for callers with no session, and remains server side either way.
+ *
  * The POST body is deliberately empty. `deploy-service` falls back to the
  * site's linked repo, branch and installation when none is given, which is
  * exactly what a redeploy means — and it also means the console cannot be used
@@ -15,25 +19,12 @@
  */
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-import { taskclanConfig } from '@/lib/taskclan/client'
-import { findSiteByRef, type CloudSite } from '@/lib/taskclan/projects'
+import { cloudBaseUrl, siteForCaller } from '@/lib/taskclan/client'
+import { authHeadersFor, callerFromRequest } from '@/lib/taskclan/callerContext'
 
 const TIMEOUT_MS = 15000
 /** Long enough for the engine to queue a build; the build itself is watched by polling. */
 const DEPLOY_TIMEOUT_MS = 30000
-
-async function siteForRef(
-  ref: string,
-  cfg: { url: string; key: string }
-): Promise<CloudSite | null> {
-  const res = await fetch(`${cfg.url}/api/cloud/v1/sites`, {
-    headers: { authorization: `Bearer ${cfg.key}`, accept: 'application/json' },
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  })
-  if (!res.ok) return null
-  const body = (await res.json()) as { sites?: CloudSite[] }
-  return findSiteByRef(Array.isArray(body.sites) ? body.sites : [], ref) ?? null
-}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -44,17 +35,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const ref = typeof req.query.ref === 'string' ? req.query.ref : ''
   if (!ref) return res.status(400).json({ error: 'missing app ref' })
 
-  const cfg = taskclanConfig()
-  if (!cfg.ok) return res.status(501).json({ error: 'not_configured', detail: cfg.reason })
+  const resolved = callerFromRequest(req)
+  if (!resolved.ok) return res.status(resolved.status).json({ error: resolved.reason })
+  const caller = resolved.caller
+
+  const cloud = cloudBaseUrl()
+  if (!cloud.ok) return res.status(501).json({ error: 'not_configured', detail: cloud.reason })
 
   try {
-    const site = await siteForRef(ref, cfg.config)
+    const lookup = await siteForCaller(ref, caller)
+    // Distinguish "no such app for this caller" from "could not reach Cloud":
+    // answering 404 for an outage tells someone their app has vanished.
+    if (!lookup.ok) return res.status(502).json({ error: lookup.detail })
+    const site = lookup.data
     if (!site) return res.status(404).json({ error: `no Taskclan app matches "${ref}"` })
 
-    const auth = { authorization: `Bearer ${cfg.config.key}`, accept: 'application/json' }
+    const auth = authHeadersFor(caller)
 
     if (req.method === 'GET') {
-      const r = await fetch(`${cfg.config.url}/api/cloud/v1/sites/${site.id}/deployments?limit=25`, {
+      const r = await fetch(`${cloud.url}/api/cloud/v1/sites/${site.id}/deployments?limit=25`, {
         headers: auth,
         signal: AbortSignal.timeout(TIMEOUT_MS),
       })
@@ -69,7 +68,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       })
     }
 
-    const r = await fetch(`${cfg.config.url}/api/cloud/v1/sites/${site.id}/deploy-service`, {
+    const r = await fetch(`${cloud.url}/api/cloud/v1/sites/${site.id}/deploy-service`, {
       method: 'POST',
       headers: { ...auth, 'content-type': 'application/json' },
       body: '{}',

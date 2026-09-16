@@ -1,8 +1,9 @@
 /**
  * GET/POST/DELETE /api/taskclan/{ref}/env — an app's environment variables.
  *
- * A server proxy holding the Cloud key (never handed to the browser). It
- * resolves the app by ref and forwards to Cloud's per-site env API, which
+ * A server proxy, so no credential reaches the browser: a signed-in caller's
+ * own token is forwarded, and the shared Cloud key stays server side entirely.
+ * It resolves the app by ref and forwards to Cloud's per-site env API, which
  * enforces the write capability and masks secret values (reveal is gated on the
  * caller's role). Lets the console manage per-app secrets instead of curl.
  *
@@ -12,20 +13,10 @@
  */
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-import { taskclanConfig } from '@/lib/taskclan/client'
-import { findSiteByRef, type CloudSite } from '@/lib/taskclan/projects'
+import { cloudBaseUrl, siteForCaller } from '@/lib/taskclan/client'
+import { authHeadersFor, callerFromRequest } from '@/lib/taskclan/callerContext'
 
 const TIMEOUT_MS = 15000
-
-async function siteForRef(ref: string, cfg: { url: string; key: string }): Promise<CloudSite | null> {
-  const res = await fetch(`${cfg.url}/api/cloud/v1/sites`, {
-    headers: { authorization: `Bearer ${cfg.key}`, accept: 'application/json' },
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  })
-  if (!res.ok) return null
-  const body = (await res.json()) as { sites?: CloudSite[] }
-  return findSiteByRef(Array.isArray(body.sites) ? body.sites : [], ref) ?? null
-}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!['GET', 'POST', 'DELETE'].includes(req.method || '')) {
@@ -35,16 +26,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const ref = typeof req.query.ref === 'string' ? req.query.ref : ''
   if (!ref) return res.status(400).json({ error: 'missing app ref' })
 
-  const cfg = taskclanConfig()
-  if (!cfg.ok) return res.status(501).json({ error: 'not_configured', detail: cfg.reason })
+  const resolved = callerFromRequest(req)
+  if (!resolved.ok) return res.status(resolved.status).json({ error: resolved.reason })
+  const caller = resolved.caller
+
+  const cloud = cloudBaseUrl()
+  if (!cloud.ok) return res.status(501).json({ error: 'not_configured', detail: cloud.reason })
 
   try {
-    const site = await siteForRef(ref, cfg.config)
+    const lookup = await siteForCaller(ref, caller)
+    // Distinguish "no such app for this caller" from "could not reach Cloud":
+    // answering 404 for an outage tells someone their app has vanished.
+    if (!lookup.ok) return res.status(502).json({ error: lookup.detail })
+    const site = lookup.data
     if (!site) return res.status(404).json({ error: `no Taskclan app matches "${ref}"` })
-    const auth = { authorization: `Bearer ${cfg.config.key}`, accept: 'application/json' }
+    const auth = authHeadersFor(caller)
     // `?reveal=1` on GET asks Cloud for real secret values (it gates that on role).
     const reveal = req.query.reveal === '1' ? '?reveal=1' : ''
-    const base = `${cfg.config.url}/api/cloud/v1/sites/${site.id}/env`
+    const base = `${cloud.url}/api/cloud/v1/sites/${site.id}/env`
 
     if (req.method === 'GET') {
       const r = await fetch(`${base}${reveal}`, { headers: auth, signal: AbortSignal.timeout(TIMEOUT_MS) })

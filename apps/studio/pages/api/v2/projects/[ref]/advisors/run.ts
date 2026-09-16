@@ -13,6 +13,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { constructHeaders } from '@/lib/api/apiHelpers'
 import { apiWrapper } from '@/lib/api/apiWrapper'
 import { executeQuery } from '@/lib/api/self-hosted/query'
+import { callerFromRequest } from '@/lib/taskclan/callerContext'
 
 export default (req: NextApiRequest, res: NextApiResponse) => apiWrapper(req, res, handler)
 
@@ -59,6 +60,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const ref = typeof req.query.ref === 'string' ? req.query.ref : undefined
   const headers = constructHeaders(req.headers)
+  const resolved = callerFromRequest(req)
+  if (!resolved.ok) {
+    return res.status(resolved.status).json({ data: null, error: { message: resolved.reason } })
+  }
+  const caller = resolved.caller
   const lints: HealthLint[] = []
 
   // Reachability — can the app's database answer a trivial probe?
@@ -66,6 +72,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     query: 'select 1 as ok',
     headers,
     ref,
+    caller,
     readOnly: true,
   })
 
@@ -86,6 +93,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         "select count(*)::int as used, current_setting('max_connections')::int as max from pg_stat_activity",
       headers,
       ref,
+      caller,
       readOnly: true,
     })
     const row = Array.isArray(conn.data) ? conn.data[0] : undefined

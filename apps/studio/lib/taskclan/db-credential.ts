@@ -17,19 +17,26 @@
  * whatever Studio asks for. This module only has to fetch the right string and
  * fail closed when it cannot.
  */
-import { taskclanConfig } from './client'
-import { findSiteByRef, type CloudSite } from './projects'
+import { cloudBaseUrl, siteForCaller, taskclanConfig } from './client'
+import { authHeadersFor, cacheScopeFor, type Caller } from './callerContext'
 
 /** Beyond this we stop rather than hold a dashboard request open. */
 const TIMEOUT_MS = 8000
 
 /**
- * Cached per ref for the life of the process.
+ * Cached per caller and ref for the life of the process.
  *
  * A credential fetch on every query would put a network round trip in front of
  * every keystroke in the SQL editor. Rotating a role's password therefore needs
- * a Studio restart — an acceptable trade for a value that changes about never,
+ * a Studio restart, an acceptable trade for a value that changes about never,
  * and noted here so the next person is not puzzled.
+ *
+ * The caller scope is not decoration. Keyed by ref alone this map was process
+ * wide and shared by every visitor, so the first person to open an app's SQL
+ * editor left a working connection string, password included, that any later
+ * visitor asking for the same ref would be handed. That was unreachable while
+ * one shared key was the only way in and is a cross-tenant read the moment it
+ * is not.
  */
 const cache = new Map<string, string>()
 
@@ -42,43 +49,42 @@ export type CredentialResult =
   | { ok: true; connectionString: string }
   | { ok: false; reason: 'not_configured' | 'no_such_app' | 'unauthorized' | 'http_error' | 'network_error'; detail: string }
 
-async function siteIdForRef(ref: string, cfg: { url: string; key: string }): Promise<string | null> {
-  const res = await fetch(`${cfg.url}/api/cloud/v1/sites`, {
-    headers: { authorization: `Bearer ${cfg.key}`, accept: 'application/json' },
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  })
-  if (!res.ok) return null
-  const body = (await res.json()) as { sites?: CloudSite[] }
-  // The same picker the project handlers use, so an app cannot resolve to one
-  // id for its page and a different one for its database.
-  return findSiteByRef(Array.isArray(body.sites) ? body.sites : [], ref)?.id ?? null
-}
-
 /**
  * The scoped connection string for `ref`, or why there isn't one.
  *
  * Never falls back to the process-wide URL. That fallback is the whole bug:
  * it would silently point one app's SQL editor at the shared database, and the
- * editor would work — which is worse than it refusing.
+ * editor would work, which is worse than it refusing.
+ *
+ * The ref is resolved against the caller's own apps, so a ref belonging to
+ * another organisation is not found at all. That answers `no_such_app` rather
+ * than `unauthorized` on purpose: a caller who cannot see an app should not
+ * learn from the error that it exists.
  */
-export async function credentialForRef(ref: string): Promise<CredentialResult> {
-  const cached = cache.get(ref)
+export async function credentialForRef(ref: string, caller: Caller): Promise<CredentialResult> {
+  const key = `${cacheScopeFor(caller)}:${ref}`
+  const cached = cache.get(key)
   if (cached) return { ok: true, connectionString: cached }
 
-  const cfg = taskclanConfig()
-  if (!cfg.ok) return { ok: false, reason: 'not_configured', detail: cfg.reason }
+  const base = cloudBaseUrl()
+  if (!base.ok) return { ok: false, reason: 'not_configured', detail: base.reason }
 
   try {
-    const siteId = await siteIdForRef(ref, cfg.config)
-    if (!siteId) return { ok: false, reason: 'no_such_app', detail: `no Taskclan app matches "${ref}"` }
+    const lookup = await siteForCaller(ref, caller)
+    // Could not look. Reporting this as "no such app" would tell someone their
+    // app had vanished when Cloud was simply unreachable.
+    if (!lookup.ok) return { ok: false, reason: lookup.reason, detail: lookup.detail }
+    if (!lookup.data) {
+      return { ok: false, reason: 'no_such_app', detail: `no Taskclan app matches "${ref}"` }
+    }
 
-    const res = await fetch(`${cfg.config.url}/api/cloud/v1/sites/${siteId}/db-credential`, {
-      headers: { authorization: `Bearer ${cfg.config.key}`, accept: 'application/json' },
+    const res = await fetch(`${base.url}/api/cloud/v1/sites/${lookup.data.id}/db-credential`, {
+      headers: authHeadersFor(caller),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     })
 
     if (res.status === 401 || res.status === 403) {
-      return { ok: false, reason: 'unauthorized', detail: `the Cloud API key cannot read ${ref}'s database credential` }
+      return { ok: false, reason: 'unauthorized', detail: `not allowed to read ${ref}'s database credential` }
     }
     if (res.status === 404) {
       // The engine distinguishes "no such site" from "no credential set". Both
@@ -100,7 +106,7 @@ export async function credentialForRef(ref: string): Promise<CredentialResult> {
       return { ok: false, reason: 'not_configured', detail: `no connection string returned for "${ref}"` }
     }
 
-    cache.set(ref, body.connectionString)
+    cache.set(key, body.connectionString)
     return { ok: true, connectionString: body.connectionString }
   } catch (e) {
     return { ok: false, reason: 'network_error', detail: e instanceof Error ? e.message : String(e) }

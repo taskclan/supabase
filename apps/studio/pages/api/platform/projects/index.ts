@@ -3,6 +3,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { apiWrapper } from '@/lib/api/apiWrapper'
 import { DEFAULT_PROJECT } from '@/lib/constants/api'
 import { createCloudSite, listCloudSites, taskclanConfigured } from '@/lib/taskclan/client'
+import { callerFromRequest } from '@/lib/taskclan/callerContext'
 import { toStudioProject, toStudioProjects } from '@/lib/taskclan/projects'
 import { taskclanOrg } from '@/lib/taskclan/org'
 
@@ -48,7 +49,16 @@ const handleCreate = async (req: NextApiRequest, res: NextApiResponse) => {
   }
   const type = body.type === 'static' ? 'static' : 'service'
 
-  const [org, created] = await Promise.all([taskclanOrg(), createCloudSite({ name, type })])
+  const resolved = callerFromRequest(req)
+  if (!resolved.ok) {
+    return res.status(resolved.status).json({ data: null, error: { message: resolved.reason } })
+  }
+  const caller = resolved.caller
+
+  const [org, created] = await Promise.all([
+    taskclanOrg(caller),
+    createCloudSite({ name, type }, caller),
+  ])
   if (!org.ok) {
     return res
       .status(502)
@@ -79,7 +89,7 @@ const handleCreate = async (req: NextApiRequest, res: NextApiResponse) => {
  *    unreachable, which is the worst of the three.
  *  - Working: the real list.
  */
-const handleGetAll = async (_req: NextApiRequest, res: NextApiResponse) => {
+const handleGetAll = async (req: NextApiRequest, res: NextApiResponse) => {
   if (!taskclanConfigured()) {
     res.setHeader('x-taskclan-source', 'stub')
     return res.status(200).json([DEFAULT_PROJECT])
@@ -87,7 +97,13 @@ const handleGetAll = async (_req: NextApiRequest, res: NextApiResponse) => {
 
   // Both in parallel: the org id has to come from the same place the
   // organizations handler reads it, or Studio cannot match an app to its org.
-  const [org, result] = await Promise.all([taskclanOrg(), listCloudSites()])
+  const resolved = callerFromRequest(req)
+  if (!resolved.ok) {
+    return res.status(resolved.status).json({ data: null, error: { message: resolved.reason } })
+  }
+  const caller = resolved.caller
+
+  const [org, result] = await Promise.all([taskclanOrg(caller), listCloudSites(caller)])
   if (!org.ok) {
     console.error('[taskclan] resolving the org failed: %s — %s', org.reason, org.detail)
     return res

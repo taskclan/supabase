@@ -14,8 +14,8 @@
  */
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-import { taskclanConfig } from '@/lib/taskclan/client'
-import { findSiteByRef, type CloudSite } from '@/lib/taskclan/projects'
+import { cloudBaseUrl, siteForCaller } from '@/lib/taskclan/client'
+import { authHeadersFor, callerFromRequest } from '@/lib/taskclan/callerContext'
 
 const TIMEOUT_MS = 20000
 const RANGES = new Set(['1h', '24h', '7d', '30d'])
@@ -48,22 +48,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ? req.query.range
     : '24h'
 
-  const cfg = taskclanConfig()
-  if (!cfg.ok) return res.status(501).json({ error: 'not_configured', detail: cfg.reason })
+  const resolved = callerFromRequest(req)
+  if (!resolved.ok) return res.status(resolved.status).json({ error: resolved.reason })
+  const caller = resolved.caller
 
-  const auth = { authorization: `Bearer ${cfg.config.key}`, accept: 'application/json' }
+  const cloud = cloudBaseUrl()
+  if (!cloud.ok) return res.status(501).json({ error: 'not_configured', detail: cloud.reason })
+
+  const auth = authHeadersFor(caller)
 
   try {
-    const listRes = await fetch(`${cfg.config.url}/api/cloud/v1/sites`, {
-      headers: auth,
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    })
-    if (!listRes.ok) return res.status(502).json({ error: 'could not list Taskclan apps' })
-    const listed = (await listRes.json()) as { sites?: CloudSite[] }
-    const site = findSiteByRef(Array.isArray(listed.sites) ? listed.sites : [], ref)
+    const lookup = await siteForCaller(ref, caller)
+    // Distinguish "no such app for this caller" from "could not reach Cloud":
+    // answering 404 for an outage tells someone their app has vanished.
+    if (!lookup.ok) return res.status(502).json({ error: lookup.detail })
+    const site = lookup.data
     if (!site) return res.status(404).json({ error: `no Taskclan app matches "${ref}"` })
 
-    const mRes = await fetch(`${cfg.config.url}/api/cloud/v1/sites/${site.id}/metrics?range=${range}`, {
+    const mRes = await fetch(`${cloud.url}/api/cloud/v1/sites/${site.id}/metrics?range=${range}`, {
       headers: auth,
       signal: AbortSignal.timeout(TIMEOUT_MS),
     })
