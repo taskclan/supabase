@@ -83,6 +83,111 @@ async function cloudGet<T>(path: string, pick: (body: unknown) => T): Promise<Cl
   }
 }
 
+/**
+ * POST to Cloud's API with the org key.
+ *
+ * The mirror of cloudGet for the handful of console screens that create things
+ * (a new app, an import). Same error vocabulary so callers report a cause
+ * rather than a bare failure. `timeoutMs` is a parameter because these are not
+ * all alike: reserving a subdomain is quick, kicking off an import less so.
+ */
+async function cloudPost<T>(
+  path: string,
+  body: unknown,
+  pick: (body: unknown, status: number) => T,
+  timeoutMs = TIMEOUT_MS
+): Promise<CloudResult<T>> {
+  const cfg = taskclanConfig()
+  if (!cfg.ok) return { ok: false, reason: 'not_configured', detail: cfg.reason }
+
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const res = await fetch(`${cfg.config.url}${path}`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${cfg.config.key}`,
+        accept: 'application/json',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(body ?? {}),
+      signal: controller.signal,
+    })
+    if (!res.ok) {
+      const text = await res.text().catch(() => '')
+      // Surface the engine's own message (e.g. "name is required", "your role
+      // cannot import apps") rather than a generic status.
+      let detail = `${res.status}`
+      try {
+        const parsed = JSON.parse(text) as { error?: string }
+        detail = parsed?.error ? parsed.error : `${res.status} ${text.slice(0, 200)}`
+      } catch {
+        detail = `${res.status} ${text.slice(0, 200)}`
+      }
+      return { ok: false, reason: 'http_error', detail }
+    }
+    return { ok: true, data: pick(await res.json().catch(() => ({})), res.status) }
+  } catch (e) {
+    return {
+      ok: false,
+      reason: 'network_error',
+      detail: e instanceof Error ? e.message : String(e),
+    }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/**
+ * Create a site (an app) in the key's org.
+ *
+ * `type` is 'service' | 'static'; the engine coerces anything else to 'static'.
+ * Returns the created site so the caller can route to it by its subdomain.
+ */
+export function createCloudSite(input: {
+  name: string
+  type?: 'service' | 'static'
+}): Promise<CloudResult<CloudSite>> {
+  return cloudPost(
+    '/api/cloud/v1/sites',
+    { name: input.name, type: input.type ?? 'service' },
+    (body) => (body as { site?: CloudSite }).site as CloudSite
+  )
+}
+
+/**
+ * Import an app from a GitHub repo (create the site, link the repo, build it).
+ *
+ * `dbMode:'connect'` means "do not provision a managed database as part of the
+ * import" — a dedicated database is provisioned separately (with the tier the
+ * form chose) so the two paths share one provisioning code path. Returns the
+ * new site's id; the caller resolves its subdomain from the sites list.
+ */
+export function importCloudApp(input: {
+  repo: string
+  name?: string
+  branch?: string
+}): Promise<CloudResult<{ siteId: string }>> {
+  return cloudPost(
+    '/api/cloud/v1/import/run',
+    {
+      source: 'generic',
+      repo: input.repo,
+      name: input.name,
+      branch: input.branch,
+      dbMode: 'connect',
+      generic: { envText: '' },
+    },
+    (body) => {
+      const r = (body as { result?: { siteId?: string } }).result
+      return { siteId: r?.siteId ?? '' }
+    },
+    // An import kicks off a build; the route answers 202 once queued, but give
+    // it more room than a plain GET.
+    20000
+  )
+}
+
 /** The org's apps. Scoped by the API key's org — this cannot see another org's. */
 export function listCloudSites(): Promise<CloudResult<CloudSite[]>> {
   return cloudGet('/api/cloud/v1/sites', (body) => {

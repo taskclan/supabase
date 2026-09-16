@@ -2,10 +2,12 @@ import Head from 'next/head'
 import { PropsWithChildren } from 'react'
 
 import { ProjectCreationForm } from '@/components/interfaces/ProjectCreation/ProjectCreationForm'
+import { TaskclanProjectCreationForm } from '@/components/interfaces/ProjectCreation/TaskclanProjectCreationForm'
 import { DefaultLayout } from '@/components/layouts/DefaultLayout'
 import { WizardLayoutWithoutAuth } from '@/components/layouts/WizardLayout'
 import { useCustomContent } from '@/hooks/custom-content/useCustomContent'
 import { withAuth } from '@/hooks/misc/withAuth'
+import { IS_PLATFORM } from '@/lib/constants'
 import { buildStudioPageTitle } from '@/lib/page-title'
 import type { NextPageWithLayout } from '@/types'
 
@@ -23,7 +25,7 @@ const Wizard: NextPageWithLayout = () => {
         <title>{pageTitle}</title>
         <meta name="description" content="Supabase Studio" />
       </Head>
-      <ProjectCreationForm />
+      {IS_PLATFORM ? <ProjectCreationForm /> : <TaskclanProjectCreationForm />}
     </>
   )
 }

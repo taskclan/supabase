@@ -2,8 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next'
 
 import { apiWrapper } from '@/lib/api/apiWrapper'
 import { DEFAULT_PROJECT } from '@/lib/constants/api'
-import { listCloudSites, taskclanConfigured } from '@/lib/taskclan/client'
-import { toStudioProjects } from '@/lib/taskclan/projects'
+import { createCloudSite, listCloudSites, taskclanConfigured } from '@/lib/taskclan/client'
+import { toStudioProject, toStudioProjects } from '@/lib/taskclan/projects'
 import { taskclanOrg } from '@/lib/taskclan/org'
 
 export default (req: NextApiRequest, res: NextApiResponse) => apiWrapper(req, res, handler)
@@ -14,10 +14,53 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   switch (method) {
     case 'GET':
       return handleGetAll(req, res)
+    case 'POST':
+      return handleCreate(req, res)
     default:
-      res.setHeader('Allow', ['GET'])
+      res.setHeader('Allow', ['GET', 'POST'])
       res.status(405).json({ data: null, error: { message: `Method ${method} Not Allowed` } })
   }
+}
+
+/**
+ * Create a new app (an empty site).
+ *
+ * The console's native new-project form posts here for the "start empty" path;
+ * the GitHub-import path goes to ./import instead, and a dedicated database is
+ * provisioned afterwards against the returned ref. Returns the created project
+ * in Studio's shape so the caller can route straight to `/project/{ref}`.
+ *
+ * Not configured is a 501 rather than the read path's silent stub: creating an
+ * app with no Cloud behind it cannot half-work, and a stub row the user then
+ * cannot open is worse than a clear "this console has no Cloud configured".
+ */
+const handleCreate = async (req: NextApiRequest, res: NextApiResponse) => {
+  if (!taskclanConfigured()) {
+    return res
+      .status(501)
+      .json({ data: null, error: { message: 'Taskclan Cloud is not configured on this console' } })
+  }
+
+  const body = (req.body ?? {}) as { name?: unknown; type?: unknown }
+  const name = typeof body.name === 'string' ? body.name.trim() : ''
+  if (!name) {
+    return res.status(400).json({ data: null, error: { message: 'A project name is required' } })
+  }
+  const type = body.type === 'static' ? 'static' : 'service'
+
+  const [org, created] = await Promise.all([taskclanOrg(), createCloudSite({ name, type })])
+  if (!org.ok) {
+    return res
+      .status(502)
+      .json({ data: null, error: { message: `Taskclan Cloud did not answer: ${org.detail}` } })
+  }
+  if (!created.ok) {
+    // The engine's own refusal (name taken, role, timeout) passes through.
+    const status = created.reason === 'not_configured' ? 501 : 502
+    return res.status(status).json({ data: null, error: { message: created.detail } })
+  }
+
+  return res.status(201).json(toStudioProject(created.data, org.data.id))
 }
 
 /**
