@@ -58,18 +58,38 @@ export function assignNumericIds(orgs: CloudOrg[]): Map<string, number> {
   return byUuid
 }
 
+/**
+ * Does `slug` name this org?
+ *
+ * Accepts the legacy name-derived slug as well as the engine's own. The
+ * console derived slugs from names until the engine's real ones were carried
+ * through, so URLs and the stored "last visited organisation" still hold the
+ * old value. Matching only the new one turns those into 404s the first time
+ * somebody opens the console after the change, which looks exactly like having
+ * been removed from their organisation.
+ *
+ * Only ever widens which slug resolves to an org the caller already belongs to,
+ * so it cannot be used to reach somebody else's.
+ */
+export function matchesSlug(org: TaskclanOrg, slug: string): boolean {
+  return org.slug === slug || derivedSlug(org.name) === slug
+}
+
+/** The slug this console used to compute from a name, kept for old URLs. */
+function derivedSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
 /** Slug fallback for an engine old enough not to send one. */
 function slugFor(org: CloudOrg): string {
   if (org.slug) return org.slug
   // Derived only as a last resort. Two orgs named the same would collide here,
   // which is exactly why the engine's own slug is preferred: it is generated
   // with a uniqueness loop and this is not.
-  return (
-    org.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '') || org.id
-  )
+  return derivedSlug(org.name) || org.id
 }
 
 /**

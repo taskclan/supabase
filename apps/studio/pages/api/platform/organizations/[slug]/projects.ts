@@ -19,8 +19,8 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { apiWrapper } from '@/lib/api/apiWrapper'
 import { DEFAULT_PROJECT } from '@/lib/constants/api'
 import { listCloudSites, taskclanConfigured } from '@/lib/taskclan/client'
-import { callerFromRequest } from '@/lib/taskclan/callerContext'
-import { taskclanOrg } from '@/lib/taskclan/org'
+import { callerFromRequest, inOrg } from '@/lib/taskclan/callerContext'
+import { matchesSlug, taskclanOrgs } from '@/lib/taskclan/org'
 import { toStudioProjects, type StudioProject } from '@/lib/taskclan/projects'
 
 export default (req: NextApiRequest, res: NextApiResponse) => apiWrapper(req, res, handler)
@@ -117,21 +117,35 @@ const handleGet = async (req: NextApiRequest, res: NextApiResponse) => {
   }
   const caller = resolved.caller
 
-  const [org, sites] = await Promise.all([taskclanOrg(caller), listCloudSites(caller)])
-  if (!org.ok) {
-    console.error('[taskclan] resolving the org failed: %s — %s', org.reason, org.detail)
+  const orgs = await taskclanOrgs(caller)
+  if (!orgs.ok) {
+    console.error('[taskclan] resolving orgs failed: %s, %s', orgs.reason, orgs.detail)
     return res
       .status(502)
-      .json({ data: null, error: { message: `Taskclan Cloud did not answer: ${org.detail}` } })
+      .json({ data: null, error: { message: `Taskclan Cloud did not answer: ${orgs.detail}` } })
   }
+
+  // The slug in the path names WHICH org's apps are being asked for. This route
+  // used to ignore it and answer with the caller's active org, which is right
+  // for as long as there is only ever one: with several, opening /org/globex
+  // lists Acme's apps under Globex's heading, and nothing about the page says
+  // so. A slug the caller is not a member of is 404, not an empty list, because
+  // "you have no apps here" is a different and more alarming claim.
+  const slug = str(req.query.slug)
+  const target = slug ? orgs.data.orgs.find((o) => matchesSlug(o, slug)) : orgs.data.active
+  if (!target) {
+    return res.status(404).json({ data: null, error: { message: `No organization "${slug}"` } })
+  }
+
+  const sites = await listCloudSites(inOrg(caller, target.uuid))
   if (!sites.ok) {
-    console.error('[taskclan] listing apps failed: %s — %s', sites.reason, sites.detail)
+    console.error('[taskclan] listing apps failed: %s, %s', sites.reason, sites.detail)
     return res
       .status(502)
       .json({ data: null, error: { message: `Taskclan Cloud did not answer: ${sites.detail}` } })
   }
 
-  const all = applyQuery(toStudioProjects(sites.data, org.data.id), { search, statuses, sort })
+  const all = applyQuery(toStudioProjects(sites.data, target.id), { search, statuses, sort })
 
   // `databases` is required, not optional decoration: ProjectCard calls
   // getComputeSize(), which does `project.databases.find(...)` with no optional

@@ -151,15 +151,50 @@ export function cacheScopeFor(caller: Caller): string {
   return `user:${subject}:${caller.org ?? 'default'}`
 }
 
+/**
+ * Act as the same caller, but in a different one of their organisations.
+ *
+ * A user's token is valid across every org they belong to; `x-taskclan-org`
+ * chooses which. A shared key is returned untouched, because there the key is
+ * the scope and the engine ignores the header.
+ */
+export function inOrg(caller: Caller, org: string): Caller {
+  return caller.kind === 'shared' ? caller : { ...caller, org }
+}
+
+/**
+ * The signed-in person's id and email, for display.
+ *
+ * Read from the token without verifying it, which is sound only because of how
+ * it is used. Callers must establish that the token is genuine by doing
+ * something with it that the engine accepts; this then supplies the fields the
+ * engine's reply does not carry. Nothing here grants access: every read goes to
+ * the engine, which validates the signature itself.
+ *
+ * The blast radius if it were forged is a wrong name in your own account menu
+ * and a different localStorage key in your own browser.
+ */
+export function identityFromToken(token: string): { id: string; email: string | null } | null {
+  const claims = claimsOf(token)
+  if (!claims) return null
+  const id = typeof claims.sub === 'string' ? claims.sub : null
+  if (!id) return null
+  return { id, email: typeof claims.email === 'string' ? claims.email : null }
+}
+
+/** The token's payload, or null when it cannot be read. */
+function claimsOf(token: string): Record<string, unknown> | null {
+  const payload = token.split('.')[1]
+  if (!payload) return null
+  try {
+    return JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as Record<string, unknown>
+  } catch {
+    return null
+  }
+}
+
 /** The `sub` claim, or a stable stand-in when the token cannot be read. */
 function subjectOf(token: string): string {
-  const payload = token.split('.')[1]
-  if (!payload) return 'unreadable'
-  try {
-    const json = Buffer.from(payload, 'base64url').toString('utf8')
-    const sub = (JSON.parse(json) as { sub?: unknown }).sub
-    return typeof sub === 'string' && sub ? sub : 'unreadable'
-  } catch {
-    return 'unreadable'
-  }
+  const sub = claimsOf(token)?.sub
+  return typeof sub === 'string' && sub ? sub : 'unreadable'
 }
