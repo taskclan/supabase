@@ -28,8 +28,8 @@ export function SettingsDatabaseEmptyStateLocal() {
         <p className="text-sm text-foreground-light mb-4">
           Database settings are managed per app rather than on this screen. Choose a shared,
           managed, or bring-your-own Postgres when you create a project, or add one later from the
-          app&apos;s Database page. Connection details live in the Connect panel, and anything
-          beyond them — pooling, network rules — is set wherever that Postgres is hosted.
+          app&apos;s Database page. Connection details live in the Connect panel. Anything beyond
+          them, such as pooling or network rules, is set wherever that Postgres is hosted.
         </p>
         <DocsButton href={`${TASKCLAN_DOCS_URL}/docs/cloud/databases`} />
       </CardContent>
