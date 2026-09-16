@@ -45,6 +45,7 @@ import { FeaturePreviewModal } from '@/components/interfaces/App/FeaturePreview/
 import { IndirectTaxDeclarationModal } from '@/components/interfaces/App/IndirectTaxDeclarationModal'
 import { MonacoThemeProvider } from '@/components/interfaces/App/MonacoThemeProvider'
 import { RouteValidationWrapper } from '@/components/interfaces/App/RouteValidationWrapper'
+import { TaskclanAuthGate } from '@/components/interfaces/App/TaskclanAuthGate'
 import { MainScrollContainerProvider } from '@/components/layouts/MainScrollContainerContext'
 import { BannerStackProvider } from '@/components/ui/BannerStack/BannerStackProvider'
 import { GlobalErrorBoundaryState } from '@/components/ui/ErrorBoundary/GlobalErrorBoundaryState'
@@ -217,31 +218,33 @@ function CustomApp({ Component, pageProps }: AppPropsWithLayout) {
                         route={isNonProdEnv ? '/favicon/staging' : '/favicon'}
                       />
                       <TooltipProvider>
-                        <RouteValidationWrapper>
-                          <ThemeProvider>
-                            <DevToolbarProvider apiUrl={API_URL}>
-                              <AiAssistantStateContextProvider>
-                                <CommandProvider>
-                                  <BannerStackProvider>
-                                    <FeaturePreviewContextProvider>
-                                      <MainScrollContainerProvider>
-                                        {getLayout(<Component {...pageProps} />)}
-                                      </MainScrollContainerProvider>
-                                      <GlobalShortcuts />
-                                      <StudioCommandMenu />
-                                      <FeaturePreviewModal />
-                                      <IndirectTaxDeclarationModal />
-                                    </FeaturePreviewContextProvider>
-                                  </BannerStackProvider>
-                                  <Toaster />
-                                  <MonacoThemeProvider />
-                                </CommandProvider>
-                              </AiAssistantStateContextProvider>
-                              <DevToolbar extraTabs={devToolbarExtraTabs} />
-                              <DevToolbarTrigger />
-                            </DevToolbarProvider>
-                          </ThemeProvider>
-                        </RouteValidationWrapper>
+                        <TaskclanAuthGate>
+                          <RouteValidationWrapper>
+                            <ThemeProvider>
+                              <DevToolbarProvider apiUrl={API_URL}>
+                                <AiAssistantStateContextProvider>
+                                  <CommandProvider>
+                                    <BannerStackProvider>
+                                      <FeaturePreviewContextProvider>
+                                        <MainScrollContainerProvider>
+                                          {getLayout(<Component {...pageProps} />)}
+                                        </MainScrollContainerProvider>
+                                        <GlobalShortcuts />
+                                        <StudioCommandMenu />
+                                        <FeaturePreviewModal />
+                                        <IndirectTaxDeclarationModal />
+                                      </FeaturePreviewContextProvider>
+                                    </BannerStackProvider>
+                                    <Toaster />
+                                    <MonacoThemeProvider />
+                                  </CommandProvider>
+                                </AiAssistantStateContextProvider>
+                                <DevToolbar extraTabs={devToolbarExtraTabs} />
+                                <DevToolbarTrigger />
+                              </DevToolbarProvider>
+                            </ThemeProvider>
+                          </RouteValidationWrapper>
+                        </TaskclanAuthGate>
                       </TooltipProvider>
                       <Telemetry />
                       <ToastErrorTracker />

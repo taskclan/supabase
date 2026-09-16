@@ -1,5 +1,4 @@
 import { useIsLoggedIn, useIsMFAEnabled, useParams } from 'common'
-import { IS_PLATFORM } from '@/lib/constants'
 import { useRouter } from 'next/router'
 import { PropsWithChildren, useEffect } from 'react'
 import { toast } from 'sonner'
@@ -11,6 +10,7 @@ import { useDashboardHistory } from '@/hooks/misc/useDashboardHistory'
 import { useLastVisitedOrganization } from '@/hooks/misc/useLastVisitedOrganization'
 import { useLatest } from '@/hooks/misc/useLatest'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
+import { IS_PLATFORM, TASKCLAN_AUTH_ENABLED } from '@/lib/constants'
 import { classifyProjectError, messageFor, shouldStay } from '@/lib/taskclan/routeError'
 
 // Ideally these could all be within a _middleware when we use Next 12
@@ -90,12 +90,18 @@ export const RouteValidationWrapper = ({ children }: PropsWithChildren<{}>) => {
   useEffect(() => {
     // check if current route is excempted from route validation check
     //
-    // `isLoggedIn` is gated on IS_PLATFORM because this build has no sign-in:
-    // NEXT_PUBLIC_IS_PLATFORM is unset, useUser() is always null, and the
+    // `isLoggedIn` was gated on IS_PLATFORM because this build had no sign-in:
+    // NEXT_PUBLIC_IS_PLATFORM is unset, useUser() was always null, and the
     // original `!isLoggedIn` therefore made this entire check dead code. A link
     // to an app that does not exist could never redirect, so the reader sat on
     // "Welcome to your project" with a blank name and no way out.
-    if (isExceptUrl() || (IS_PLATFORM && !isLoggedIn)) return
+    //
+    // With Taskclan auth the guard is live again and has to be honoured, or a
+    // signed-out visitor to /project/foo is told "you do not have access to
+    // this project" a moment before the gate redirects them to sign in, which
+    // reads as having been removed from something rather than as being
+    // logged out.
+    if (isExceptUrl() || ((IS_PLATFORM || TASKCLAN_AUTH_ENABLED) && !isLoggedIn)) return
 
     // A successful request to project details will validate access to both project and branches
     if (!!ref && isErrorProject) {

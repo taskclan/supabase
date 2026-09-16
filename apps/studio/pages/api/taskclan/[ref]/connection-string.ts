@@ -15,8 +15,8 @@
  */
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-import { credentialForRef, perAppCredentialsEnabled } from '@/lib/taskclan/db-credential'
 import { callerFromRequest } from '@/lib/taskclan/callerContext'
+import { credentialForRef, perAppCredentialsEnabled } from '@/lib/taskclan/db-credential'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -36,9 +36,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const result = await credentialForRef(ref, resolved.caller)
   if (!result.ok) {
-    // not_configured is the ordinary "this app has no database" case; surface it
-    // so the panel can say so rather than showing a broken string.
-    return res.status(200).json({ configured: false, reason: result.reason })
+    // not_configured is the ordinary "this app has no database" case, and the
+    // only one that is a normal answer rather than a failure. The rest were
+    // collapsing into it, so a cross-tenant request and a Cloud outage both
+    // came back 200 reading "no database" — the same conflation that made
+    // db-credential worth splitting apart, still present one layer up.
+    //
+    // The panel is unaffected either way (it hides on anything that is not a
+    // usable string), so this is about the status being true: an access
+    // failure that answers 200 is invisible in a log.
+    const status =
+      result.reason === 'not_configured'
+        ? 200
+        : result.reason === 'no_such_app'
+          ? 404
+          : result.reason === 'unauthorized'
+            ? 403
+            : 502
+    return res
+      .status(status)
+      .json({ configured: false, reason: result.reason, detail: result.detail })
   }
 
   const connectionString = result.connectionString
