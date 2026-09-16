@@ -22,6 +22,9 @@ import Head from 'next/head'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 
+import { geistSans } from '@/fonts'
+import { BASE_PATH } from '@/lib/constants'
+
 /** Products, named as the console names them so the page and the app agree. */
 const PRODUCTS: Array<{ name: string; blurb: string; href: string }> = [
   {
@@ -33,7 +36,7 @@ const PRODUCTS: Array<{ name: string; blurb: string; href: string }> = [
   {
     name: 'Postgres',
     blurb:
-      'A managed database per app, with a table editor and SQL editor that connect as that app’s own role — never a shared one.',
+      'A managed database per app, with a table editor and SQL editor that connect as that app’s own role, never a shared one.',
     href: '/project/default/editor',
   },
   {
@@ -57,7 +60,7 @@ const PRODUCTS: Array<{ name: string; blurb: string; href: string }> = [
   {
     name: 'Advisors',
     blurb:
-      'Security and performance checks that read your actual schema — missing indexes, tables without RLS, policies that never match.',
+      'Security and performance checks that read your actual schema: missing indexes, tables without RLS, policies that never match.',
     href: '/project/default/advisors/security',
   },
 ]
@@ -94,7 +97,7 @@ export default function LandingPage() {
         <title>Taskclan Cloud</title>
         <meta
           name="description"
-          content="Ship a repository to a URL. Managed Postgres, per-second containers, review apps and rollback — on infrastructure you can read the bill for."
+          content="Ship a repository to a URL. Managed Postgres, per-second containers, review apps and rollback, on infrastructure you can read the bill for."
         />
       </Head>
 
@@ -102,15 +105,18 @@ export default function LandingPage() {
           not a surface that should flip with a viewer's console preference. */}
       <div
         data-theme="dark"
-        className="min-h-screen bg-background text-foreground [font-family:var(--font-sans,Figtree,ui-sans-serif,system-ui,sans-serif)]"
+        className={`${geistSans.className} min-h-screen bg-background text-foreground`}
       >
         <header className="border-b border-muted">
           <Section className="flex h-16 items-center justify-between">
             <span className="flex items-center gap-2.5">
-              <span
+              <img
+                alt=""
                 aria-hidden
-                className="inline-block size-5 rounded-[5px] bg-brand"
-                style={{ boxShadow: '0 0 0 4px hsl(var(--brand-default) / 0.16)' }}
+                src={`${BASE_PATH}/img/taskclan-mark.svg`}
+                className="size-5"
+                width={20}
+                height={20}
               />
               <span className="text-sm font-semibold tracking-tight">Taskclan Cloud</span>
             </span>
@@ -147,8 +153,8 @@ export default function LandingPage() {
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-foreground-light">
             Taskclan Cloud builds your repo, runs it in a container, and gives it a managed Postgres
-            database — with the dashboard, SQL editor and deploy history in one place. Containers
-            are metered per second and sleep when idle, so an app nobody is using costs nothing.
+            database, with the dashboard, SQL editor and deploy history in one place. Containers are
+            metered per second and sleep when idle, so an app nobody is using costs nothing.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">
             <Link
@@ -190,7 +196,9 @@ export default function LandingPage() {
                   {'  '}https://my-api.taskclan.app
                 </span>
                 {'\n\n'}
-                <span className="text-foreground-lighter"># a one-off, against the same database</span>
+                <span className="text-foreground-lighter">
+                  # a one-off, against the same database
+                </span>
                 {'\n'}
                 <span className="text-brand">tsk</span> run -- npm run migrate
               </code>
@@ -235,7 +243,7 @@ export default function LandingPage() {
               <p className="mt-4 leading-relaxed text-foreground-light">
                 You are billed for the compute your containers actually use, not for a plan tier or
                 a headcount. Idle apps sleep and stop costing. Set a spend cap and the platform
-                enforces it — it will stop deploying before it surprises you.
+                enforces it: it will stop deploying before it surprises you.
               </p>
               <Link
                 href="/project/default/deployments"

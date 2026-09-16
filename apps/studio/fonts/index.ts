@@ -1,5 +1,26 @@
-import { Manrope } from 'next/font/google'
+import { Geist, Geist_Mono, Manrope } from 'next/font/google'
 import localFont from 'next/font/local'
+
+/**
+ * Geist, the typeface Forge3D and taskclan.com already use.
+ *
+ * Scoped to the unauthenticated brand surfaces (sign-in, landing) rather than
+ * swapped in globally. Those are the pages a customer meets Taskclan on, so
+ * they should look like Taskclan; the console behind them is dense, data-heavy
+ * UI that upstream tuned for Inter, and changing the typeface under every table
+ * and editor is a separate decision with its own consequences.
+ */
+export const geistSans = Geist({
+  variable: '--font-geist-sans',
+  display: 'swap',
+  subsets: ['latin'],
+})
+
+export const geistMono = Geist_Mono({
+  variable: '--font-geist-mono',
+  display: 'swap',
+  subsets: ['latin'],
+})
 
 export const manrope = Manrope({
   variable: '--font-manrope',

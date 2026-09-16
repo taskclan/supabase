@@ -9,11 +9,17 @@ import { SignInWithExternalProvider } from '@/components/interfaces/SignIn/SignI
 import { TaskclanSignInForm } from '@/components/interfaces/SignIn/TaskclanSignInForm'
 import { AuthenticationLayout } from '@/components/layouts/AuthenticationLayout'
 import { SignInLayout } from '@/components/layouts/SignInLayout/SignInLayout'
+import { geistSans } from '@/fonts'
 import { useCustomContent } from '@/hooks/custom-content/useCustomContent'
 import { useEnabledIdentityProviders } from '@/hooks/misc/useEnabledIdentityProviders'
 import { useInboundBranding } from '@/hooks/misc/useInboundBranding'
 import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
-import { IS_PLATFORM, TASKCLAN_AUTH_ENABLED, TASKCLAN_PRODUCT_NAME } from '@/lib/constants'
+import {
+  BASE_PATH,
+  IS_PLATFORM,
+  TASKCLAN_AUTH_ENABLED,
+  TASKCLAN_PRODUCT_NAME,
+} from '@/lib/constants'
 import { getSignUpReturnTo } from '@/lib/gotrue'
 import type { NextPageWithLayout } from '@/types'
 
@@ -137,8 +143,20 @@ PlatformSignInPage.getLayout = (page) => (
 const TaskclanSignInPage: NextPageWithLayout = () => <TaskclanSignInForm />
 
 TaskclanSignInPage.getLayout = (page) => (
-  <div className="flex min-h-screen items-center justify-center bg-studio px-6">
+  // Geist is the typeface Forge3D and taskclan.com use. Applied here rather
+  // than globally: this is a page somebody meets the brand on, where the
+  // console behind it is dense UI upstream tuned for Inter.
+  <div
+    className={`${geistSans.className} flex min-h-screen items-center justify-center bg-studio px-6`}
+  >
     <div className="w-full max-w-sm">
+      <img
+        alt="Taskclan"
+        src={`${BASE_PATH}/img/taskclan-mark.svg`}
+        className="mb-6 size-10"
+        width={40}
+        height={40}
+      />
       <h1 className="mb-1 text-2xl text-foreground">Sign in to {TASKCLAN_PRODUCT_NAME}</h1>
       <p className="mb-6 text-sm text-foreground-light">
         Manage your apps, deployments and databases.
