@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import { fetchGet } from '@/data/fetchers'
+import { pgMetaError } from '@/lib/api/self-hosted/pgMetaError'
 import { pgMetaHeaders } from '@/lib/api/self-hosted/util'
 import { apiWrapper } from '@/lib/api/apiWrapper'
 import { PG_META_URL } from '@/lib/constants'
@@ -50,8 +51,8 @@ const handleGetAll = async (req: NextApiRequest, res: NextApiResponse) => {
   const response = await fetchGet(getPgMetaRedirectUrl(req, 'tables'), { headers })
 
   if (response.error) {
-    const { code, message } = response.error
-    return res.status(code).json({ message })
+    const { status, message } = pgMetaError(response.error, PG_META_URL)
+    return res.status(status).json({ message })
   } else {
     return res.status(200).json(response)
   }
