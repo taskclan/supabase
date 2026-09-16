@@ -25,6 +25,8 @@ export interface TaskclanOrg {
   name: string
   /** The engine's own slug. Studio routes org URLs on it. */
   slug: string
+  /** Cloud's plan tier, as Cloud spells it. */
+  plan: string
 }
 
 /**
@@ -112,6 +114,7 @@ export async function taskclanOrgs(
     id: ids.get(org.id) as number,
     name: org.name,
     slug: slugFor(org),
+    plan: org.plan ?? 'free',
   }))
 
   const active = mapped.find((o) => o.uuid === activeOrgId) ?? mapped[0] ?? null

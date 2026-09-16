@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import { apiWrapper } from '@/lib/api/apiWrapper'
+import { callerFromRequest } from '@/lib/taskclan/callerContext'
 import { taskclanConfigured } from '@/lib/taskclan/client'
 import { taskclanOrgs } from '@/lib/taskclan/org'
-import { callerFromRequest } from '@/lib/taskclan/callerContext'
 
 export default (req: NextApiRequest, res: NextApiResponse) => apiWrapper(req, res, handler)
 
@@ -67,12 +67,21 @@ const handleGetAll = async (req: NextApiRequest, res: NextApiResponse) => {
       // with a uniqueness loop; deriving one from the name here would give two
       // orgs called "Acme" the same slug, and Studio routes org URLs on it.
       slug: org.slug,
-      // Cloud bills in credits against its own ledger, not per-org plans, and
-      // it does not expose a billing email here. Left null rather than faked:
-      // Studio renders these read-only, and an invented address is the kind of
-      // thing someone would try to send an invoice to.
+      // Cloud does not expose a billing email here. Left null rather than
+      // faked: Studio renders these read-only, and an invented address is the
+      // kind of thing someone would try to send an invoice to.
       billing_email: null,
-      plan: { id: 'enterprise', name: 'Taskclan Cloud' },
+      // The name is Cloud's real tier, so the console stops telling a Pro
+      // customer they are on Enterprise.
+      //
+      // The id stays pinned, and that is deliberate rather than an oversight.
+      // Studio reads it to decide which of Supabase's paywalls and upgrade
+      // prompts to show, and those gate Supabase's products against Supabase's
+      // tiers. Taskclan's tiers mean something else entirely, so mapping
+      // "pro" onto Supabase's "pro" would start nagging a paying customer to
+      // upgrade to a plan that does not exist here. The id is never shown; the
+      // name is.
+      plan: { id: 'enterprise', name: `${org.plan.charAt(0).toUpperCase()}${org.plan.slice(1)}` },
     }))
   )
 }

@@ -38,7 +38,9 @@ export interface TaskclanConfig {
  * wondering why their apps are missing — the same failure mode as a telemetry
  * sink that reports success when unconfigured.
  */
-export function taskclanConfig(): { ok: true; config: TaskclanConfig } | { ok: false; reason: string } {
+export function taskclanConfig():
+  | { ok: true; config: TaskclanConfig }
+  | { ok: false; reason: string } {
   const url = process.env.TASKCLAN_CLOUD_URL?.trim()
   const key = process.env.TASKCLAN_CLOUD_API_KEY?.trim()
   if (!url && !key) {
@@ -49,7 +51,10 @@ export function taskclanConfig(): { ok: true; config: TaskclanConfig } | { ok: f
   if (!key.startsWith(KEY_PREFIX)) {
     // Catch the likely mistake — pasting a Supabase anon/service key, or a user
     // access token — at startup rather than as a puzzling 401 later.
-    return { ok: false, reason: `TASKCLAN_CLOUD_API_KEY does not look like a Cloud API key (expected ${KEY_PREFIX}…)` }
+    return {
+      ok: false,
+      reason: `TASKCLAN_CLOUD_API_KEY does not look like a Cloud API key (expected ${KEY_PREFIX}…)`,
+    }
   }
   return { ok: true, config: { url: url.replace(/\/+$/, ''), key } }
 }
@@ -226,6 +231,8 @@ export interface CloudOrg {
   name: string
   /** The engine's own slug. Studio routes org URLs on it, so it must not be re-derived. */
   slug?: string
+  /** Cloud's plan tier: free | starter | pro | scale | enterprise. */
+  plan?: string
 }
 
 /** Every org the caller belongs to, and which one is active. */
