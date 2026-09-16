@@ -688,8 +688,8 @@ export const GitHubIntegrationConnectionForm = ({
         loading={isUpdatingConnection}
       >
         <p className="text-sm text-foreground-light">
-          Open pull requests will only update your Supabase project on merge if the git base branch
-          matches this new production git branch.
+          Open pull requests will only update your project on merge if the git base branch matches
+          this new production git branch.
         </p>
       </ConfirmationModal>
 

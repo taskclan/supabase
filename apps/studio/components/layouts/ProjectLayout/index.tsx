@@ -56,7 +56,7 @@ import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 import { withAuth } from '@/hooks/misc/withAuth'
-import { PROJECT_STATUS } from '@/lib/constants'
+import { PROJECT_STATUS, TASKCLAN_PRODUCT_NAME } from '@/lib/constants'
 import { MANAGED_BY } from '@/lib/constants/infrastructure'
 import { buildStudioPageTitle } from '@/lib/page-title'
 import { getPathnameWithoutQuery } from '@/lib/pathname.utils'
@@ -300,7 +300,7 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
       <>
         <Head>
           <title>{pageTitle}</title>
-          <meta name="description" content="Supabase Studio" />
+          <meta name="description" content={TASKCLAN_PRODUCT_NAME} />
         </Head>
         <div className="flex flex-row h-full w-full">
           <ResizablePanelGroup orientation="horizontal">

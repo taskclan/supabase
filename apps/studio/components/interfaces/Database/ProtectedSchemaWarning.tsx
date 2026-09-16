@@ -34,8 +34,8 @@ export const ProtectedSchemaDialog = ({ onClose }: { onClose: () => void }) => {
           ))}
         </div>
         <p className="text-sm mt-4!">
-          These schemas are critical to the functionality of your Supabase project and hence we
-          highly recommend not altering them.
+          These schemas are critical to the functionality of your project and hence we highly
+          recommend not altering them.
         </p>
         <p className="text-sm">
           You can, however, still interact with those schemas through the SQL Editor although we

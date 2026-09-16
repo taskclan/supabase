@@ -56,7 +56,13 @@ import { useCustomContent } from '@/hooks/custom-content/useCustomContent'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 import { AuthProvider } from '@/lib/auth'
 import { configureMonacoLoader } from '@/lib/configure-monaco-loader'
-import { API_URL, BASE_PATH, IS_PLATFORM, useDefaultProvider } from '@/lib/constants'
+import {
+  API_URL,
+  BASE_PATH,
+  IS_PLATFORM,
+  TASKCLAN_PRODUCT_NAME,
+  useDefaultProvider,
+} from '@/lib/constants'
 import { TimezoneProvider, useTimezone } from '@/lib/datetime'
 import { ProfileProvider } from '@/lib/profile'
 import { Telemetry } from '@/lib/telemetry'
@@ -202,7 +208,7 @@ function CustomApp({ Component, pageProps }: AppPropsWithLayout) {
                       </Head>
                       <MetaFaviconsPagesRouter
                         includeManifest
-                        applicationName="Supabase Studio"
+                        applicationName={TASKCLAN_PRODUCT_NAME}
                         route={isNonProdEnv ? '/favicon/staging' : '/favicon'}
                       />
                       <TooltipProvider>

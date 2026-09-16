@@ -11,6 +11,7 @@ import { ProductMenuShortcuts } from '@/components/ui/ProductMenu/ProductMenuSho
 import { useHighAvailability } from '@/hooks/misc/useHighAvailability'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
 import { withAuth } from '@/hooks/misc/withAuth'
+import { TASKCLAN_PRODUCT_NAME } from '@/lib/constants'
 
 /**
  * Menu-only component for the Realtime section. Used by the desktop sidebar and by the
@@ -41,7 +42,7 @@ export const RealtimeLayout = ({ title, children }: PropsWithChildren<RealtimeLa
       <>
         <Head>
           <title>{title}</title>
-          <meta name="description" content="Supabase Studio" />
+          <meta name="description" content={TASKCLAN_PRODUCT_NAME} />
         </Head>
         <main
           id="panel-project-content"

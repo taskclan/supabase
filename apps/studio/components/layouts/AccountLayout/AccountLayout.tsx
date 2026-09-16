@@ -11,7 +11,7 @@ import { useCustomContent } from '@/hooks/custom-content/useCustomContent'
 import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
 import { useLastVisitedOrganization } from '@/hooks/misc/useLastVisitedOrganization'
 import { withAuth } from '@/hooks/misc/withAuth'
-import { IS_PLATFORM } from '@/lib/constants'
+import { IS_PLATFORM, TASKCLAN_PRODUCT_NAME } from '@/lib/constants'
 import { buildStudioPageTitle } from '@/lib/page-title'
 import { useAppStateSnapshot } from '@/state/app-state'
 
@@ -128,7 +128,7 @@ const AccountLayout = ({ children, title }: PropsWithChildren<AccountLayoutProps
     <>
       <Head>
         <title>{pageTitle}</title>
-        <meta name="description" content="Supabase Studio" />
+        <meta name="description" content={TASKCLAN_PRODUCT_NAME} />
       </Head>
       <div className={cn('flex flex-col w-screen h-[calc(100vh-48px)]')}>
         <WithSidebar backToDashboardURL={backToDashboardURL} sections={sections}>

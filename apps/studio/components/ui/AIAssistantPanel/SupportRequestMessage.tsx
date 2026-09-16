@@ -18,8 +18,8 @@ export function SupportRequestMessage({ request }: { request: ParsedSupportAssis
           <div className="space-y-1">
             <p className="heading-default text-foreground">Support request submitted</p>
             <p>
-              Supabase Support already has this ticket. Assistant is reviewing the same request to
-              help in the interim.
+              Support already has this ticket. Assistant is reviewing the same request to help in
+              the interim.
             </p>
           </div>
         </div>

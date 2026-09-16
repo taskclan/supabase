@@ -24,10 +24,8 @@ import { TimestampInfo } from 'ui-patterns/TimestampInfo'
 import { MigrationsEmptyState } from './MigrationsEmptyState'
 import { SupportLink } from '@/components/interfaces/Support/SupportLink'
 import { CodeEditor } from '@/components/ui/CodeEditor/CodeEditor'
-import { InlineLink } from '@/components/ui/InlineLink'
 import { DatabaseMigration, useMigrationsQuery } from '@/data/database/migrations-query'
 import { useSelectedProjectQuery } from '@/hooks/misc/useSelectedProject'
-import { DOCS_URL } from '@/lib/constants'
 import { formatMigrationVersionLabel, parseMigrationVersion } from '@/lib/migration-utils'
 import { SHORTCUT_IDS } from '@/state/shortcuts/registry'
 import { useShortcut } from '@/state/shortcuts/useShortcut'
@@ -163,14 +161,16 @@ export const Migrations = () => {
                                   </TooltipTrigger>
                                   {!insertedAt && (
                                     <TooltipContent side="right" className="w-64 text-center">
-                                      This migration was not generated via the{' '}
-                                      <InlineLink
-                                        href={`${DOCS_URL}/guides/deployment/database-migrations`}
-                                      >
-                                        Supabase CLI
-                                      </InlineLink>{' '}
-                                      and hence we're unable to parse when this migration was
-                                      inserted at.
+                                      {/*
+                                        Names no tool. The old text blamed "not
+                                        generated via the Supabase CLI", which is
+                                        one cause among several and only applies
+                                        to databases driven that way. The fact
+                                        being reported is simply that this row
+                                        carries no timestamp.
+                                      */}
+                                      This migration has no recorded timestamp, so there is nothing
+                                      to show for when it was applied.
                                     </TooltipContent>
                                   )}
                                 </Tooltip>

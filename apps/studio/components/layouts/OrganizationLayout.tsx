@@ -14,6 +14,7 @@ import { useCustomContent } from '@/hooks/custom-content/useCustomContent'
 import { useLocalStorageQuery } from '@/hooks/misc/useLocalStorage'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 import { withAuth } from '@/hooks/misc/withAuth'
+import { TASKCLAN_PRODUCT_NAME } from '@/lib/constants'
 import { MANAGED_BY } from '@/lib/constants/infrastructure'
 import { buildStudioPageTitle } from '@/lib/page-title'
 
@@ -136,7 +137,7 @@ const OrganizationLayoutContent = ({
       {pageTitle && (
         <Head>
           <title>{pageTitle}</title>
-          <meta name="description" content="Supabase Studio" />
+          <meta name="description" content={TASKCLAN_PRODUCT_NAME} />
         </Head>
       )}
       {selectedOrganization && bannerConfig && !isBannerDismissed && (

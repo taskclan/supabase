@@ -139,8 +139,8 @@ export const VercelSection = ({ isProjectScoped }: { isProjectScoped: boolean })
     'connection'
   )} `
   const description = isProjectScoped
-    ? 'Connect Vercel projects to this Supabase project. Supabase keeps environment variables up to date in each connected Vercel project.'
-    : 'Connect your Vercel teams to this Supabase organization. Supabase keeps environment variables up to date in each connected project. You can also link multiple Vercel projects to the same Supabase project.'
+    ? 'Connect Vercel projects to this project. Environment variables are kept up to date in each connected Vercel project.'
+    : 'Connect your Vercel teams to this organization. Environment variables are kept up to date in each connected project. You can also link multiple Vercel projects to the same project.'
 
   return (
     <PageSection>

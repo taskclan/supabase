@@ -35,7 +35,7 @@ export const InsertBeforeRemoveChildErrorHandler = ({
         <div className="flex flex-col gap-y-2">
           <p className="text-sm text-foreground-light">
             Browser translation tools (like Chrome's built-in Translate) or some third-party browser
-            extensions are known to cause errors when using the Supabase Dashboard.
+            extensions are known to cause errors when using the console.
           </p>
 
           <p className="text-sm text-foreground-light">
@@ -45,8 +45,8 @@ export const InsertBeforeRemoveChildErrorHandler = ({
                 ? 'disabling Chrome Translate or certain browser extensions'
                 : 'avoiding the use of browser translation tools or disabling certain extensions'}
             </span>{' '}
-            while using the Supabase Dashboard to avoid running into this error. Try to refresh the
-            browser to see if it occurs again.
+            while using the console to avoid running into this error. Try to refresh the browser to
+            see if it occurs again.
           </p>
         </div>
 
