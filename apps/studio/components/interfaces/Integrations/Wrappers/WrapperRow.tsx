@@ -121,7 +121,20 @@ export const WrapperRow = ({ wrapper }: WrapperRowProps) => {
       </TableCell>
       <TableCell className="flex-nowrap">
         <div className="flex items-center gap-x-2">
+          {/*
+            aria-label, because a tooltip is not an accessible name: it needs
+            hover or focus to exist at all, and screen readers get nothing from
+            it. Both of these are icon-only, so without a name they announce as
+            two unlabelled buttons and the destructive one is indistinguishable
+            from the benign one.
+
+            The name includes the wrapper so it is unique per row, and it does
+            NOT vary with permission the way the tooltip does: "You need
+            additional permissions to delete wrappers" describes the state, but
+            the button is still the delete button and should be named as one.
+          */}
           <ButtonTooltip
+            aria-label={`Edit wrapper ${wrapper.name}`}
             disabled={!canManageWrappers}
             icon={<Edit strokeWidth={1.5} />}
             className="px-1.5"
@@ -136,6 +149,7 @@ export const WrapperRow = ({ wrapper }: WrapperRowProps) => {
             }}
           />
           <ButtonTooltip
+            aria-label={`Delete wrapper ${wrapper.name}`}
             disabled={!canManageWrappers}
             icon={<Trash strokeWidth={1.5} />}
             className="px-1.5"

@@ -427,6 +427,7 @@ export const CreateWrapperSheet = ({
                             </div>
                             <div className="flex items-center space-x-2">
                               <Button
+                                aria-label={`Edit foreign table ${table.table_name}`}
                                 className="px-1"
                                 icon={<Edit />}
                                 onClick={() => {
@@ -434,6 +435,7 @@ export const CreateWrapperSheet = ({
                                 }}
                               />
                               <Button
+                                aria-label={`Remove foreign table ${table.table_name}`}
                                 className="px-1"
                                 icon={<Trash />}
                                 onClick={() => {
