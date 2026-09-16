@@ -71,6 +71,17 @@ export const DOCS_URL = process.env.NEXT_PUBLIC_DOCS_URL || 'https://supabase.co
 // Taskclan's own docs. Kept separate from DOCS_URL because most DOCS_URL links
 // use Supabase's page paths, which don't exist on the Taskclan docs site.
 export const TASKCLAN_DOCS_URL = process.env.NEXT_PUBLIC_TASKCLAN_DOCS_URL || 'https://docs.taskclan.com'
+
+/**
+ * Taskclan's own community + status links, used by the Help panel in place of
+ * Supabase's (discord.supabase.com / status.supabase.com). Env-overridable so
+ * they can change without a code edit. Status is empty by default — there is no
+ * Taskclan status page yet, and the Help panel hides the pill when it is unset
+ * rather than pointing at Supabase's.
+ */
+export const TASKCLAN_DISCORD_URL =
+  process.env.NEXT_PUBLIC_TASKCLAN_DISCORD_URL || 'https://discord.gg/vWwRC8pCa'
+export const TASKCLAN_STATUS_URL = process.env.NEXT_PUBLIC_TASKCLAN_STATUS_URL || ''
 export const SPECIAL_SYMBOLS_IN_PASSWORDS_DOCS_URL = `${DOCS_URL}/guides/database/postgres/roles#special-symbols-in-passwords`
 
 export const OPT_IN_TAGS = {

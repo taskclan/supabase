@@ -1,6 +1,5 @@
 import { IS_PLATFORM } from 'common'
 import { ChevronLeft, X } from 'lucide-react'
-import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import SVG from 'react-inlinesvg'
@@ -16,6 +15,7 @@ import {
 } from '@/components/interfaces/Support/SupportSidebarForm'
 import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
+import { TASKCLAN_DISCORD_URL } from '@/lib/constants'
 import { useAiAssistantStateSnapshot } from '@/state/ai-assistant-state'
 import { helpPanelState } from '@/state/help-panel-state'
 import { useSidebarManagerSnapshot } from '@/state/sidebar-manager-state'
@@ -65,7 +65,10 @@ export const HelpPanel = ({
           <span className="truncate">{isSupportView ? 'Contact support' : 'Help & Support'}</span>
         </div>
         <div className="flex items-center gap-2">
-          <SupportFormStatusButton />
+          {/* Supabase-status pill: only on the hosted platform. This console has
+              no Taskclan status page (set NEXT_PUBLIC_TASKCLAN_STATUS_URL to add
+              one), and pinging Supabase's status here would be misleading. */}
+          {IS_PLATFORM && <SupportFormStatusButton />}
           <ButtonTooltip
             variant="text"
             className="w-7 h-7"
@@ -105,18 +108,11 @@ export const HelpPanel = ({
                   style={{ background: '#404EED' }}
                 >
                   <a
-                    href="https://discord.supabase.com"
+                    href={TASKCLAN_DISCORD_URL}
                     target="_blank"
                     rel="noreferrer"
                     className="group dark block cursor-pointer"
                   >
-                    <Image
-                      className="absolute left-0 top-0 opacity-50 transition-opacity group-hover:opacity-40"
-                      src={`${router.basePath}/img/support/discord-bg-small.jpg`}
-                      layout="fill"
-                      objectFit="cover"
-                      alt="Discord illustration"
-                    />
                     <Button
                       variant="secondary"
                       size="tiny"

@@ -11,9 +11,8 @@ import { createSupportFormUrl } from '@/components/interfaces/Support/SupportFor
 import { ResourceItem } from '@/components/ui/Resource/ResourceItem'
 import { ResourceList } from '@/components/ui/Resource/ResourceList'
 import { takeBreadcrumbSnapshot } from '@/lib/breadcrumbs'
-import { DOCS_URL } from '@/lib/constants'
+import { DOCS_URL, TASKCLAN_DISCORD_URL, TASKCLAN_DOCS_URL } from '@/lib/constants'
 
-const DISCORD_URL = 'https://discord.supabase.com'
 const STATUS_URL = 'https://status.supabase.com'
 
 type HelpOptionsListProps = {
@@ -74,7 +73,7 @@ export const HelpOptionsList = ({
   const options: Record<HelpOptionId, HelpOption> = {
     assistant: {
       media: <AiIconAnimation allowHoverEffect size={14} />,
-      title: 'Supabase Assistant',
+      title: isPlatform ? 'Supabase Assistant' : 'Taskclan Assistant',
       description: 'Get guided help with your project directly in Studio.',
       onClick: onAssistantClick,
     },
@@ -82,19 +81,19 @@ export const HelpOptionsList = ({
       media: <BookOpen strokeWidth={1.5} size={14} />,
       title: 'Docs',
       description: 'Browse guides, references, and product documentation.',
-      href: `${DOCS_URL}/`,
+      href: isPlatform ? `${DOCS_URL}/` : TASKCLAN_DOCS_URL,
     },
     troubleshooting: {
       media: <Wrench strokeWidth={1.5} size={14} />,
       title: 'Troubleshooting',
       description: 'Find fixes for common platform issues and errors.',
-      href: `${DOCS_URL}/guides/troubleshooting?products=platform`,
+      href: isPlatform ? `${DOCS_URL}/guides/troubleshooting?products=platform` : TASKCLAN_DOCS_URL,
     },
     discord: {
       media: <SVG src={`${basePath}/img/discord-icon.svg`} className="h-4 w-4" />,
       title: 'Ask on Discord',
       description: 'Get help from the community on code-related questions.',
-      href: DISCORD_URL,
+      href: isPlatform ? 'https://discord.supabase.com' : TASKCLAN_DISCORD_URL,
     },
     status: {
       media: <Activity strokeWidth={1.5} size={14} />,
