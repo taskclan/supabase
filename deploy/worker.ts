@@ -105,6 +105,11 @@ function isPublicPath(pathname: string): boolean {
   // Sign-in has to be reachable without the site password, or the console's own
   // login sits behind a second, shared one and nobody can get to it.
   if (pathname === '/sign-in') return true
+  // The device-approval page the CLI opens. It is gated by the console's own
+  // sign-in — approving requires knowing who is approving — so the shared site
+  // password in front of it adds nothing and breaks `taskclan login` for anyone
+  // who does not have it, which is everyone outside this repo.
+  if (pathname === '/cloud/device') return true
   if (pathname.startsWith('/_next/static/')) return true
   if (pathname === '/favicon.ico' || pathname.startsWith('/favicon/')) return true
   return false
