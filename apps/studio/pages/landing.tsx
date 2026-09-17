@@ -35,7 +35,7 @@ const PRODUCTS: Array<{ name: string; blurb: string; href: string }> = [
   {
     name: 'Deployments',
     blurb:
-      'Push a branch or press Deploy. Builds run on Taskclan’s runners, roll the container, and keep every previous release one click away.',
+      'Push a branch or press Deploy. Builds run on Taskclan’s runners, roll the container, and keep the full history of what shipped and when.',
     href: '/organizations',
   },
   {
@@ -59,7 +59,7 @@ const PRODUCTS: Array<{ name: string; blurb: string; href: string }> = [
   {
     name: 'Environment',
     blurb:
-      'Encrypted config per app and per environment. Values are write-only by default; reading one is a deliberate, audited act.',
+      'Encrypted config per app and per environment. Values come back masked; revealing one takes a role that holds read_secrets.',
     href: '/organizations',
   },
   {
@@ -70,13 +70,30 @@ const PRODUCTS: Array<{ name: string; blurb: string; href: string }> = [
   },
 ]
 
+/**
+ * Only things the platform actually does, each checked against the engine
+ * rather than against a roadmap. Four claims came off this list on 2026-09-17:
+ *
+ *   "Unlimited seats, always free" — the free plan allows three members
+ *     (ORG_PLANS.free.maxMembers === 3). No plan below enterprise is unlimited.
+ *   "Review apps on every pull request" — previews are real but keyed on the
+ *     BRANCH, not on a pull request: cloudBuilder marks a build 'preview' when
+ *     its branch is not the deploy branch, and the GitHub webhook does not
+ *     handle pull_request events at all. Reworded rather than cut.
+ *   "Instant rollback to any release" — the engine has it
+ *     (POST /sites/[id]/deployments { rollbackTo }) but this console does not
+ *     expose it, so it is not something a reader of this page can do. It goes
+ *     back on the list when the UI ships.
+ *   "One-off containers for migrations and jobs" — nothing of the kind exists
+ *     anywhere in the cloud subsystem.
+ */
 const INCLUDED = [
-  'Unlimited seats, always free',
-  'Review apps on every pull request',
-  'Instant rollback to any release',
-  'One-off containers for migrations and jobs',
+  'Preview deploys for every branch you push',
   'A hard spend cap you set, enforced by the platform',
   'Custom domains with managed certificates',
+  'Containers that sleep when idle, billed on what runs',
+  'A managed Postgres for every app',
+  'Secrets masked by default, revealed only to a role that may',
 ]
 
 function Section({
