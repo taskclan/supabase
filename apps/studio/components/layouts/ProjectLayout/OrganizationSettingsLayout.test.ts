@@ -44,6 +44,7 @@ describe('OrganizationSettingsLayout helpers', () => {
       'Security',
       'SSO',
       'API Keys',
+      'Releases',
       'OAuth Apps',
       'Webhooks',
       'Audit Logs',
@@ -74,6 +75,7 @@ describe('OrganizationSettingsLayout helpers', () => {
     expect(sections.flatMap((section) => section.links.map((item) => item.label))).toEqual([
       'General',
       'API Keys',
+      'Releases',
       'OAuth Apps',
       'Webhooks',
       'Audit Logs',
@@ -95,6 +97,23 @@ describe('OrganizationSettingsLayout helpers', () => {
     const connections = sections.find((section) => section.heading === 'Connections')
     const apiKeys = connections?.links.find((item) => item.label === 'API Keys')
     expect(apiKeys?.href).toBe('/org/my-org/api-keys')
+  })
+
+  it('points the Releases entry at the org-scoped page', () => {
+    // Org-scoped on purpose: one push opens a release intent per app mapped to
+    // that repo, so the queue crosses projects and a per-project page would
+    // hide the app that is actually waiting.
+    const sections = generateOrganizationSettingsSections({
+      slug: 'my-org',
+      currentPath: '/org/my-org/general',
+      showSecuritySettings: false,
+      showSsoSettings: false,
+      showLegalDocuments: false,
+    })
+
+    const connections = sections.find((section) => section.heading === 'Connections')
+    const releases = connections?.links.find((item) => item.label === 'Releases')
+    expect(releases?.href).toBe('/org/my-org/releases')
   })
 
   it('normalizes hash paths for active state checks', () => {

@@ -155,6 +155,14 @@ export const generateOrganizationSettingsSections = ({
             label: 'API Keys',
             href: `/org/${slug}/api-keys`,
           },
+          // Releases an app on manual deploy mode is holding. Org-scoped
+          // because one push opens an intent per app mapped to that repo, so
+          // the queue crosses projects.
+          {
+            key: 'releases',
+            label: 'Releases',
+            href: `/org/${slug}/releases`,
+          },
         ]),
     {
       key: 'apps',
