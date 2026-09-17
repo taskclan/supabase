@@ -151,7 +151,11 @@ describe('matchRedirect query/hash preservation', () => {
       permanent: false,
     })
     expect(matchRedirect({ pathname: '/', search: {}, isPlatform: false })).toEqual({
-      destination: '/project/default',
+      // Not '/project/default'. That is Studio's convention for a single
+      // self-hosted project, and it matches nothing on Taskclan Cloud, where
+      // every app has a real ref — so it resolved to a project that could not
+      // exist. This assertion had been failing on that stale value.
+      destination: '/landing',
       permanent: false,
     })
   })
@@ -248,9 +252,12 @@ describe('TASKCLAN_AUTH_REDIRECTS', () => {
     }
   })
 
-  it('still lands the root on the project list', () => {
+  it('lands the root on the landing page, not inside the dashboard', () => {
     // Whether a signed-out visitor goes to sign-in is the auth gate's call: it
-    // knows if there is a session, and a static redirect does not.
-    expect(destinationOf(TASKCLAN_AUTH_REDIRECTS, '/')).toBe('/organizations')
+    // knows if there is a session, and a static redirect does not. What the
+    // redirect can decide is that the bare hostname shows the page explaining
+    // what this is, rather than dropping someone straight into a dashboard.
+    expect(destinationOf(TASKCLAN_AUTH_REDIRECTS, '/')).toBe('/landing')
+    expect(destinationOf(SELF_HOSTED_REDIRECTS, '/')).toBe('/landing')
   })
 })

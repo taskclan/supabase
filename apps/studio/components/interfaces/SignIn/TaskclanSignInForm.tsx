@@ -23,6 +23,7 @@ import { FormItemLayout } from 'ui-patterns/form/FormItemLayout/FormItemLayout'
 import z from 'zod'
 
 import { TASKCLAN_PRODUCT_NAME } from '@/lib/constants'
+import { DEFAULT_FALLBACK_PATH } from '@/lib/gotrue'
 
 const schema = z.object({
   email: z.string().min(1, 'Email is required').email('Must be a valid email'),
@@ -38,9 +39,11 @@ const formId = 'taskclan-sign-in'
  * turns the sign-in page into an open redirect, and one that arrives already
  * signed in is exactly the kind of link worth being careful with.
  */
-function safeReturnTo(value: unknown): string {
-  if (typeof value !== 'string') return '/'
-  return value.startsWith('/') && !value.startsWith('//') ? value : '/'
+export function safeReturnTo(value: unknown): string {
+  // Not '/'. That now serves the landing page, so defaulting to it would send
+  // somebody who just signed in back to the marketing page they signed in from.
+  if (typeof value !== 'string') return DEFAULT_FALLBACK_PATH
+  return value.startsWith('/') && !value.startsWith('//') ? value : DEFAULT_FALLBACK_PATH
 }
 
 export const TaskclanSignInForm = () => {

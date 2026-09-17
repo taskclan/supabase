@@ -53,7 +53,7 @@ export function shouldStay(kind: ProjectErrorKind): boolean {
 export function messageFor(kind: ProjectErrorKind): string | null {
   switch (kind) {
     case 'unreachable':
-      return 'Could not reach Taskclan Cloud. This is not a permissions problem — retry in a moment.'
+      return 'Could not reach Taskclan Cloud. This is not a permissions problem, so retry in a moment.'
     case 'no_access':
       return 'You do not have access to this project'
     case 'gone':

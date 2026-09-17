@@ -1,16 +1,21 @@
 /**
  * Taskclan Cloud — the console's front door.
  *
- * The console had none: `/` redirects into `/project/default`, so anyone
- * arriving at the URL landed inside someone's dashboard with no idea what the
- * product is. This is the page that answers that, in the shape supabase.com
- * uses — a hero that states the offer, a product grid, the commands you would
+ * The console had none: `/` redirected into the dashboard, so anyone arriving
+ * at the bare hostname landed inside someone's project with no idea what the
+ * product is. Since 2026-09-17 `/` serves this page, in the shape supabase.com
+ * uses: a hero that states the offer, a product grid, the commands you would
  * actually run, and what it costs.
  *
- * Not a copy of the engine's `/cloud/landing`. That one is the marketing site
- * on the Taskclan domain and stays; this is the console's own, sharing the
- * console's tokens so the page and the product it opens into look like one
- * thing.
+ * Every call to action here points at /organizations rather than a project.
+ * They used to point at `/project/default`, which is Studio's convention for a
+ * single self-hosted project and matches nothing on Taskclan Cloud, where apps
+ * have real refs. Signed out, the auth gate turns those links into sign-in with
+ * a returnTo; signed in, they open the app list.
+ *
+ * Not a copy of the engine's `/cloud/welcome`. That console no longer serves
+ * this hostname; this is the replacement's own front door, sharing the console's
+ * tokens so the page and the product it opens into look like one thing.
  *
  * Everything asserted here is a capability that exists: per-second container
  * metering, managed Postgres, review apps, instant rollback, a hard spend cap.
@@ -31,37 +36,37 @@ const PRODUCTS: Array<{ name: string; blurb: string; href: string }> = [
     name: 'Deployments',
     blurb:
       'Push a branch or press Deploy. Builds run on Taskclan’s runners, roll the container, and keep every previous release one click away.',
-    href: '/project/default/deployments',
+    href: '/organizations',
   },
   {
     name: 'Postgres',
     blurb:
       'A managed database per app, with a table editor and SQL editor that connect as that app’s own role, never a shared one.',
-    href: '/project/default/editor',
+    href: '/organizations',
   },
   {
     name: 'Containers',
     blurb:
       'Long-running services metered per second, sized from the image, and asleep when idle so an unused app costs nothing.',
-    href: '/project/default/compute',
+    href: '/organizations',
   },
   {
     name: 'Logs & observability',
     blurb:
       'Build logs, container logs and request metrics in one place, kept long enough to answer “what changed at 3am?”.',
-    href: '/project/default/logs/explorer',
+    href: '/organizations',
   },
   {
     name: 'Environment',
     blurb:
       'Encrypted config per app and per environment. Values are write-only by default; reading one is a deliberate, audited act.',
-    href: '/project/default/settings',
+    href: '/organizations',
   },
   {
     name: 'Advisors',
     blurb:
       'Security and performance checks that read your actual schema: missing indexes, tables without RLS, policies that never match.',
-    href: '/project/default/advisors/security',
+    href: '/organizations',
   },
 ]
 
@@ -131,7 +136,7 @@ export default function LandingPage() {
                 Pricing
               </a>
               <Link
-                href="/project/default"
+                href="/organizations"
                 className="rounded-md bg-brand px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
               >
                 Open dashboard
@@ -158,13 +163,13 @@ export default function LandingPage() {
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">
             <Link
-              href="/project/default/deployments"
+              href="/organizations"
               className="inline-flex items-center gap-2 rounded-md bg-brand px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
             >
               Deploy an app <ArrowRight size={15} />
             </Link>
             <Link
-              href="/project/default"
+              href="/organizations"
               className="inline-flex items-center gap-2 rounded-md border border-strong px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-100"
             >
               Open the dashboard
@@ -246,7 +251,7 @@ export default function LandingPage() {
                 enforces it: it will stop deploying before it surprises you.
               </p>
               <Link
-                href="/project/default/deployments"
+                href="/organizations"
                 className="mt-7 inline-flex items-center gap-2 rounded-md bg-brand px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
               >
                 Deploy your first app <ArrowRight size={15} />
@@ -266,7 +271,7 @@ export default function LandingPage() {
         <footer className="border-t border-muted py-8">
           <Section className="flex flex-wrap items-center justify-between gap-4 text-sm text-foreground-lighter">
             <span>Taskclan Cloud</span>
-            <Link href="/project/default" className="hover:text-foreground">
+            <Link href="/organizations" className="hover:text-foreground">
               Open dashboard
             </Link>
           </Section>

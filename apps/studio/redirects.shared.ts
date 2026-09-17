@@ -44,7 +44,12 @@ export const PLATFORM_REDIRECTS: StudioRedirect[] = [
  * links people have bookmarked, not a flow.
  */
 export const SELF_HOSTED_REDIRECTS: StudioRedirect[] = [
-  { source: '/', destination: '/organizations', permanent: false },
+  // The front door. Signed-out visitors get the page that says what this is;
+  // the CTAs on it go to /organizations, which the auth gate bounces to
+  // sign-in with a returnTo. Sending / straight to /organizations meant
+  // anyone typing the bare hostname landed inside a dashboard with no idea
+  // what the product was.
+  { source: '/', destination: '/landing', permanent: false },
   { source: '/register', destination: '/organizations', permanent: false },
   { source: '/signup', destination: '/organizations', permanent: false },
   { source: '/signin', destination: '/organizations', permanent: false },
@@ -67,7 +72,12 @@ export const SELF_HOSTED_REDIRECTS: StudioRedirect[] = [
  * rule does not.
  */
 export const TASKCLAN_AUTH_REDIRECTS: StudioRedirect[] = [
-  { source: '/', destination: '/organizations', permanent: false },
+  // The front door. Signed-out visitors get the page that says what this is;
+  // the CTAs on it go to /organizations, which the auth gate bounces to
+  // sign-in with a returnTo. Sending / straight to /organizations meant
+  // anyone typing the bare hostname landed inside a dashboard with no idea
+  // what the product was.
+  { source: '/', destination: '/landing', permanent: false },
   { source: '/register', destination: '/sign-in', permanent: false },
   { source: '/signup', destination: '/sign-in', permanent: false },
   { source: '/signin', destination: '/sign-in', permanent: false },
