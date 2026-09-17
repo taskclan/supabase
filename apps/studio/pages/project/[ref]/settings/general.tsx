@@ -14,6 +14,7 @@ import { CustomDomainConfig } from '@/components/interfaces/Settings/General/Cus
 import { DeleteBranchPanel } from '@/components/interfaces/Settings/General/DeleteBranchPanel'
 import { DeleteProjectPanel } from '@/components/interfaces/Settings/General/DeleteProjectPanel/DeleteProjectPanel'
 import { General } from '@/components/interfaces/Settings/General/General'
+import { TaskclanSiteSettings } from '@/components/interfaces/Settings/General/TaskclanSiteSettings'
 import { Project } from '@/components/interfaces/Settings/General/Project'
 import { ServiceVersionsSection } from '@/components/interfaces/Settings/General/ServiceVersions/ServiceVersionsSection'
 import { TransferProjectPanel } from '@/components/interfaces/Settings/General/TransferProjectPanel/TransferProjectPanel'
@@ -53,6 +54,9 @@ const ProjectSettings: NextPageWithLayout = () => {
       </PageHeader>
       <PageContainer size="small">
         <General />
+        {/* Taskclan Cloud: the app's own identity and its delete. Upstream's
+            equivalents below are all platform-only and unserved here. */}
+        {!IS_PLATFORM && <TaskclanSiteSettings />}
         {IS_PLATFORM && (
           <>
             <Project />
