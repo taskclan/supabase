@@ -1,26 +1,39 @@
-# Read-only diagnostic: what is claiming cloud.taskclan.com?
+# Hand cloud.taskclan.com to the console by removing the Worker route that
+# still sends it to the engine.
 #
-# Binding the Workers Custom Domain for cloud.taskclan.com succeeded (the deploy
-# log lists it), DNS resolves, and yet the hostname still serves the ENGINE
-# rather than this console. Deleting the hostname's DNS record did not stop the
-# engine serving it either, which rules out the record being how the engine is
-# reached and points at something zone-level: a Worker route, or a Cloudflare
-# for SaaS custom hostname.
+# The diagnostic run of this workflow found the cause. Everything configured for
+# the cutover was already correct:
 #
-# That lives in the Cloudflare account this repo deploys to, which is not an
-# account reachable from a local wrangler login. This workflow asks the API the
-# four questions needed to identify it, using the credentials CI already has.
+#   custom domain : cloud.taskclan.com -> taskclan-cloud-console  (correct)
+#   DNS           : AAAA -> 100:: proxied                          (the custom
+#                   domain's own placeholder record, correct)
+#   SaaS hostnames: none
 #
-# STRICTLY READ-ONLY. Every call is a GET. Nothing here mutates routing; the
-# point is to find out what to remove before removing anything. Delete this file
-# once the cutover is settled.
-name: CF routing diagnostic
+# but the zone also carried a Worker ROUTE:
+#
+#   cloud.taskclan.com/*   ->   tc-svc-15e5304f77a840b18417d80806b95f97
+#
+# tc-svc-* is Taskclan Cloud's service-worker naming, so that is the engine
+# running as a Cloud app, and the route wins over the custom domain. It is also
+# why deleting the hostname's old DNS record did not stop the engine serving it:
+# a route matches on hostname and does not care what the record points at.
+#
+# Deleting that one route is the entire remaining cutover step.
+#
+# Guardrails, because this mutates production routing:
+#   - only a pattern matching EXACTLY "cloud.taskclan.com/*" is touched
+#   - it aborts if that pattern is missing or appears more than once
+#   - platform.taskclan.com/*, taskclan.com/* and every other tc-svc-* route
+#     are left alone; they are different hostnames on the same zone
+#
+# Reversing it: recreate the route with
+#   POST /zones/<zone>/workers/routes {"pattern":"cloud.taskclan.com/*",
+#     "script":"tc-svc-15e5304f77a840b18417d80806b95f97"}
+# Both the pattern and the script id are recorded above so a rollback needs
+# nothing but this file.
+name: CF routing cutover
 
 on:
-  # workflow_dispatch alone is not enough: GitHub only exposes it for
-  # workflows present on the DEFAULT branch, and this fork's default is
-  # master (upstream Supabase). Triggering on this file's own path means
-  # editing it runs it, from the branch the work is on.
   workflow_dispatch:
   push:
     branches: [taskclan/sitterly-theme]
@@ -28,43 +41,57 @@ on:
       - '.github/workflows/cf-routing-diag.yml'
 
 jobs:
-  diag:
+  cutover:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Ask Cloudflare what owns cloud.taskclan.com
+      - name: Remove the engine's route for cloud.taskclan.com
         env:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          api() { curl -sS -H "Authorization: Bearer $CF_TOKEN" -H "content-type: application/json" "https://api.cloudflare.com/client/v4$1"; }
+          api() { curl -sS -X "${2:-GET}" -H "Authorization: Bearer $CF_TOKEN" -H "content-type: application/json" "https://api.cloudflare.com/client/v4$1"; }
 
-          echo "### 1. zone id for taskclan.com"
+          TARGET='cloud.taskclan.com/*'
+
           ZONE=$(api "/zones?name=taskclan.com" | jq -r '.result[0].id // empty')
-          if [ -z "$ZONE" ]; then
-            echo "could not read the zone (token may lack zone:read). Stopping."
-            api "/zones?name=taskclan.com" | jq -r '.errors // .success'
-            exit 0
+          [ -n "$ZONE" ] || { echo "could not read the zone"; exit 1; }
+
+          echo "### routes before"
+          ROUTES=$(api "/zones/$ZONE/workers/routes")
+          echo "$ROUTES" | jq -r '.result[]? | "  \(.pattern) -> \(.script // "-")"'
+
+          N=$(echo "$ROUTES" | jq --arg p "$TARGET" '[.result[]? | select(.pattern == $p)] | length')
+          if [ "$N" != "1" ]; then
+            echo
+            echo "expected exactly one route with pattern '$TARGET', found $N. Doing nothing."
+            exit 1
           fi
-          echo "zone=$ZONE"
+
+          ID=$(echo "$ROUTES"    | jq -r --arg p "$TARGET" '.result[] | select(.pattern == $p) | .id')
+          SCRIPT=$(echo "$ROUTES" | jq -r --arg p "$TARGET" '.result[] | select(.pattern == $p) | .script')
+          echo
+          echo "### deleting"
+          echo "  pattern : $TARGET"
+          echo "  script  : $SCRIPT   (recreate with this id if rolling back)"
+
+          RES=$(api "/zones/$ZONE/workers/routes/$ID" DELETE)
+          OK=$(echo "$RES" | jq -r '.success')
+          if [ "$OK" != "true" ]; then
+            echo "delete failed:"; echo "$RES" | jq -r '.errors'; exit 1
+          fi
+          echo "  deleted."
 
           echo
-          echo "### 2. Worker ROUTES on the zone (a pattern matching cloud.taskclan.com is the prime suspect)"
-          api "/zones/$ZONE/workers/routes" \
-            | jq -r '.result[]? | "  \(.pattern)   ->   \(.script // "(no script)")"' || echo "  (none readable)"
+          echo "### routes after"
+          api "/zones/$ZONE/workers/routes" | jq -r '.result[]? | "  \(.pattern) -> \(.script // "-")"'
 
           echo
-          echo "### 3. Custom domains attached to taskclan-cloud-console"
-          api "/accounts/$CF_ACCOUNT/workers/domains?hostname=cloud.taskclan.com" \
-            | jq -r '.result[]? | "  \(.hostname)   ->   \(.service)  (zone \(.zone_name))"' || echo "  (none)"
-
-          echo
-          echo "### 4. Cloudflare for SaaS custom hostnames matching cloud.taskclan.com"
-          api "/zones/$ZONE/custom_hostnames?hostname=cloud.taskclan.com" \
-            | jq -r 'if (.result|length)==0 then "  (none)" else (.result[] | "  \(.hostname)  status=\(.status)  id=\(.id)") end' || echo "  (not readable)"
-
-          echo
-          echo "### 5. DNS records on that exact hostname"
-          api "/zones/$ZONE/dns_records?name=cloud.taskclan.com" \
-            | jq -r 'if (.result|length)==0 then "  (none)" else (.result[] | "  \(.type)  \(.name) -> \(.content)  proxied=\(.proxied)") end' || echo "  (not readable)"
+          echo "### who serves cloud.taskclan.com now"
+          sleep 10
+          CODE=$(curl -sS -m 15 -o /tmp/body.txt -w '%{http_code}' https://cloud.taskclan.com/api/taskclan/keys || true)
+          echo "  /api/taskclan/keys -> $CODE"
+          echo "  body: $(head -c 120 /tmp/body.txt | tr -d '\n')"
+          echo "  (the console answers 401 with JSON 'sign in to use this console';"
+          echo "   the engine answers 404 with HTML)"
