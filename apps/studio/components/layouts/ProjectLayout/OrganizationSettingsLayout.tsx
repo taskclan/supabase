@@ -1,4 +1,4 @@
-import { useFlag, useParams } from 'common'
+import { IS_PLATFORM, useFlag, useParams } from 'common'
 import { PropsWithChildren, useMemo } from 'react'
 
 import { useIsPlatformWebhooksEnabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
@@ -143,6 +143,19 @@ export const generateOrganizationSettingsSections = ({
   ]
 
   const connectionsLinks = [
+    // Taskclan Cloud API keys. Only on this build: upstream has no such concept,
+    // and the engine scopes these keys by organisation, which is why they sit
+    // here rather than under a project. Distinct from the project-level "API
+    // Keys" screen, which is a Supabase project's anon/service_role pair.
+    ...(IS_PLATFORM
+      ? []
+      : [
+          {
+            key: 'api-keys',
+            label: 'API Keys',
+            href: `/org/${slug}/api-keys`,
+          },
+        ]),
     {
       key: 'apps',
       label: 'OAuth Apps',

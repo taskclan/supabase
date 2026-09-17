@@ -36,10 +36,14 @@ describe('OrganizationSettingsLayout helpers', () => {
       'Connections',
       'Compliance',
     ])
+    // 'API Keys' is this fork's own entry (Taskclan Cloud API keys, org-scoped)
+    // and is present because IS_PLATFORM is false in this build. On platform it
+    // is omitted, since upstream has no such concept.
     expect(sections.flatMap((section) => section.links.map((item) => item.label))).toEqual([
       'General',
       'Security',
       'SSO',
+      'API Keys',
       'OAuth Apps',
       'Webhooks',
       'Audit Logs',
@@ -65,12 +69,32 @@ describe('OrganizationSettingsLayout helpers', () => {
       'Connections',
       'Compliance',
     ])
+    // API Keys is not feature-flagged: it is a capability of this build, so it
+    // survives every flag being off. Only the upstream items disappear.
     expect(sections.flatMap((section) => section.links.map((item) => item.label))).toEqual([
       'General',
+      'API Keys',
       'OAuth Apps',
       'Webhooks',
       'Audit Logs',
     ])
+  })
+
+  it('points the Taskclan API keys entry at the org-scoped page', () => {
+    // Org-scoped because the engine scopes Cloud API keys by organisation: one
+    // key reaches every app in the org. A project-scoped href would be a
+    // different, narrower thing that does not exist.
+    const sections = generateOrganizationSettingsSections({
+      slug: 'my-org',
+      currentPath: '/org/my-org/general',
+      showSecuritySettings: false,
+      showSsoSettings: false,
+      showLegalDocuments: false,
+    })
+
+    const connections = sections.find((section) => section.heading === 'Connections')
+    const apiKeys = connections?.links.find((item) => item.label === 'API Keys')
+    expect(apiKeys?.href).toBe('/org/my-org/api-keys')
   })
 
   it('normalizes hash paths for active state checks', () => {
