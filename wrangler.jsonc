@@ -29,6 +29,19 @@
   //   TC_ACCESS_TOKEN         optional; enables the Worker's private-site gate
   "vars": {
     "TASKCLAN_CLOUD_URL": "https://engine.taskclan.com",
+    // Cutover step 1 of 3. With per-user auth live, a request that arrives with
+    // no user token must fail rather than quietly act as the shared Cloud API
+    // key — which would mean serving one organisation's apps to whoever asked.
+    //
+    // This has to go off BEFORE TC_ACCESS_TOKEN comes off, not after. The site
+    // password is currently the only thing in front of /api/taskclan/*; drop it
+    // while this fallback is still on and those routes answer anonymously out
+    // of the shared key. Ordering them the other way round is the difference
+    // between a closed door and an open one.
+    //
+    // Runtime rather than build-time on purpose: if this turns out to be wrong,
+    // recovery is editing this value, not waiting out a rebuild.
+    "TASKCLAN_SHARED_KEY_FALLBACK": "false",
     // The shared Supabase project every Taskclan app connects to via
     // supabase-js. The Connect panel's Framework/Mobile/Server tabs surface this
     // REST URL + the anon key (TASKCLAN_SUPABASE_ANON_KEY, a Worker secret). The
