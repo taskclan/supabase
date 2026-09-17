@@ -1,0 +1,62 @@
+# Read-only diagnostic: what is claiming cloud.taskclan.com?
+#
+# Binding the Workers Custom Domain for cloud.taskclan.com succeeded (the deploy
+# log lists it), DNS resolves, and yet the hostname still serves the ENGINE
+# rather than this console. Deleting the hostname's DNS record did not stop the
+# engine serving it either, which rules out the record being how the engine is
+# reached and points at something zone-level: a Worker route, or a Cloudflare
+# for SaaS custom hostname.
+#
+# That lives in the Cloudflare account this repo deploys to, which is not an
+# account reachable from a local wrangler login. This workflow asks the API the
+# four questions needed to identify it, using the credentials CI already has.
+#
+# STRICTLY READ-ONLY. Every call is a GET. Nothing here mutates routing; the
+# point is to find out what to remove before removing anything. Delete this file
+# once the cutover is settled.
+name: CF routing diagnostic
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ask Cloudflare what owns cloud.taskclan.com
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          api() { curl -sS -H "Authorization: Bearer $CF_TOKEN" -H "content-type: application/json" "https://api.cloudflare.com/client/v4$1"; }
+
+          echo "### 1. zone id for taskclan.com"
+          ZONE=$(api "/zones?name=taskclan.com" | jq -r '.result[0].id // empty')
+          if [ -z "$ZONE" ]; then
+            echo "could not read the zone (token may lack zone:read). Stopping."
+            api "/zones?name=taskclan.com" | jq -r '.errors // .success'
+            exit 0
+          fi
+          echo "zone=$ZONE"
+
+          echo
+          echo "### 2. Worker ROUTES on the zone (a pattern matching cloud.taskclan.com is the prime suspect)"
+          api "/zones/$ZONE/workers/routes" \
+            | jq -r '.result[]? | "  \(.pattern)   ->   \(.script // "(no script)")"' || echo "  (none readable)"
+
+          echo
+          echo "### 3. Custom domains attached to taskclan-cloud-console"
+          api "/accounts/$CF_ACCOUNT/workers/domains?hostname=cloud.taskclan.com" \
+            | jq -r '.result[]? | "  \(.hostname)   ->   \(.service)  (zone \(.zone_name))"' || echo "  (none)"
+
+          echo
+          echo "### 4. Cloudflare for SaaS custom hostnames matching cloud.taskclan.com"
+          api "/zones/$ZONE/custom_hostnames?hostname=cloud.taskclan.com" \
+            | jq -r 'if (.result|length)==0 then "  (none)" else (.result[] | "  \(.hostname)  status=\(.status)  id=\(.id)") end' || echo "  (not readable)"
+
+          echo
+          echo "### 5. DNS records on that exact hostname"
+          api "/zones/$ZONE/dns_records?name=cloud.taskclan.com" \
+            | jq -r 'if (.result|length)==0 then "  (none)" else (.result[] | "  \(.type)  \(.name) -> \(.content)  proxied=\(.proxied)") end' || echo "  (not readable)"
