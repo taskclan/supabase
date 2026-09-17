@@ -91,6 +91,16 @@
     // Runtime rather than build-time on purpose: if this turns out to be wrong,
     // recovery is editing this value, not waiting out a rebuild.
     "TASKCLAN_SHARED_KEY_FALLBACK": "false",
+    // Which app /project/default means.
+    //
+    // Studio routes to that ref when it means "the one project", which is true
+    // of a self-hosted install and never true here, so the URL used to resolve
+    // to nothing and render "no Taskclan app matches default".
+    //
+    // A preference, not a grant: it only applies to a caller who can already
+    // see this app. Anyone else falls back to their own first app, so setting a
+    // Taskclan-owned app here cannot expose it to another organisation.
+    "TASKCLAN_DEFAULT_APP": "taskclan-engine",
     // The shared Supabase project every Taskclan app connects to via
     // supabase-js. The Connect panel's Framework/Mobile/Server tabs surface this
     // REST URL + the anon key (TASKCLAN_SUPABASE_ANON_KEY, a Worker secret). The

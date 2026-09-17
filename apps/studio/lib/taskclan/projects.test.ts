@@ -139,6 +139,43 @@ describe('findSiteByRef', () => {
     expect(findSiteByRef([a, b], 'bbbb')?.id).toBe('bbbb')
   })
 
+  describe('the "default" ref', () => {
+    // Studio routes to /project/default when it means "the one project", which
+    // is true self-hosted and never true here. Before this it matched nothing,
+    // so every such URL rendered "no Taskclan app matches default".
+
+    it('resolves to the preferred app when the caller can see it', () => {
+      expect(findSiteByRef([a, b], 'default', 'forge3d')?.id).toBe('bbbb')
+    })
+
+    it('matches the preference on name or id too, not just subdomain', () => {
+      expect(findSiteByRef([a, b], 'default', 'bbbb')?.id).toBe('bbbb')
+    })
+
+    it('falls back to the caller\'s own first app when the preference is not theirs', () => {
+      // The tenancy property. The preference names one organisation's app; a
+      // caller who cannot see it must get their own, never a glimpse of it and
+      // never a dead end. A preference that could pull in an app outside the
+      // caller's list would be a grant rather than a default.
+      expect(findSiteByRef([a, b], 'default', 'someone-elses-app')?.id).toBe('aaaa')
+    })
+
+    it('falls back to the first app when no preference is configured', () => {
+      expect(findSiteByRef([a, b], 'default', '')?.id).toBe('aaaa')
+    })
+
+    it('returns null when the caller has no apps at all', () => {
+      // Not an error to invent an app for: a new account genuinely has none.
+      expect(findSiteByRef([], 'default', 'forge3d')).toBeNull()
+    })
+
+    it('does not let the preference hijack a real ref', () => {
+      // Only the literal "default" is special. Asking for engine must give
+      // engine even when the preference names something else.
+      expect(findSiteByRef([a, b], 'engine', 'forge3d')?.id).toBe('aaaa')
+    })
+  })
+
   it('prefers a subdomain match over an id match', () => {
     // If one app's id happened to equal another's subdomain, the subdomain is
     // the identity Studio routes on and must win.

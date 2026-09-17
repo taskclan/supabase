@@ -103,7 +103,57 @@ export function toStudioProjects(sites: CloudSite[], organizationId: number): St
   return sites.map((s) => toStudioProject(s, organizationId));
 }
 
-/** Find one app by the ref Studio routes on, matching either identity. */
-export function findSiteByRef(sites: CloudSite[], ref: string): CloudSite | null {
+/**
+ * The ref Studio uses when it means "the one project", inherited from
+ * self-hosted where there is exactly one. Taskclan Cloud apps all have real
+ * refs, so nothing ever matched it and every /project/default/* URL was a dead
+ * end: "no Taskclan app matches default".
+ */
+export const DEFAULT_REF = 'default';
+
+/**
+ * Which app `default` should mean.
+ *
+ * Read from TASKCLAN_DEFAULT_APP rather than hardcoded, because this console
+ * serves more than one organisation. A fixed app name would resolve to one
+ * org's app for every visitor: wrong for everybody else, and for anyone who
+ * cannot see it, the same dead end with a more confusing message.
+ */
+export function defaultAppPreference(): string {
+  return (process.env.TASKCLAN_DEFAULT_APP ?? '').trim();
+}
+
+/**
+ * Resolve `default` against the caller's OWN apps.
+ *
+ * The preference only applies when the caller can actually see that app, so it
+ * is a preference rather than a grant: it cannot widen what anyone reaches.
+ * Everyone else falls back to their own first app, which is the useful answer
+ * for a URL that means "just show me something".
+ */
+function defaultSite(sites: CloudSite[], preference: string): CloudSite | null {
+  if (preference) {
+    const preferred = sites.find(
+      (s) => s.subdomain === preference || s.name === preference || s.id === preference
+    );
+    if (preferred) return preferred;
+  }
+  return sites[0] ?? null;
+}
+
+/**
+ * Find one app by the ref Studio routes on, matching either identity.
+ *
+ * `preference` defaults to the environment rather than being threaded from each
+ * call site on purpose. Three places resolve refs, and if they disagreed about
+ * what `default` means an app would load its page from one site and its
+ * database credentials from another.
+ */
+export function findSiteByRef(
+  sites: CloudSite[],
+  ref: string,
+  preference: string = defaultAppPreference()
+): CloudSite | null {
+  if (ref === DEFAULT_REF) return defaultSite(sites, preference);
   return sites.find((s) => s.subdomain === ref) ?? sites.find((s) => s.id === ref) ?? null;
 }
