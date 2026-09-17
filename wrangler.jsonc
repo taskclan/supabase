@@ -25,34 +25,44 @@
   // whatever happens to the custom domain.
   "workers_dev": true,
 
-  // THE SWITCH — NOT YET APPLIED. Moving cloud.taskclan.com off the engine's
-  // console and onto this one is a `routes` entry with `custom_domain: true`:
+  // THE SWITCH. This is what moves cloud.taskclan.com off the engine's console
+  // and onto this one.
   //
-  //   "routes": [{ "pattern": "cloud.taskclan.com", "custom_domain": true }]
+  // A Workers Custom Domain rather than a route pattern: Cloudflare creates and
+  // owns the DNS record and the certificate, so there is no separate DNS change
+  // to keep in sync afterwards.
   //
-  // It is commented out because Cloudflare refuses it, and the refusal is
-  // correct:
+  // The first attempt (3e7946c7c4) was rejected, and the rejection was correct:
   //
   //   Hostname 'cloud.taskclan.com' already has externally managed DNS records
   //   (A, CNAME, etc). Delete them first or try a different hostname. [100117]
   //
-  // The hostname still carries the record that points at the engine. Cloudflare
-  // will not silently take it over, so the existing record has to be deleted in
-  // the dashboard first — a manual step, not something this file can do.
+  // The hostname still carried the record pointing at the engine, and
+  // Cloudflare will not silently take one over. That record has since been
+  // deleted by hand; the hostname now has no A, AAAA or CNAME at all, which is
+  // what lets this bind.
   //
-  // Two things were already true before this was attempted, and both still hold:
+  // Preconditions, both established and verified live before this landed:
   //
   //   1. TASKCLAN_SHARED_KEY_FALLBACK is "false" (c77b6384f3), so the API fails
-  //      closed for a request carrying no user token.
-  //   2. TC_ACCESS_TOKEN is deleted, so the shared site password is gone. With
-  //      the hostname pointing here it would have 401'd every real customer on
-  //      the console UI.
+  //      closed for a request carrying no user token rather than answering out
+  //      of one organisation's shared key.
+  //   2. TC_ACCESS_TOKEN is deleted. It was a single shared site password, and
+  //      with this hostname pointing here it would have 401'd every real
+  //      customer on the console UI.
   //
-  // Reverting, once this IS applied: deleting the custom domain also deletes
-  // the DNS record Cloudflare created for it, so a rollback is not just
-  // removing this block — the original record has to be recreated pointing back
-  // at the engine, and cloud.taskclan.com re-added to CLOUD_HOSTS in the
-  // engine's middleware. That is why the engine's console stays in place.
+  // Reverting is NOT just deleting this block. A Workers Custom Domain owns the
+  // DNS record it creates, so removing it removes the record and leaves the
+  // hostname resolving to nothing. A rollback has to recreate a record pointing
+  // back at the engine and re-add cloud.taskclan.com to CLOUD_HOSTS in the
+  // engine's middleware — which is why that entry is being left in place until
+  // this has soaked.
+  "routes": [
+    {
+      "pattern": "cloud.taskclan.com",
+      "custom_domain": true
+    }
+  ],
 
   // Non-secret configuration for the container.
   //
