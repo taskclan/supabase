@@ -15,6 +15,34 @@
     "enabled": true
   },
 
+  // THE SWITCH. This is what moves cloud.taskclan.com off the engine's console
+  // and onto this one.
+  //
+  // A Workers Custom Domain rather than a route pattern: Cloudflare creates and
+  // owns the DNS record and the certificate, so there is no separate DNS change
+  // and nothing to keep in sync. The zone is already on Cloudflare, which is
+  // what makes this a one-line operation instead of a migration.
+  //
+  // Two things must be true BEFORE this lands, in this order:
+  //
+  //   1. TASKCLAN_SHARED_KEY_FALLBACK is "false" (done above), so the API fails
+  //      closed for a request with no user token.
+  //   2. The TC_ACCESS_TOKEN secret is deleted. It is a single shared password;
+  //      leaving it in place would hand every real customer a 401 on the
+  //      console UI the moment this hostname points here. Note the blast radius
+  //      is the UI only — the engine passthrough runs before the gate, so
+  //      `git push` and the Cloud API keep working either way.
+  //
+  // Reverting: remove this block and redeploy, then re-add cloud.taskclan.com
+  // to CLOUD_HOSTS in the engine's middleware. That is why the engine's console
+  // is left in place rather than deleted.
+  "routes": [
+    {
+      "pattern": "cloud.taskclan.com",
+      "custom_domain": true
+    }
+  ],
+
   // Non-secret configuration for the container.
   //
   // The Worker spreads every string binding into the container's environment,
