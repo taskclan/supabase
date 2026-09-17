@@ -15,33 +15,44 @@
     "enabled": true
   },
 
-  // THE SWITCH. This is what moves cloud.taskclan.com off the engine's console
-  // and onto this one.
+  // The workers.dev URL, pinned ON deliberately.
   //
-  // A Workers Custom Domain rather than a route pattern: Cloudflare creates and
-  // owns the DNS record and the certificate, so there is no separate DNS change
-  // and nothing to keep in sync. The zone is already on Cloudflare, which is
-  // what makes this a one-line operation instead of a migration.
+  // Wrangler disables workers.dev by default as soon as a `routes` block exists
+  // and `workers_dev` does not. That is how this Worker went dark on
+  // 2026-09-17: adding the custom domain turned workers.dev off, the custom
+  // domain itself was then rejected, and the deploy left the Worker with no
+  // route at all. Stating it explicitly means the fallback URL survives
+  // whatever happens to the custom domain.
+  "workers_dev": true,
+
+  // THE SWITCH — NOT YET APPLIED. Moving cloud.taskclan.com off the engine's
+  // console and onto this one is a `routes` entry with `custom_domain: true`:
   //
-  // Two things must be true BEFORE this lands, in this order:
+  //   "routes": [{ "pattern": "cloud.taskclan.com", "custom_domain": true }]
   //
-  //   1. TASKCLAN_SHARED_KEY_FALLBACK is "false" (done above), so the API fails
-  //      closed for a request with no user token.
-  //   2. The TC_ACCESS_TOKEN secret is deleted. It is a single shared password;
-  //      leaving it in place would hand every real customer a 401 on the
-  //      console UI the moment this hostname points here. Note the blast radius
-  //      is the UI only — the engine passthrough runs before the gate, so
-  //      `git push` and the Cloud API keep working either way.
+  // It is commented out because Cloudflare refuses it, and the refusal is
+  // correct:
   //
-  // Reverting: remove this block and redeploy, then re-add cloud.taskclan.com
-  // to CLOUD_HOSTS in the engine's middleware. That is why the engine's console
-  // is left in place rather than deleted.
-  "routes": [
-    {
-      "pattern": "cloud.taskclan.com",
-      "custom_domain": true
-    }
-  ],
+  //   Hostname 'cloud.taskclan.com' already has externally managed DNS records
+  //   (A, CNAME, etc). Delete them first or try a different hostname. [100117]
+  //
+  // The hostname still carries the record that points at the engine. Cloudflare
+  // will not silently take it over, so the existing record has to be deleted in
+  // the dashboard first — a manual step, not something this file can do.
+  //
+  // Two things were already true before this was attempted, and both still hold:
+  //
+  //   1. TASKCLAN_SHARED_KEY_FALLBACK is "false" (c77b6384f3), so the API fails
+  //      closed for a request carrying no user token.
+  //   2. TC_ACCESS_TOKEN is deleted, so the shared site password is gone. With
+  //      the hostname pointing here it would have 401'd every real customer on
+  //      the console UI.
+  //
+  // Reverting, once this IS applied: deleting the custom domain also deletes
+  // the DNS record Cloudflare created for it, so a rollback is not just
+  // removing this block — the original record has to be recreated pointing back
+  // at the engine, and cloud.taskclan.com re-added to CLOUD_HOSTS in the
+  // engine's middleware. That is why the engine's console stays in place.
 
   // Non-secret configuration for the container.
   //
