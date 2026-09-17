@@ -17,7 +17,15 @@
 name: CF routing diagnostic
 
 on:
+  # workflow_dispatch alone is not enough: GitHub only exposes it for
+  # workflows present on the DEFAULT branch, and this fork's default is
+  # master (upstream Supabase). Triggering on this file's own path means
+  # editing it runs it, from the branch the work is on.
   workflow_dispatch:
+  push:
+    branches: [taskclan/sitterly-theme]
+    paths:
+      - '.github/workflows/cf-routing-diag.yml'
 
 jobs:
   diag:
