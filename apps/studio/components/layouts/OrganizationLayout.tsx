@@ -6,6 +6,8 @@ import type { PropsWithChildren } from 'react'
 import { Alert, AlertDescription, AlertTitle, Button, cn } from 'ui'
 
 import { useRegisterOrgMenu } from './OrganizationLayout/useRegisterOrgMenu'
+import { getPathnameWithoutQuery, isOrgMenuScope } from './OrganizationLayout/OrganizationLayout.utils'
+import { OrganizationSettingsMenu } from './ProjectLayout/OrganizationSettingsMenu'
 import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
 import PartnerIcon from '@/components/ui/PartnerIcon'
 import { useAwsRedirectQuery } from '@/data/integrations/aws-redirect-query'
@@ -100,6 +102,9 @@ const OrganizationLayoutContent = ({
 
   // Keep title intent close to each page (getLayout) to avoid route-to-title drift in this layout.
   const isSettingsSurface = settingsPages.some((x) => router.pathname.endsWith(x))
+  // Every /org/* page, not just the ones in settingsPages above — that list is
+  // only used for the browser title and omits api-keys and releases.
+  const showSettingsNav = isOrgMenuScope(getPathnameWithoutQuery(router.asPath, router.pathname))
   const pageTitle = buildStudioPageTitle({
     section: title,
     surface: isSettingsSurface ? 'Organization Settings' : undefined,
@@ -169,7 +174,27 @@ const OrganizationLayoutContent = ({
           </div>
         </Alert>
       )}
-      <main className="h-full w-full overflow-y-auto flex flex-col">{children}</main>
+      {/* The organization settings nav on desktop.
+        *
+        * These pages had no entry point at all outside a phone. The same menu
+        * was registered by useRegisterOrgMenu, but its only consumer is the
+        * mobile sheet, so on a desktop window every /org/<slug>/* page was
+        * reachable only by typing the URL — including the two this fork adds,
+        * API Keys and Releases.
+        *
+        * Hidden below md because the sheet already covers that width, and
+        * showing both would put the same list on screen twice. */}
+      <div className="flex h-full w-full flex-1 overflow-hidden">
+        {showSettingsNav && (
+          <nav
+            aria-label="Organization settings"
+            className="hidden md:flex w-64 shrink-0 flex-col overflow-y-auto border-r border-default py-4"
+          >
+            <OrganizationSettingsMenu />
+          </nav>
+        )}
+        <main className="h-full w-full overflow-y-auto flex flex-col">{children}</main>
+      </div>
     </div>
   )
 }

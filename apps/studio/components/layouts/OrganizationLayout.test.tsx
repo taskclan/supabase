@@ -1,10 +1,11 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { LOCAL_STORAGE_KEYS } from 'common'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import OrganizationLayout from './OrganizationLayout'
 import { MANAGED_BY } from '@/lib/constants/infrastructure'
 import { createMockOrganization, render } from '@/tests/helpers'
+import { routerMock } from '@/tests/lib/route-mock'
 
 const {
   mockUseAwsRedirectQuery,
@@ -266,5 +267,41 @@ describe('OrganizationLayout', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Dismiss banner' }))
     expect(mockSetIsBannerDismissed).toHaveBeenCalledWith(true)
+  })
+})
+
+describe('the organization settings nav', () => {
+  /**
+   * These assert the nav RENDERS, not that a link exists in a data structure.
+   *
+   * The entry for Releases was added to generateOrganizationSettingsSections
+   * and covered by a test asserting its href, which passed while the nav was
+   * drawn nowhere except the mobile sheet. Every /org/<slug>/* page was
+   * reachable only by typing the URL, and the test said otherwise.
+   */
+  beforeEach(() => {
+    mockUseSelectedOrganizationQuery.mockReturnValue({
+      data: createMockOrganization({ slug: 'my-org' }),
+    })
+  })
+
+  it('renders on an organization page', async () => {
+    routerMock.setCurrentUrl('/org/my-org/releases')
+    renderLayout()
+
+    const nav = await screen.findByRole('navigation', { name: /organization settings/i })
+    expect(nav).toBeInTheDocument()
+    // The two entries this fork adds, which had no desktop entry point at all.
+    expect(within(nav).getByText('Releases')).toBeInTheDocument()
+    expect(within(nav).getByText('API Keys')).toBeInTheDocument()
+  })
+
+  it('stays out of the way outside organization scope', () => {
+    // The layout is only mounted on /org/* today, but the guard is what keeps
+    // this from leaking a second nav into a project page if that changes.
+    routerMock.setCurrentUrl('/project/abc123/editor')
+    renderLayout()
+
+    expect(screen.queryByRole('navigation', { name: /organization settings/i })).not.toBeInTheDocument()
   })
 })
