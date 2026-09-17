@@ -14,6 +14,7 @@ import { CustomDomainConfig } from '@/components/interfaces/Settings/General/Cus
 import { DeleteBranchPanel } from '@/components/interfaces/Settings/General/DeleteBranchPanel'
 import { DeleteProjectPanel } from '@/components/interfaces/Settings/General/DeleteProjectPanel/DeleteProjectPanel'
 import { General } from '@/components/interfaces/Settings/General/General'
+import { TaskclanDomains } from '@/components/interfaces/Settings/General/TaskclanDomains'
 import { TaskclanSiteSettings } from '@/components/interfaces/Settings/General/TaskclanSiteSettings'
 import { Project } from '@/components/interfaces/Settings/General/Project'
 import { ServiceVersionsSection } from '@/components/interfaces/Settings/General/ServiceVersions/ServiceVersionsSection'
@@ -54,9 +55,16 @@ const ProjectSettings: NextPageWithLayout = () => {
       </PageHeader>
       <PageContainer size="small">
         <General />
-        {/* Taskclan Cloud: the app's own identity and its delete. Upstream's
-            equivalents below are all platform-only and unserved here. */}
-        {!IS_PLATFORM && <TaskclanSiteSettings />}
+        {/* Taskclan Cloud: the app's own identity, how it is addressed, and its
+            delete. Upstream's equivalents below are all platform-only and
+            unserved here — including CustomDomainConfig, which talks to
+            Supabase's own domains API rather than Cloudflare. */}
+        {!IS_PLATFORM && (
+          <>
+            <TaskclanSiteSettings />
+            <TaskclanDomains />
+          </>
+        )}
         {IS_PLATFORM && (
           <>
             <Project />
