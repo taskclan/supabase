@@ -1,4 +1,4 @@
-import { FlaskConical, Settings } from 'lucide-react'
+import { FlaskConical, LogOut, Settings } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -20,6 +20,8 @@ import { ButtonTooltip } from '../ui/ButtonTooltip'
 import { useFeaturePreviewModal } from './App/FeaturePreview/FeaturePreviewContext'
 import { DevToolbarMenuGroup } from './DevToolbarMenuGroup'
 import { ProfileImage } from '@/components/ui/ProfileImage'
+import { TASKCLAN_AUTH_ENABLED } from '@/lib/constants'
+import { useProfile } from '@/lib/profile'
 import { useTrack } from '@/lib/telemetry/track'
 import { useAppStateSnapshot } from '@/state/app-state'
 
@@ -35,6 +37,7 @@ export const LocalDropdown = ({
   const appStateSnapshot = useAppStateSnapshot()
   const { toggleFeaturePreviewModal } = useFeaturePreviewModal()
   const track = useTrack()
+  const { profile } = useProfile()
 
   return (
     <DropdownMenu
@@ -73,6 +76,34 @@ export const LocalDropdown = ({
           <FlaskConical size={14} strokeWidth={1.5} className="text-foreground-lighter" />
           Feature previews
         </DropdownMenuItem>
+        {/* Who you are, and how to stop being them.
+          *
+          * This console renders LocalDropdown rather than UserDropdown, because
+          * that choice is made on IS_PLATFORM, which is false in this build.
+          * UserDropdown owns the only Sign out in the app and gates it on the
+          * same flag, so with Taskclan auth switched on there was a real login
+          * and no visible way out of it. Adding it here rather than flipping
+          * either guard: IS_PLATFORM turns on a great deal more than a menu
+          * item. */}
+        {TASKCLAN_AUTH_ENABLED && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              {!!profile?.primary_email && (
+                <DropdownMenuLabel className="font-normal text-foreground-lighter truncate">
+                  {profile.primary_email}
+                </DropdownMenuLabel>
+              )}
+              <DropdownMenuItem
+                className="flex gap-2 cursor-pointer"
+                onSelect={() => router.push('/logout')}
+              >
+                <LogOut size={14} strokeWidth={1.5} className="text-foreground-lighter" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DevToolbarMenuGroup />
         <DropdownMenuGroup>

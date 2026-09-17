@@ -32,7 +32,20 @@ import { TASKCLAN_AUTH_ENABLED } from '@/lib/constants'
  * leaving them out means they stop rendering to anonymous visitors, which is an
  * improvement rather than a regression.
  */
-const PUBLIC_ROUTES = new Set(['/landing', '/sign-in', '/404', '/500', '/_error', '/maintenance'])
+// /logout is public for a reason that is not obvious. Signing out clears the
+// session while the page is still mounted, so the gate would see !isLoggedIn,
+// redirect to /sign-in?returnTo=%2Flogout, and the next successful login would
+// land back on /logout and sign the user straight out again. Visiting it
+// without a session is harmless: it signs out nothing and moves on.
+const PUBLIC_ROUTES = new Set([
+  '/landing',
+  '/sign-in',
+  '/logout',
+  '/404',
+  '/500',
+  '/_error',
+  '/maintenance',
+])
 
 export const TaskclanAuthGate = ({ children }: PropsWithChildren) => {
   const router = useRouter()
