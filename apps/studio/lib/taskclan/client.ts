@@ -13,6 +13,7 @@
  * started.
  */
 import { CloudSite } from './projects'
+import { cloudSignupEnabled, currentCloudSession } from './session'
 
 const KEY_PREFIX = 'sk_cloud_'
 
@@ -31,18 +32,45 @@ export interface TaskclanConfig {
  */
 export function taskclanConfig(): { ok: true; config: TaskclanConfig } | { ok: false; reason: string } {
   const url = process.env.TASKCLAN_CLOUD_URL?.trim()
-  const key = process.env.TASKCLAN_CLOUD_API_KEY?.trim()
-  if (!url && !key) {
-    return { ok: false, reason: 'TASKCLAN_CLOUD_URL and TASKCLAN_CLOUD_API_KEY are not set' }
-  }
   if (!url) return { ok: false, reason: 'TASKCLAN_CLOUD_URL is not set' }
+  const baseUrl = url.replace(/\/+$/, '')
+
+  // Multi-tenant path. When self-serve signup is on, the credential is the
+  // caller's OWN per-session org key — never the global operator key, which
+  // resolves to a single org. No session ⇒ fail closed (the caller sees "sign
+  // in"), because falling back to the operator key here would serve one
+  // customer another customer's apps. This is the isolation boundary.
+  if (cloudSignupEnabled()) {
+    const session = currentCloudSession()
+    if (!session) return { ok: false, reason: 'no Cloud session — sign in to continue' }
+    if (!session.key.startsWith(KEY_PREFIX)) return { ok: false, reason: 'invalid Cloud session' }
+    return { ok: true, config: { url: baseUrl, key: session.key } }
+  }
+
+  // Single-tenant path (unchanged): the global operator key from the env. This
+  // is also the credential the admin "view any org" mode uses via
+  // `operatorTaskclanConfig` once that ships.
+  return operatorTaskclanConfig(baseUrl)
+}
+
+/**
+ * The global operator key config. The pre-signup behavior, and the explicit
+ * escape hatch for internal/admin callers that legitimately act across orgs.
+ * Never reached on the customer path while signup is enabled.
+ */
+export function operatorTaskclanConfig(
+  baseUrl?: string
+): { ok: true; config: TaskclanConfig } | { ok: false; reason: string } {
+  const url = baseUrl ?? process.env.TASKCLAN_CLOUD_URL?.trim()?.replace(/\/+$/, '')
+  if (!url) return { ok: false, reason: 'TASKCLAN_CLOUD_URL is not set' }
+  const key = process.env.TASKCLAN_CLOUD_API_KEY?.trim()
   if (!key) return { ok: false, reason: 'TASKCLAN_CLOUD_API_KEY is not set' }
   if (!key.startsWith(KEY_PREFIX)) {
     // Catch the likely mistake — pasting a Supabase anon/service key, or a user
     // access token — at startup rather than as a puzzling 401 later.
     return { ok: false, reason: `TASKCLAN_CLOUD_API_KEY does not look like a Cloud API key (expected ${KEY_PREFIX}…)` }
   }
-  return { ok: true, config: { url: url.replace(/\/+$/, ''), key } }
+  return { ok: true, config: { url, key } }
 }
 
 export function taskclanConfigured(): boolean {

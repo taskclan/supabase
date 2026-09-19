@@ -15,10 +15,16 @@
  * Nothing here changes existing behavior: the cookie is only ever set by the
  * session route, which is itself behind the signup feature flag.
  */
+import { AsyncLocalStorage } from 'async_hooks'
 import crypto from 'crypto'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 export const CLOUD_SESSION_COOKIE = 'tc_cloud_session'
+
+/** The whole self-serve, multi-tenant path is behind this flag (matches the engine's). */
+export function cloudSignupEnabled(): boolean {
+  return process.env.CLOUD_WEB_SIGNUP_ENABLED === 'true'
+}
 
 export interface CloudSession {
   /** Org-scoped sk_cloud key. Secret — never leaves the server. */
@@ -104,4 +110,48 @@ function serializeCookie(name: string, value: string, maxAgeSeconds: number): st
   ]
   if (maxAgeSeconds === 0) parts.push('Expires=Thu, 01 Jan 1970 00:00:00 GMT')
   return parts.join('; ')
+}
+
+// ---------------------------------------------------------------------------
+// Request-scoped current session.
+//
+// The Cloud API client (`taskclanConfig`) has no request in hand — it is called
+// deep inside the platform handlers. Rather than thread the request through
+// every call site (and risk one being missed, which on a multi-tenant path
+// means the WRONG tenant), each request runs inside `runWithCloudSession`, and
+// `taskclanConfig` reads the current session from here.
+//
+// The safety property lives in taskclanConfig, not here: when signup is enabled
+// and there is no current session, it must ERROR, never fall back to the global
+// key. So a handler that forgets to establish the session fails closed (the user
+// sees "not authenticated") instead of leaking another org.
+// ---------------------------------------------------------------------------
+
+const cloudSessionStore = new AsyncLocalStorage<CloudSession | null>()
+
+/** Run `fn` with `session` (or none) as the current Cloud session. */
+export function runWithCloudSession<T>(session: CloudSession | null, fn: () => T): T {
+  return cloudSessionStore.run(session, fn)
+}
+
+/** The current request's Cloud session, or null outside a run / when unauthenticated. */
+export function currentCloudSession(): CloudSession | null {
+  return cloudSessionStore.getStore() ?? null
+}
+
+/**
+ * Wrap a Next.js API handler so the whole request runs with the caller's Cloud
+ * session established from the cookie. One line per handler; the alternative —
+ * reading the cookie inside each handler — is the thing most likely to be
+ * forgotten on exactly the route that then serves the wrong org.
+ */
+export function withCloudSession<Req extends NextApiRequest, Res extends NextApiResponse>(
+  handler: (req: Req, res: Res) => unknown | Promise<unknown>
+): (req: Req, res: Res) => Promise<void> {
+  return async (req, res) => {
+    const session = readCloudSession(req)
+    await runWithCloudSession(session, async () => {
+      await handler(req, res)
+    })
+  }
 }

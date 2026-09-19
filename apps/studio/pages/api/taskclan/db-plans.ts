@@ -12,10 +12,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 import { listCloudSites, taskclanConfig } from '@/lib/taskclan/client'
+import { withCloudSession } from '@/lib/taskclan/session'
 
 const TIMEOUT_MS = 15000
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET')
     return res.status(405).json({ error: 'method not allowed' })
@@ -59,3 +60,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .json({ error: timedOut ? 'plan lookup timed out' : 'could not reach the Cloud API', detail })
   }
 }
+
+export default withCloudSession(handler)

@@ -13,6 +13,7 @@
  */
 import { getCloudOrg, type CloudResult } from './client'
 import { numericIdFor } from './projects'
+import { cloudSignupEnabled, currentCloudSession } from './session'
 
 export interface TaskclanOrg {
   uuid: string
@@ -36,6 +37,36 @@ export function resetOrgCache(): void {
  * looks like data loss rather than a configuration problem.
  */
 export async function taskclanOrg(): Promise<CloudResult<TaskclanOrg>> {
+  // Multi-tenant: the org identity belongs to the caller's session, so it comes
+  // from there — never the per-process `cached` below, which is one org and
+  // would be served to every user (the exact cross-tenant leak this phase
+  // exists to prevent). The session cookie already carries the org, set by the
+  // exchange, so this is also a round trip saved.
+  if (cloudSignupEnabled()) {
+    const session = currentCloudSession()
+    if (!session) {
+      return { ok: false, reason: 'http_error', detail: 'no Cloud session — sign in to continue' }
+    }
+    if (session.orgName) {
+      return {
+        ok: true,
+        data: { uuid: session.orgId, id: numericIdFor(session.orgId), name: session.orgName },
+      }
+    }
+    // No name cached in the session — resolve it, but through the session key
+    // (still this user's org) and WITHOUT populating the process-wide cache.
+    const result = await getCloudOrg()
+    if (!result.ok) return result
+    if (!result.data) {
+      return { ok: false, reason: 'http_error', detail: 'the session resolves to no organisation' }
+    }
+    return {
+      ok: true,
+      data: { uuid: result.data.id, id: numericIdFor(result.data.id), name: result.data.name },
+    }
+  }
+
+  // Single-tenant (unchanged): one org for the life of the process, cached.
   if (cached) return { ok: true, data: cached }
 
   const result = await getCloudOrg()

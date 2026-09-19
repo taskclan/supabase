@@ -15,10 +15,11 @@ import { taskclanConfig } from '@/lib/taskclan/client'
 import { findSiteByRef, type CloudSite } from '@/lib/taskclan/projects'
 import { buildOverview, type CloudGit, type CloudSiteDetail } from '@/lib/taskclan/overview'
 import type { CloudDeployment } from '@/lib/taskclan/deployments'
+import { withCloudSession } from '@/lib/taskclan/session'
 
 const TIMEOUT_MS = 15000
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET')
     return res.status(405).json({ error: 'method not allowed' })
@@ -72,3 +73,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
   }
 }
+
+export default withCloudSession(handler)

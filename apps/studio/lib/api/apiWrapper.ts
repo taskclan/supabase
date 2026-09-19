@@ -4,6 +4,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 
 import { IS_PLATFORM } from '../constants'
 import { apiAuthenticate } from './apiAuthenticate'
+import { readCloudSession, runWithCloudSession } from '@/lib/taskclan/session'
 import { ResponseError, ResponseFailure } from '@/types'
 
 export function isResponseOk<T>(response: T | ResponseFailure | undefined): response is T {
@@ -51,7 +52,11 @@ export async function apiWrapper(
       claims = response
     }
 
-    return await handler(req, res, claims)
+    // Establish the caller's Cloud session (from the sealed cookie) for the whole
+    // handler, so `taskclanConfig` scopes every engine call to that user's org.
+    // Harmless for handlers that never touch Cloud; load-bearing for the ones
+    // that do. No session → the Cloud client fails closed, never the global key.
+    return await runWithCloudSession(readCloudSession(req), () => handler(req, res, claims))
   } catch (error) {
     Sentry.captureException(error)
     return res.status(500).json({ error })

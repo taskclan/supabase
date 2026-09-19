@@ -17,6 +17,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 
 import { taskclanConfig } from '@/lib/taskclan/client'
 import { findSiteByRef, type CloudSite } from '@/lib/taskclan/projects'
+import { withCloudSession } from '@/lib/taskclan/session'
 
 const TIMEOUT_MS = 15000
 /** Long enough for the engine to queue a build; the build itself is watched by polling. */
@@ -35,7 +36,7 @@ async function siteForRef(
   return findSiteByRef(Array.isArray(body.sites) ? body.sites : [], ref) ?? null
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET' && req.method !== 'POST') {
     res.setHeader('Allow', 'GET, POST')
     return res.status(405).json({ error: 'method not allowed' })
@@ -92,3 +93,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
   }
 }
+
+export default withCloudSession(handler)

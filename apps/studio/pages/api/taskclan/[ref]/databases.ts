@@ -18,6 +18,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 
 import { taskclanConfig } from '@/lib/taskclan/client'
 import { findSiteByRef, type CloudSite } from '@/lib/taskclan/projects'
+import { withCloudSession } from '@/lib/taskclan/session'
 
 const TIMEOUT_MS = 15000
 /** Provisioning creates a real project upstream; give it room without hanging the page. */
@@ -33,7 +34,7 @@ async function siteForRef(ref: string, cfg: { url: string; key: string }): Promi
   return findSiteByRef(Array.isArray(body.sites) ? body.sites : [], ref) ?? null
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET' && req.method !== 'POST') {
     res.setHeader('Allow', 'GET, POST')
     return res.status(405).json({ error: 'method not allowed' })
@@ -89,3 +90,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
   }
 }
+
+export default withCloudSession(handler)

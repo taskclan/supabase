@@ -19,6 +19,7 @@
  */
 import { taskclanConfig } from './client'
 import { findSiteByRef, type CloudSite } from './projects'
+import { currentCloudSession } from './session'
 
 /** Beyond this we stop rather than hold a dashboard request open. */
 const TIMEOUT_MS = 8000
@@ -32,6 +33,18 @@ const TIMEOUT_MS = 8000
  * and noted here so the next person is not puzzled.
  */
 const cache = new Map<string, string>()
+
+/**
+ * Cache key. A connection string is a secret, so it is scoped to the caller's
+ * org — never keyed by `ref` alone, or a cached credential would be handed to a
+ * different org that asked for the same ref, short-circuiting the engine's
+ * per-session check. 'global' is the single-tenant scope (one org for the
+ * process), which keeps upstream behavior unchanged when signup is off.
+ */
+function cacheKey(ref: string): string {
+  const scope = currentCloudSession()?.orgId ?? 'global'
+  return `${scope}:${ref}`
+}
 
 /** Tests only. */
 export function resetCredentialCache(): void {
@@ -62,7 +75,8 @@ async function siteIdForRef(ref: string, cfg: { url: string; key: string }): Pro
  * editor would work — which is worse than it refusing.
  */
 export async function credentialForRef(ref: string): Promise<CredentialResult> {
-  const cached = cache.get(ref)
+  const key = cacheKey(ref)
+  const cached = cache.get(key)
   if (cached) return { ok: true, connectionString: cached }
 
   const cfg = taskclanConfig()
@@ -100,7 +114,7 @@ export async function credentialForRef(ref: string): Promise<CredentialResult> {
       return { ok: false, reason: 'not_configured', detail: `no connection string returned for "${ref}"` }
     }
 
-    cache.set(ref, body.connectionString)
+    cache.set(key, body.connectionString)
     return { ok: true, connectionString: body.connectionString }
   } catch (e) {
     return { ok: false, reason: 'network_error', detail: e instanceof Error ? e.message : String(e) }
