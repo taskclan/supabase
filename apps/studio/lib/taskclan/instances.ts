@@ -54,6 +54,11 @@ export interface InstanceCatalog {
   scalesToZero: boolean
   cpuNote: string
   autoscale: AutoscaleInfo
+  /**
+   * 'postpaid' once a card is on file: the whole size ladder is then unlocked
+   * (every `locked` is false) and billed by usage on the monthly invoice.
+   */
+  billingMode?: string
 }
 
 /** The shape `GET /sites/check?name=` returns. */
