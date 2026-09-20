@@ -3,10 +3,10 @@
  * org on pay-as-you-go billing; the postpaid cycle then charges the default card
  * monthly. Owner-only on the engine side.
  */
-import { CreditCard, Loader2, Trash2 } from 'lucide-react'
+import { AlertTriangle, CreditCard, Loader2, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { Button } from 'ui'
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle } from 'ui'
 
 import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
 import { TaskclanAddCardModal } from './TaskclanAddCardModal'
@@ -26,6 +26,9 @@ export const TaskclanPaymentMethods = () => {
   const [error, setError] = useState<string | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
+  // Removing the last card drops the org out of a billable state, so that one is
+  // confirmed with its consequences spelled out; extra cards remove directly.
+  const [confirmRemove, setConfirmRemove] = useState<string | null>(null)
 
   const load = async () => {
     try {
@@ -127,7 +130,11 @@ export const TaskclanPaymentMethods = () => {
                   size="tiny"
                   icon={<Trash2 />}
                   disabled={busy === c.id}
-                  onClick={() => act('remove', c.id, 'Could not remove the card')}
+                  onClick={() =>
+                    cards.length === 1
+                      ? setConfirmRemove(c.id)
+                      : act('remove', c.id, 'Could not remove the card')
+                  }
                 >
                   Remove
                 </Button>
@@ -136,6 +143,47 @@ export const TaskclanPaymentMethods = () => {
           ))}
         </div>
       )}
+
+      <Dialog
+        open={confirmRemove !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmRemove(null)
+        }}
+      >
+        <DialogContent size="small">
+          <DialogHeader>
+            <DialogTitle>Remove your last card?</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 p-4">
+            <div className="flex gap-3">
+              <AlertTriangle className="mt-0.5 shrink-0 text-warning-600" size={18} />
+              <p className="text-sm text-foreground-light">
+                Your workspace is on pay-as-you-go. Without a card on file you won&apos;t be able to
+                build, deploy, or change your projects until you add one again. Your projects and
+                data stay safe, and you can add a card back anytime.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2">
+              <Button type="button" disabled={busy !== null} onClick={() => setConfirmRemove(null)}>
+                Keep card
+              </Button>
+              <Button
+                type="button"
+                variant="danger"
+                loading={busy === confirmRemove}
+                onClick={async () => {
+                  const id = confirmRemove
+                  if (!id) return
+                  await act('remove', id, 'Could not remove the card')
+                  setConfirmRemove(null)
+                }}
+              >
+                Remove card
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <TaskclanAddCardModal
         visible={showAdd}
