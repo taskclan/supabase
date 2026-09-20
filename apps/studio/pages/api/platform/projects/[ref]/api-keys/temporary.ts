@@ -2,6 +2,7 @@ import { components } from 'api-types'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import { apiWrapper } from '@/lib/api/apiWrapper'
+import { assertSharedAdminAllowed } from '@/lib/api/sharedAdminGuard'
 
 type ProjectAppConfig = components['schemas']['ProjectSettingsResponse_Output']['app_config'] & {
   protocol?: string
@@ -13,6 +14,7 @@ export type ProjectSettings = components['schemas']['ProjectSettingsResponse_Out
 export default (req: NextApiRequest, res: NextApiResponse) => apiWrapper(req, res, handler)
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
+  assertSharedAdminAllowed()
   const { method } = req
 
   switch (method) {
