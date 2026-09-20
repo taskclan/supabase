@@ -158,6 +158,16 @@ export const TaskclanSignInForm = () => {
           {usePassword ? 'Sign in' : 'Email me a sign-in link'}
         </Button>
 
+        {!usePassword && (
+          // Sign-in and sign-up are the same action here: signInWithOtp creates
+          // the account on first use. New customers were left hunting for a
+          // "Sign up" that does not exist; say so instead.
+          <p className="-mt-1 text-center text-xs text-foreground-lighter">
+            New to {TASKCLAN_PRODUCT_NAME}? Enter your email — we&apos;ll create your account when you
+            first sign in.
+          </p>
+        )}
+
         <Button
           block
           variant="text"
