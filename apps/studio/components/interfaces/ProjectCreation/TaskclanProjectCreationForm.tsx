@@ -18,9 +18,9 @@
  * failure (e.g. the database) does not lose the app that was already created.
  */
 import { useParams } from 'common'
-import { Check, Github, Loader2, TriangleAlert } from 'lucide-react'
+import { Check, CreditCard, Github, Loader2, TriangleAlert } from 'lucide-react'
 import { useRouter } from 'next/router'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import {
   Button,
@@ -36,6 +36,7 @@ import {
 } from 'ui'
 import { Admonition } from 'ui-patterns/Admonition'
 
+import { TaskclanAddCardModal } from '@/components/interfaces/Organization/BillingSettings/TaskclanAddCardModal'
 import Panel from '@/components/ui/Panel'
 import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
 import {
@@ -99,6 +100,13 @@ export const TaskclanProjectCreationForm = () => {
   const [autoscale, setAutoscale] = useState(false)
   const [maxInstances, setMaxInstances] = useState(3)
 
+  // A card on file. A web service runs a paid container, so one is required to
+  // create it; adding it enrols the org in pay-as-you-go and unlocks every size.
+  // null = not yet known (or the caller is not an owner and cannot manage cards)
+  // — treated as "do not hard-gate", since the engine still enforces at deploy.
+  const [hasCard, setHasCard] = useState<boolean | null>(null)
+  const [showAddCard, setShowAddCard] = useState(false)
+
   // Subdomain availability, answered by the engine rather than guessed at here.
   const [nameCheck, setNameCheck] = useState<NameCheck | null>(null)
   const [checkingName, setCheckingName] = useState(false)
@@ -115,20 +123,49 @@ export const TaskclanProjectCreationForm = () => {
       .catch(() => setDbInfo({}))
   }, [])
 
-  // The size ladder, with `locked` and the autoscaling ceiling already scoped to
-  // this caller's plan. Fetched once; it does not vary by app.
-  useEffect(() => {
-    taskclanFetch('/api/taskclan/instances')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((b) => {
-        if (!b || !Array.isArray(b.types)) return
-        const catalog = b as InstanceCatalog
-        setInstances(catalog)
-        setInstanceType(defaultInstanceId(catalog))
-        setMaxInstances(catalog.autoscale.suggested)
-      })
-      .catch(() => setInstances(null))
+  // The size ladder, with `locked` and the autoscaling ceiling scoped to this
+  // caller — a card on file (postpaid) unlocks the whole ladder. Reloadable so
+  // adding a card re-unlocks the picker without a page refresh.
+  const reloadInstances = useCallback(async () => {
+    try {
+      const r = await taskclanFetch('/api/taskclan/instances')
+      if (!r.ok) return
+      const b = await r.json()
+      if (!b || !Array.isArray(b.types)) return
+      const catalog = b as InstanceCatalog
+      setInstances(catalog)
+      // Keep the chosen size if it is still offered and unlocked; otherwise fall
+      // back to the catalogue's recommended default.
+      setInstanceType((prev) =>
+        catalog.types.some((t) => t.id === prev && !t.locked) ? prev : defaultInstanceId(catalog)
+      )
+      setMaxInstances((prev) => (prev >= 2 ? prev : catalog.autoscale.suggested))
+    } catch {
+      // Leave whatever we had; the engine's deploy gate is the backstop.
+    }
   }, [])
+  useEffect(() => {
+    void reloadInstances()
+  }, [reloadInstances])
+
+  // Whether the org already has a card on file (and is therefore pay-as-you-go).
+  // Reloaded after a card is added so the gate clears in place.
+  const reloadCard = useCallback(async () => {
+    try {
+      const r = await taskclanFetch('/api/taskclan/billing/payment-methods')
+      if (!r.ok) {
+        setHasCard(null)
+        return
+      }
+      const b = await r.json()
+      setHasCard(typeof b?.hasCard === 'boolean' ? b.hasCard : null)
+    } catch {
+      setHasCard(null)
+    }
+  }, [])
+  useEffect(() => {
+    void reloadCard()
+  }, [reloadCard])
 
   // Availability, debounced.
   //
@@ -257,7 +294,16 @@ export const TaskclanProjectCreationForm = () => {
     ? clampMaxInstances(maxInstances, autoscale, instances.autoscale)
     : maxInstances
   const selectedInstance = instances?.types.find((t) => t.id === instanceType)
-  const showSizing = type === 'service' && source === 'github' && !!instances
+  const isService = type === 'service'
+  // A web service runs a paid container. Require a card before it can be created;
+  // only hard-gate on a definite "no card" (null = unknown, left to the engine).
+  const needsCard = isService && hasCard === false
+  // The size picker is only meaningful where a deploy will apply it (a repo
+  // import). Hide it while a card is still required — the card CTA takes its
+  // place — and show it otherwise (locked sizes stay disabled until postpaid).
+  const showSizePicker = isService && source === 'github' && !!instances && hasCard !== false
+  const showServicePanel =
+    isService && (needsCard || showSizePicker || (hasCard === true && source === 'empty'))
   const availability = availabilityMessage(nameCheck, {
     checking: checkingName,
     typed: name.trim().length > 0,
@@ -388,6 +434,25 @@ export const TaskclanProjectCreationForm = () => {
     }
   }
 
+  // Adding a card enrols pay-as-you-go and unlocks every size. Don't auto-create
+  // afterwards — reveal the now-unlocked picker and let the user choose a size,
+  // then create — so an import doesn't silently ship on the default size.
+  const onCardAdded = async () => {
+    setShowAddCard(false)
+    setHasCard(true)
+    await reloadInstances()
+    toast.success("Payment method added — you're on pay-as-you-go. Pick a size and create your project.")
+  }
+
+  // The primary action: a web service with no card opens the billing modal
+  // first; everything else creates straight away.
+  const handlePrimary = () => {
+    if (needsCard) {
+      setShowAddCard(true)
+      return
+    }
+    void submit()
+  }
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-8">
@@ -539,68 +604,105 @@ export const TaskclanProjectCreationForm = () => {
           )}
         </Panel.Content>
 
-        {showSizing && instances && (
+        {showServicePanel && (
           <Panel.Content className="border-t border-default flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="tc-instance-size" className="text-sm text-foreground">
-                Container size
-              </label>
-              <Select value={instanceType} onValueChange={setInstanceType}>
-                <SelectTrigger id="tc-instance-size">
-                  <SelectValue placeholder="Select a size…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {instances.types.map((t) => (
-                    <SelectItem key={t.id} value={t.id} disabled={t.locked}>
-                      {describeInstance(t)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {selectedInstance && (
-                <p className="text-xs text-foreground-lighter">
-                  {describeCost(selectedInstance, instances.scalesToZero)}
-                </p>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-foreground">Autoscaling</p>
-                <p className="text-xs text-foreground-light">
-                  {instances.autoscale.allowed
-                    ? 'Run more copies under load. Off means exactly one instance.'
-                    : `Available on ${instances.autoscale.minPlan} and above.`}
-                </p>
-              </div>
-              <Switch
-                checked={autoscale}
-                disabled={!instances.autoscale.allowed}
-                onCheckedChange={setAutoscale}
-              />
-            </div>
-
-            {autoscale && (
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="tc-max-instances" className="text-xs text-foreground-light">
-                  Maximum instances
-                </label>
-                <Input
-                  id="tc-max-instances"
-                  type="number"
-                  min={2}
-                  max={instances.autoscale.max}
-                  value={maxInstances}
-                  onChange={(e) => setMaxInstances(Number(e.target.value))}
-                  className="w-28"
+            {/* A web service always runs a paid container, so a card is required
+                before one can be created. */}
+            {needsCard && (
+              <div className="flex flex-col gap-2">
+                <Admonition
+                  type="default"
+                  title="Add a payment method to run a web service"
+                  description="A web service runs in a container billed by the minute. Add a card to unlock every container size and deploy — you're then billed monthly for exactly what you use, and it scales to zero when idle."
                 />
-                {appliedMaxInstances !== maxInstances && (
-                  <p className="text-xs text-warning">
-                    Your plan allows up to {instances.autoscale.max}. This app will scale to{' '}
-                    {appliedMaxInstances}.
-                  </p>
-                )}
+                <Button
+                  type="button"
+                  icon={<CreditCard />}
+                  onClick={() => setShowAddCard(true)}
+                  className="self-start"
+                >
+                  Add payment method
+                </Button>
               </div>
+            )}
+
+            {showSizePicker && instances && (
+              <>
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="tc-instance-size" className="text-sm text-foreground">
+                    Container size
+                  </label>
+                  <Select value={instanceType} onValueChange={setInstanceType}>
+                    <SelectTrigger id="tc-instance-size">
+                      <SelectValue placeholder="Select a size…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {instances.types.map((t) => (
+                        <SelectItem key={t.id} value={t.id} disabled={t.locked}>
+                          {describeInstance(t)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedInstance && (
+                    <p className="text-xs text-foreground-lighter">
+                      {describeCost(selectedInstance, instances.scalesToZero)}
+                    </p>
+                  )}
+                  {hasCard === true && (
+                    <p className="text-xs text-foreground-light">
+                      You&apos;re on pay-as-you-go — this size is billed on your monthly invoice.
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-foreground">Autoscaling</p>
+                    <p className="text-xs text-foreground-light">
+                      {instances.autoscale.allowed
+                        ? 'Run more copies under load. Off means exactly one instance.'
+                        : `Available on ${instances.autoscale.minPlan} and above.`}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={autoscale}
+                    disabled={!instances.autoscale.allowed}
+                    onCheckedChange={setAutoscale}
+                  />
+                </div>
+
+                {autoscale && (
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="tc-max-instances" className="text-xs text-foreground-light">
+                      Maximum instances
+                    </label>
+                    <Input
+                      id="tc-max-instances"
+                      type="number"
+                      min={2}
+                      max={instances.autoscale.max}
+                      value={maxInstances}
+                      onChange={(e) => setMaxInstances(Number(e.target.value))}
+                      className="w-28"
+                    />
+                    {appliedMaxInstances !== maxInstances && (
+                      <p className="text-xs text-warning">
+                        Your plan allows up to {instances.autoscale.max}. This app will scale to{' '}
+                        {appliedMaxInstances}.
+                      </p>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Empty service app with a card: the size is chosen at first deploy. */}
+            {hasCard === true && source === 'empty' && (
+              <p className="text-xs text-foreground-light">
+                You&apos;re on pay-as-you-go — billed monthly for what you use. You&apos;ll choose a
+                container size when you deploy.
+              </p>
             )}
           </Panel.Content>
         )}
@@ -692,11 +794,21 @@ export const TaskclanProjectCreationForm = () => {
           >
             Cancel
           </Button>
-          <Button variant="primary" loading={busy} disabled={!canSubmit} onClick={submit}>
-            {source === 'github' ? 'Import project' : 'Create project'}
+          <Button variant="primary" loading={busy} disabled={!canSubmit} onClick={handlePrimary}>
+            {needsCard
+              ? 'Add payment method to continue'
+              : source === 'github'
+                ? 'Import project'
+                : 'Create project'}
           </Button>
         </Panel.Content>
       </Panel>
+
+      <TaskclanAddCardModal
+        visible={showAddCard}
+        onCancel={() => setShowAddCard(false)}
+        onDone={onCardAdded}
+      />
     </div>
   )
 }
