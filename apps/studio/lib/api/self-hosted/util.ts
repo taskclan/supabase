@@ -12,6 +12,7 @@ import {
 } from './constants'
 import { IS_PLATFORM } from '@/lib/constants'
 import { credentialForRef, perAppCredentialsEnabled } from '@/lib/taskclan/db-credential'
+import { cloudSignupEnabled } from '@/lib/taskclan/session'
 
 /**
  * Asserts that the current environment is self-hosted.
@@ -50,6 +51,16 @@ export async function getConnectionStringForRef({
   ref?: string
 }): Promise<string> {
   if (!perAppCredentialsEnabled() || !ref) {
+    // Multi-tenant (signup on): the process-wide connection is the SHARED
+    // control-plane database — it holds cloud_api_keys. A request with no
+    // session (perAppCredentialsEnabled() is false without one) or no ref must
+    // be REFUSED, never handed that connection. Only plain self-hosted (signup
+    // off) legitimately uses the shared one.
+    if (cloudSignupEnabled()) {
+      throw new Error(
+        'No database is connected for this workspace yet. Provision one to use the SQL editor.'
+      )
+    }
     // Plain self-hosted Studio, exactly as upstream behaves.
     return getConnectionString({ readOnly })
   }
