@@ -122,6 +122,13 @@ jobs:
           # switch: auth is enabled by setting these, not by shipping code.
           NEXT_PUBLIC_TASKCLAN_AUTH_URL: ${{ vars.TASKCLAN_AUTH_URL }}
           NEXT_PUBLIC_TASKCLAN_AUTH_ANON_KEY: ${{ vars.TASKCLAN_AUTH_ANON_KEY }}
+          # Stripe publishable key for the billing card form (Elements). Public
+          # by nature (it ships in the client bundle), so a repo variable, not a
+          # secret. Must be the LIVE pk_live_… matching the engine's live secret
+          # key, or SetupIntents from the engine won't validate. Unset → falls
+          # back to the pk_test default in lib/constants and Elements stays in
+          # test mode.
+          NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ vars.STRIPE_PUBLIC_KEY }}
         run: |
           pnpm turbo run build --filter='studio^...'
           pnpm --filter studio exec next build
