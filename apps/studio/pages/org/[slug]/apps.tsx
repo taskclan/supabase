@@ -6,7 +6,7 @@ import {
   PageHeaderTitle,
 } from 'ui-patterns/PageHeader'
 
-import { OAuthApps } from '@/components/interfaces/Organization/OAuthApps/OAuthApps'
+import { ComingSoon } from '@/components/ui/ComingSoon'
 import { DefaultLayout } from '@/components/layouts/DefaultLayout'
 import OrganizationLayout from '@/components/layouts/OrganizationLayout'
 import { OrganizationSettingsLayout } from '@/components/layouts/ProjectLayout/OrganizationSettingsLayout'
@@ -25,7 +25,7 @@ const OrgOAuthApps: NextPageWithLayout = () => {
           </PageHeaderSummary>
         </PageHeaderMeta>
       </PageHeader>
-      <OAuthApps />
+      <ComingSoon description="Publishing and authorizing OAuth applications is coming soon to Taskclan Cloud." />
     </>
   )
 }

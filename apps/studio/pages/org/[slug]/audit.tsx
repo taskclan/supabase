@@ -1,4 +1,3 @@
-import { LogoLoader } from 'ui'
 import {
   PageHeader,
   PageHeaderDescription,
@@ -7,18 +6,13 @@ import {
   PageHeaderTitle,
 } from 'ui-patterns/PageHeader'
 
-import { AuditLogs } from '@/components/interfaces/Organization/AuditLogs/AuditLogs'
+import { ComingSoon } from '@/components/ui/ComingSoon'
 import { DefaultLayout } from '@/components/layouts/DefaultLayout'
 import OrganizationLayout from '@/components/layouts/OrganizationLayout'
 import { OrganizationSettingsLayout } from '@/components/layouts/ProjectLayout/OrganizationSettingsLayout'
-import { usePermissionsQuery } from '@/data/permissions/permissions-query'
-import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
 import type { NextPageWithLayout } from '@/types'
 
 const OrgAuditLogs: NextPageWithLayout = () => {
-  const { isPending: isLoadingPermissions } = usePermissionsQuery()
-  const { data: selectedOrganization } = useSelectedOrganizationQuery()
-
   return (
     <>
       <PageHeader size="default">
@@ -31,7 +25,7 @@ const OrgAuditLogs: NextPageWithLayout = () => {
           </PageHeaderSummary>
         </PageHeaderMeta>
       </PageHeader>
-      {selectedOrganization === undefined && isLoadingPermissions ? <LogoLoader /> : <AuditLogs />}
+      <ComingSoon description="Organization audit logs and activity history are coming soon to Taskclan Cloud." />
     </>
   )
 }

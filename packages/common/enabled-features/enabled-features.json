@@ -89,7 +89,7 @@
 
   "organization:show_sso_settings": true,
   "organization:show_security_settings": true,
-  "organization:show_legal_documents": true,
+  "organization:show_legal_documents": false,
 
   "profile:show_email": true,
   "profile:show_information": true,

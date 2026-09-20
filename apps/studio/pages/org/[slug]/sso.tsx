@@ -7,7 +7,7 @@ import {
   PageHeaderTitle,
 } from 'ui-patterns/PageHeader'
 
-import { SSOConfig } from '@/components/interfaces/Organization/SSO/SSOConfig'
+import { ComingSoon } from '@/components/ui/ComingSoon'
 import { DefaultLayout } from '@/components/layouts/DefaultLayout'
 import OrganizationLayout from '@/components/layouts/OrganizationLayout'
 import { OrganizationSettingsLayout } from '@/components/layouts/ProjectLayout/OrganizationSettingsLayout'
@@ -35,7 +35,7 @@ const OrgSSO: NextPageWithLayout = () => {
           </PageHeaderSummary>
         </PageHeaderMeta>
       </PageHeader>
-      <SSOConfig />
+      <ComingSoon description="SAML single sign-on and domain access controls are coming soon to Taskclan Cloud." />
     </>
   )
 }
