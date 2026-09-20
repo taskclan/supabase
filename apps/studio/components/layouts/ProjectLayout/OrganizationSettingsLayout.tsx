@@ -4,7 +4,6 @@ import { PropsWithChildren, useMemo } from 'react'
 import { useIsPlatformWebhooksEnabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import type { SidebarSection } from '@/components/layouts/AccountLayout/AccountLayout.types'
 import { toSubMenuSections } from '@/components/layouts/AccountLayout/AccountLayout.utils'
-import { WithSidebar } from '@/components/layouts/AccountLayout/WithSidebar'
 import { ProductMenuShortcuts } from '@/components/ui/ProductMenu/ProductMenuShortcuts'
 import { convertSectionsToProductMenu } from '@/components/ui/ProductMenu/SubMenu.utils'
 import { useCurrentPath } from '@/hooks/misc/useCurrentPath'
@@ -283,21 +282,16 @@ export function OrganizationSettingsLayout({ children }: PropsWithChildren) {
     [sections]
   )
 
-  // Browser titles for org settings routes are set by OrganizationLayout.
+  // The desktop settings sidebar is drawn once by OrganizationLayout (the global
+  // org nav). This layout used to render its own WithSidebar sidebar too, which
+  // painted the same menu a second time side-by-side on every page that nests
+  // it. ProductMenuShortcuts (the mobile/command-menu entries) stays; the
+  // sidebar is dropped so there is a single nav. Browser titles are set by
+  // OrganizationLayout.
   return (
     <>
       <ProductMenuShortcuts menu={orgSettingsMenu} />
-      <WithSidebar
-        title="Organization Settings"
-        sections={sections}
-        header={
-          <div className="border-default flex min-h-(--header-height) items-center border-b px-6">
-            <h4 className="text-lg">Settings</h4>
-          </div>
-        }
-      >
-        {children}
-      </WithSidebar>
+      {children}
     </>
   )
 }

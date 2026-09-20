@@ -177,6 +177,30 @@ export const TaskclanProjectCreationForm = () => {
       .catch(() => setRepos([]))
   }, [source, repos])
 
+  // Start the GitHub App install/connect flow. Cloud signs the install state, so
+  // the URL must come from it; returnTo brings the person back to this form to
+  // pick their repo once a repository is available.
+  const [isConnectingGitHub, setIsConnectingGitHub] = useState(false)
+  const connectGitHub = async () => {
+    setIsConnectingGitHub(true)
+    try {
+      const returnTo = window.location.href
+      const res = await taskclanFetch(
+        `/api/taskclan/github/connect?returnTo=${encodeURIComponent(returnTo)}`
+      )
+      const body = await res.json()
+      if (!res.ok || !body?.url) {
+        toast.error(body?.error ?? 'Could not start the GitHub connection')
+        return
+      }
+      window.location.href = body.url as string
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Could not start the GitHub connection')
+    } finally {
+      setIsConnectingGitHub(false)
+    }
+  }
+
   const dbOptions = useMemo(() => {
     const out: { value: string; title: string; blurb: string; price: string }[] = []
     const provs = dbInfo?.managedPostgresProviders ?? []
@@ -452,11 +476,22 @@ export const TaskclanProjectCreationForm = () => {
                   <Loader2 className="animate-spin" size={14} /> Loading repositories…
                 </div>
               ) : repos.length === 0 ? (
-                <Admonition
-                  type="default"
-                  title="No repositories available"
-                  description="No GitHub account is connected to this workspace, or the app has access to no repositories. Connect the Taskclan Cloud GitHub App, then reload."
-                />
+                <>
+                  <Admonition
+                    type="default"
+                    title="No repositories available"
+                    description="No GitHub account is connected to this workspace, or the app has access to no repositories. Connect the Taskclan Cloud GitHub App to import a repository."
+                  />
+                  <Button
+                    type="button"
+                    icon={<Github />}
+                    loading={isConnectingGitHub}
+                    onClick={connectGitHub}
+                    className="self-start"
+                  >
+                    Connect to GitHub
+                  </Button>
+                </>
               ) : (
                 <>
                   <div className="flex flex-col gap-1.5">
