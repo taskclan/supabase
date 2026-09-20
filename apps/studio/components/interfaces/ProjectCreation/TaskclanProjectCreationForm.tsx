@@ -329,7 +329,14 @@ export const TaskclanProjectCreationForm = () => {
       // step 2. There used to be a separate "import" path here that posted to
       // /api/cloud/v1/import/run — an endpoint the engine does not have — so
       // every GitHub import failed at the first request.
-      const createRes = await fetch('/api/platform/projects', {
+      //
+      // Through taskclanFetch, not a bare fetch: this route resolves the caller
+      // from the request's bearer token, and once the shared-key fallback is off
+      // an unauthenticated create is refused with "sign in to use this console".
+      // The other steps already go through it; this one was the straggler, and it
+      // also means the app is created in the signed-in user's org, not the
+      // shared key's.
+      const createRes = await taskclanFetch('/api/platform/projects', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ name: name.trim(), type }),
