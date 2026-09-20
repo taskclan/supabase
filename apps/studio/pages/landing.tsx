@@ -22,6 +22,8 @@ import Head from 'next/head'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 
+import { cloudSignupEnabledClient } from '@/lib/taskclan/signupFlag'
+
 /** Products, named as the console names them so the page and the app agree. */
 const PRODUCTS: Array<{ name: string; blurb: string; href: string }> = [
   {
@@ -88,6 +90,9 @@ function Section({
 }
 
 export default function LandingPage() {
+  // With self-serve signup on, the CTAs lead to auth instead of straight into
+  // the (now per-user) dashboard. Off ⇒ the original single-tenant links.
+  const signup = cloudSignupEnabledClient()
   return (
     <>
       <Head>
@@ -124,12 +129,26 @@ export default function LandingPage() {
               <a href="#pricing" className="hidden hover:text-foreground sm:inline">
                 Pricing
               </a>
-              <Link
-                href="/project/default"
-                className="rounded-md bg-brand px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
-              >
-                Open dashboard
-              </Link>
+              {signup ? (
+                <>
+                  <Link href="/sign-in" className="hidden hover:text-foreground sm:inline">
+                    Sign in
+                  </Link>
+                  <Link
+                    href="/sign-up"
+                    className="rounded-md bg-brand px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+                  >
+                    Sign up
+                  </Link>
+                </>
+              ) : (
+                <Link
+                  href="/project/default"
+                  className="rounded-md bg-brand px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+                >
+                  Open dashboard
+                </Link>
+              )}
             </nav>
           </Section>
         </header>
@@ -152,16 +171,16 @@ export default function LandingPage() {
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">
             <Link
-              href="/project/default/deployments"
+              href={signup ? '/sign-up' : '/project/default/deployments'}
               className="inline-flex items-center gap-2 rounded-md bg-brand px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
             >
-              Deploy an app <ArrowRight size={15} />
+              {signup ? 'Get started free' : 'Deploy an app'} <ArrowRight size={15} />
             </Link>
             <Link
-              href="/project/default"
+              href={signup ? '/sign-in' : '/project/default'}
               className="inline-flex items-center gap-2 rounded-md border border-strong px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-100"
             >
-              Open the dashboard
+              {signup ? 'Sign in' : 'Open the dashboard'}
             </Link>
           </div>
         </Section>
