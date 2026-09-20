@@ -74,12 +74,19 @@ export function numericIdFor(uuid: string): number {
  */
 export function studioStatusFor(site: CloudSite): string {
   const s = (site.deployStatus || site.status || '').toLowerCase();
-  if (s === 'ready' || s === 'active' || s === 'running') return 'ACTIVE_HEALTHY';
-  if (s === 'building' || s === 'queued' || s === 'deploying' || s === 'pending') return 'COMING_UP';
-  if (s === 'error' || s === 'failed') return 'ACTIVE_UNHEALTHY';
+  // Only a genuinely stopped app gates the console. A deploy that is building —
+  // or one that ERRORED — must NOT be mapped to a state that shows Studio's
+  // "project is unhealthy — restart" wall (ACTIVE_UNHEALTHY) or its "coming up"
+  // screen (COMING_UP): that wall is a hosted-database concept, its "Restart
+  // project" does nothing for a container app, and it HIDES the Deployments
+  // screen — the one place that explains a failed build and can redeploy. So a
+  // live app (including one whose last build failed) stays navigable, and its
+  // real deploy state is shown on the overview + deployments screens, the way
+  // Vercel and Heroku surface a failed deploy without locking you out of the
+  // project.
   if (s === 'paused' || s === 'sleeping' || s === 'suspended') return 'INACTIVE';
   if (s === 'removed' || s === 'deleted') return 'GOING_DOWN';
-  return 'UNKNOWN';
+  return 'ACTIVE_HEALTHY';
 }
 
 export function toStudioProject(site: CloudSite, organizationId: number): StudioProject {
