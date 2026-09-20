@@ -11,13 +11,10 @@
  * billing cycle of January 01 to January 01, which is what an epoch timestamp
  * looks like when it is formatted as a date.
  *
- * What replaces it answers the two questions this billing model actually has:
- * how much is left, and how do I add more.
- *
- * There is no invoice history because Cloud does not issue invoices. Credit
- * purchases are Stripe charges and Stripe emails a receipt for each one; adding
- * a table here that could disagree with Stripe would be worse than sending
- * people to the receipt they already have.
+ * It answers the questions this billing model actually has: how much credit is
+ * left and how to add more (prepaid), plus — for orgs that add a card — a
+ * payment method on file and a history of the monthly invoices raised against
+ * it (postpaid pay-as-you-go). Adding a card is what moves an org onto postpaid.
  */
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -27,6 +24,8 @@ import { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
 import { formatCredits, formatUsd } from '@/lib/taskclan/usage'
+import { TaskclanPaymentMethods } from './TaskclanPaymentMethods'
+import { TaskclanInvoices } from './TaskclanInvoices'
 
 interface Pack {
   id: string
@@ -148,6 +147,8 @@ export const TaskclanBilling = () => {
         </Card>
       </section>
 
+      <TaskclanPaymentMethods />
+
       <section>
         <h3 className="mb-1 text-foreground">Add credits</h3>
         <p className="mb-4 text-sm text-foreground-light">
@@ -179,6 +180,8 @@ export const TaskclanBilling = () => {
           ))}
         </div>
       </section>
+
+      <TaskclanInvoices />
     </div>
   )
 }
