@@ -469,6 +469,16 @@ export const TaskclanProjectCreationForm = () => {
           A project is a Taskclan Cloud app. Start it empty or import a GitHub repo, and optionally
           give it its own database.
         </p>
+        <p className="mt-2 text-sm text-foreground-light">
+          Already running elsewhere?{' '}
+          <button
+            type="button"
+            onClick={() => slug && router.push(`/new/${slug}/migrate`)}
+            className="text-brand hover:underline"
+          >
+            Migrate from Heroku or Vercel
+          </button>
+        </p>
       </div>
 
       <Panel>
