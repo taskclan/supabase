@@ -11,14 +11,14 @@
  * holds the credential and resolves the app by ref.
  */
 import { useParams } from 'common'
-import { CheckCircle2, CircleSlash, ExternalLink, Loader2, RefreshCw, XCircle } from 'lucide-react'
+import { CheckCircle2, CircleSlash, ChevronRight, ExternalLink, Loader2, RefreshCw, XCircle } from 'lucide-react'
+import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
 import { Badge, Button, cn, Switch } from 'ui'
 import { Admonition } from 'ui-patterns/Admonition'
 import { ConfirmationModal } from 'ui-patterns/Dialogs/ConfirmationModal'
 
-import { TaskclanDeploymentDetail } from '@/components/interfaces/Deployments/TaskclanDeploymentDetail'
 import { DefaultLayout } from '@/components/layouts/DefaultLayout'
 import { PageLayout } from '@/components/layouts/PageLayout/PageLayout'
 import { ProjectLayoutWithAuth } from '@/components/layouts/ProjectLayout'
@@ -72,14 +72,13 @@ const STATE_STYLE: Record<DeployState, { label: string; className: string; icon:
 
 const DeploymentsPage: NextPageWithLayout = () => {
   const { ref } = useParams()
+  const router = useRouter()
   const [payload, setPayload] = useState<Payload | null>(null)
   const [loading, setLoading] = useState(true)
   const [deploying, setDeploying] = useState(false)
   const [confirm, setConfirm] = useState(false)
   const [autoDeploy, setAutoDeploy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // Which deployment's build detail (stages + log) is open below the table.
-  const [selectedId, setSelectedId] = useState<string | null>(null)
   // Survives re-renders so a poll started before a navigation cannot keep firing.
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -108,17 +107,6 @@ const DeploymentsPage: NextPageWithLayout = () => {
   const deployments = useMemo(() => payload?.deployments ?? [], [payload])
   const running = hasDeployInFlight(deployments)
   const current = currentDeployment(deployments)
-
-  // Open the newest deployment's build detail by default, so its progress (and,
-  // when it failed, its log) is visible without a click. The reader can pick any
-  // older row. Only defaults once, and never fights a selection already made.
-  useEffect(() => {
-    setSelectedId((prev) => prev ?? current?.id ?? null)
-  }, [current])
-  const selected = useMemo(
-    () => deployments.find((d) => d.id === selectedId) ?? null,
-    [deployments, selectedId]
-  )
 
   // Poll only while something is in flight. A dashboard that refetches forever
   // bills the container it is watching.
@@ -275,6 +263,7 @@ const DeploymentsPage: NextPageWithLayout = () => {
                     <th className="px-4 py-2.5 text-left font-normal">Target</th>
                     <th className="px-4 py-2.5 text-right font-normal tabular-nums">Duration</th>
                     <th className="px-4 py-2.5 text-right font-normal tabular-nums">When</th>
+                    <th className="w-8 px-4 py-2.5" aria-hidden />
                   </tr>
                 </thead>
                 <tbody>
@@ -283,11 +272,17 @@ const DeploymentsPage: NextPageWithLayout = () => {
                     return (
                       <tr
                         key={d.id}
-                        onClick={() => setSelectedId(d.id)}
-                        className={cn(
-                          'cursor-pointer border-t border-default align-top transition-colors hover:bg-surface-100',
-                          d.id === selectedId && 'bg-surface-200'
-                        )}
+                        onClick={() => ref && router.push(`/project/${ref}/deployments/${d.id}`)}
+                        role="link"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if ((e.key === 'Enter' || e.key === ' ') && ref) {
+                            e.preventDefault()
+                            void router.push(`/project/${ref}/deployments/${d.id}`)
+                          }
+                        }}
+                        title="View build detail"
+                        className="group cursor-pointer border-t border-default align-top transition-colors hover:bg-surface-100 focus-visible:bg-surface-100 focus-visible:outline-none"
                       >
                         <td className="px-4 py-3">
                           <span className={cn('flex items-center gap-2', STATE_STYLE[s].className)}>
@@ -316,27 +311,17 @@ const DeploymentsPage: NextPageWithLayout = () => {
                         <td className="px-4 py-3 text-right tabular-nums text-foreground-light">
                           {formatAgo(d.createdAt)}
                         </td>
+                        <td className="px-4 py-3 text-right">
+                          <ChevronRight
+                            size={16}
+                            className="text-foreground-lighter transition-transform group-hover:translate-x-0.5 group-hover:text-foreground-light"
+                          />
+                        </td>
                       </tr>
                     )
                   })}
                 </tbody>
               </table>
-            </div>
-          )}
-
-          {/* The selected deployment's live build progress — stages + streamed
-              log — so a build can be watched, and a failed one read, in place. */}
-          {selected && ref && (
-            <div className="mt-4">
-              <p className="mb-2 text-xs uppercase tracking-wide text-foreground-lighter">
-                Build detail · {commitSummary(selected)}
-              </p>
-              <TaskclanDeploymentDetail
-                key={selected.id}
-                projectRef={ref}
-                depId={selected.id}
-                initiallyRunning={deployState(selected.status) === 'running'}
-              />
             </div>
           )}
         </ScaffoldSection>
