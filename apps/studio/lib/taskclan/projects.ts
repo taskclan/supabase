@@ -26,6 +26,8 @@ export interface CloudSite {
   createdAt?: string | null;
   liveUrl?: string | null;
   deployStatus?: string | null;
+  /** 'auto' ships on every merge to the default branch; 'manual' waits. */
+  deployMode?: string | null;
 }
 
 /** Studio's project shape — see apps/studio/lib/constants/api.ts DEFAULT_PROJECT. */
