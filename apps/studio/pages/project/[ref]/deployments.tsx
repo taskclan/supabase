@@ -15,7 +15,7 @@ import { CheckCircle2, CircleSlash, ChevronRight, ExternalLink, Loader2, Refresh
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
-import { Badge, Button, cn, Switch } from 'ui'
+import { Badge, Button, cn } from 'ui'
 import { Admonition } from 'ui-patterns/Admonition'
 import { ConfirmationModal } from 'ui-patterns/Dialogs/ConfirmationModal'
 
@@ -77,7 +77,6 @@ const DeploymentsPage: NextPageWithLayout = () => {
   const [loading, setLoading] = useState(true)
   const [deploying, setDeploying] = useState(false)
   const [confirm, setConfirm] = useState(false)
-  const [autoDeploy, setAutoDeploy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // Survives re-renders so a poll started before a navigation cannot keep firing.
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -139,32 +138,6 @@ const DeploymentsPage: NextPageWithLayout = () => {
     }
   }, [ref, load])
 
-  const setMode = useCallback(
-    async (next: boolean) => {
-      if (!ref) return
-      const previous = autoDeploy
-      setAutoDeploy(next) // optimistic: the switch must feel like a switch
-      try {
-        const res = await taskclanFetch(`/api/taskclan/${ref}/deploy-mode`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ mode: next ? 'auto' : 'manual' }),
-        })
-        if (!res.ok) {
-          const body = (await res.json().catch(() => ({}))) as { error?: string }
-          setAutoDeploy(previous)
-          toast.error(body.error ?? 'could not change the deploy mode')
-          return
-        }
-        toast.success(next ? 'Merges to the default branch will deploy' : 'Deploys are manual')
-      } catch (e) {
-        setAutoDeploy(previous)
-        toast.error(e instanceof Error ? e.message : String(e))
-      }
-    },
-    [ref, autoDeploy]
-  )
-
   const liveUrl = payload?.site?.liveUrl ?? current?.url ?? null
 
   return (
@@ -225,22 +198,16 @@ const DeploymentsPage: NextPageWithLayout = () => {
               )}
             </div>
 
-            <div className="flex items-center gap-5">
-              {liveUrl && (
-                <a
-                  href={liveUrl.startsWith('http') ? liveUrl : `https://${liveUrl}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1.5 text-sm text-foreground-light hover:text-foreground"
-                >
-                  Open app <ExternalLink size={13} />
-                </a>
-              )}
-              <label className="flex items-center gap-2 text-sm text-foreground-light">
-                <Switch checked={autoDeploy} onCheckedChange={(v) => void setMode(v)} />
-                Deploy on merge
-              </label>
-            </div>
+            {liveUrl && (
+              <a
+                href={liveUrl.startsWith('http') ? liveUrl : `https://${liveUrl}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 text-sm text-foreground-light hover:text-foreground"
+              >
+                Open app <ExternalLink size={13} />
+              </a>
+            )}
           </div>
 
           {loading && deployments.length === 0 ? (

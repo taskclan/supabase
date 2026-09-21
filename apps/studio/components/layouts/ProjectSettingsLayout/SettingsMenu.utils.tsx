@@ -47,6 +47,13 @@ export const useGenerateSettingsMenu = () => {
             url: `/project/${ref}/settings/general`,
             items: [],
           },
+          // Taskclan: how this app ships (deploy-on-merge vs. approval).
+          {
+            name: 'Deployments',
+            key: 'deployments',
+            url: `/project/${ref}/settings/deployments`,
+            items: [],
+          },
           {
             name: 'API Keys',
             key: 'api-keys',
@@ -113,6 +120,14 @@ export const useGenerateSettingsMenu = () => {
           url: `/project/${ref}/settings/general`,
           items: [],
           shortcutId: SHORTCUT_IDS.NAV_PROJECT_SETTINGS_GENERAL,
+        },
+        // Taskclan: how this app ships (deploy-on-merge vs. approval). Not gated
+        // on isProjectActive — the mode matters most when a deploy has failed.
+        {
+          name: 'Deployments',
+          key: 'deployments',
+          url: `/project/${ref}/settings/deployments`,
+          items: [],
         },
         ...(showConfigDrift
           ? [
