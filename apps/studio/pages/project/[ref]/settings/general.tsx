@@ -15,6 +15,7 @@ import { DeleteBranchPanel } from '@/components/interfaces/Settings/General/Dele
 import { DeleteProjectPanel } from '@/components/interfaces/Settings/General/DeleteProjectPanel/DeleteProjectPanel'
 import { General } from '@/components/interfaces/Settings/General/General'
 import { TaskclanDomains } from '@/components/interfaces/Settings/General/TaskclanDomains'
+import { TaskclanDomainPurchase } from '@/components/interfaces/Settings/General/TaskclanDomainPurchase'
 import { TaskclanSiteSettings } from '@/components/interfaces/Settings/General/TaskclanSiteSettings'
 import { Project } from '@/components/interfaces/Settings/General/Project'
 import { ServiceVersionsSection } from '@/components/interfaces/Settings/General/ServiceVersions/ServiceVersionsSection'
@@ -63,6 +64,7 @@ const ProjectSettings: NextPageWithLayout = () => {
           <>
             <TaskclanSiteSettings />
             <TaskclanDomains />
+            <TaskclanDomainPurchase />
           </>
         )}
         {IS_PLATFORM && (
