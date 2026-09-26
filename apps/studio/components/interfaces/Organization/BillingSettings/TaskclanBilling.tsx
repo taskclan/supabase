@@ -1,20 +1,21 @@
 /**
- * Billing, as Taskclan Cloud actually does it.
+ * Billing, as Taskclan Cloud actually does it — plans-first.
  *
- * Upstream's page is built for a subscription: a plan with an included quota, a
- * spend cap for scaling past it, an upcoming invoice that accrues through a
- * billing cycle, and a history of invoices issued when the cycle resets. Cloud
- * has none of that. It sells prepaid credits, meters usage against the balance
- * by the second, and stops when the balance runs out.
+ * An org starts by choosing a plan (Free / Starter / Pro / Scale / Enterprise):
+ * the tier sets its capability ceiling — app sizes, autoscaling — and a monthly
+ * amount of included usage. That's the primary surface at the top of the page
+ * (`TaskclanPlans`), a real Stripe subscription behind it.
  *
- * So the page showed four copies of "Failed to retrieve subscription" and a
- * billing cycle of January 01 to January 01, which is what an epoch timestamp
- * looks like when it is formatted as a date.
+ * Usage beyond the plan's included amount is still metered by the second. How
+ * that overage is paid is the secondary half of the page: a prepaid credit
+ * balance you top up, or — once a card is on file — postpaid pay-as-you-go, with
+ * the monthly invoices it raises. Adding a card is what moves an org onto
+ * postpaid.
  *
- * It answers the questions this billing model actually has: how much credit is
- * left and how to add more (prepaid), plus — for orgs that add a card — a
- * payment method on file and a history of the monthly invoices raised against
- * it (postpaid pay-as-you-go). Adding a card is what moves an org onto postpaid.
+ * (Upstream's page was built for a single fixed subscription with an included
+ * quota and one recurring invoice; it rendered four copies of "Failed to
+ * retrieve subscription" and a cycle of January 01 to January 01. This is the
+ * model Cloud actually has.)
  */
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
@@ -25,6 +26,7 @@ import { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
 import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
 import { formatCredits, formatUsd } from '@/lib/taskclan/usage'
 import { TaskclanPaymentMethods } from './TaskclanPaymentMethods'
+import { TaskclanPlans } from './TaskclanPlans'
 import { TaskclanInvoices } from './TaskclanInvoices'
 
 interface Pack {
@@ -116,11 +118,16 @@ export const TaskclanBilling = () => {
 
   return (
     <div className="flex flex-col gap-8 p-6">
+      {/* Primary: the plan tier drives everything below it. */}
+      <TaskclanPlans currentPlan={data.plan} />
+
+      <TaskclanPaymentMethods />
+
       <section>
-        <h3 className="mb-1 text-foreground">Credit balance</h3>
+        <h3 className="mb-1 text-foreground">Usage &amp; credits</h3>
         <p className="mb-4 text-sm text-foreground-light">
-          Taskclan Cloud is prepaid. Usage is metered by the second against this balance, and apps
-          cost nothing while they are asleep.
+          Usage beyond your plan&apos;s included amount is metered by the second against this credit
+          balance, and apps cost nothing while they are asleep.
         </p>
         <Card>
           <CardContent className="flex flex-wrap items-end justify-between gap-6 py-5">
@@ -147,13 +154,11 @@ export const TaskclanBilling = () => {
         </Card>
       </section>
 
-      <TaskclanPaymentMethods />
-
       <section>
         <h3 className="mb-1 text-foreground">Add credits</h3>
         <p className="mb-4 text-sm text-foreground-light">
-          Payment is handled by Stripe. Card details never reach this console, and Stripe emails a
-          receipt for each purchase.
+          Top up your balance for usage beyond your plan. Payment is handled by Stripe; card details
+          never reach this console, and Stripe emails a receipt for each purchase.
         </p>
         <div className="grid gap-4 sm:grid-cols-3">
           {(data.packs ?? []).map((pack) => (
