@@ -164,6 +164,19 @@ describe('TaskclanPlans — switching a paid plan', () => {
     expect(screen.getByRole('button', { name: 'Switch to Starter' })).toBeEnabled()
   })
 
+  it('splits the GST/HST out of what is due now', async () => {
+    stubLocation()
+    route(() => ({ body: { preview: { ...PREVIEW, dueNowUsd: 99.13, taxUsd: 11.4 } } }))
+
+    customRender(<TaskclanPlans currentPlan="pro" />)
+    fireEvent.click(await screen.findByRole('button', { name: /^upgrade$/i }))
+
+    expect(await screen.findByText('GST/HST')).toBeInTheDocument()
+    expect(screen.getByText('$11.40')).toBeInTheDocument()
+    expect(screen.getByText('$87.73')).toBeInTheDocument() // the plan change before tax
+    expect(screen.getByRole('button', { name: 'Pay $99.13 and switch' })).toBeInTheDocument()
+  })
+
   it('says how much account credit covers and charges the card only the rest', async () => {
     stubLocation()
     route(() => ({ body: { preview: { ...PREVIEW, accountCreditUsd: 50 } } }))

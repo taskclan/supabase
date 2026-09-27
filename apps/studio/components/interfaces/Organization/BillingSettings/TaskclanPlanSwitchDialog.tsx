@@ -36,6 +36,8 @@ export interface PlanSwitchPreview {
   newMonthlyUsd: number
   /** > 0 is charged now, < 0 is credited to the next invoice. */
   dueNowUsd: number
+  /** The sales tax (GST/HST) inside dueNowUsd; 0 when the subscription isn't taxed. */
+  taxUsd?: number
   /** How much of a positive dueNowUsd existing account credit covers. */
   accountCreditUsd: number
   renewsAt: string | null
@@ -161,6 +163,16 @@ export const TaskclanPlanSwitchDialog = ({
 
           {preview?.direction === 'upgrade' && (
             <>
+              {(preview.taxUsd ?? 0) > 0 && (
+                // The tax is inside "Due now"; split out so the receipt reads the same.
+                <>
+                  <Row
+                    label="Plan change"
+                    value={formatUsd(preview.dueNowUsd - (preview.taxUsd ?? 0))}
+                  />
+                  <Row label="GST/HST" value={formatUsd(preview.taxUsd ?? 0)} />
+                </>
+              )}
               <Row
                 label="Due now"
                 value={formatUsd(preview.dueNowUsd)}

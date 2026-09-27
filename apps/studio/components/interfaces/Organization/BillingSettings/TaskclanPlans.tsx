@@ -47,7 +47,10 @@ const rank = (plan: string | undefined) => {
 }
 const SALES_EMAIL = 'sales@taskclan.com'
 
-export const TaskclanPlans = ({ currentPlan }: { currentPlan?: string }) => {
+/** Prices are shown before tax; GST/HST goes on top for customers in Canada. */
+export const TAX_NOTE = 'Prices are in USD. GST/HST is added for customers in Canada.'
+
+export const TaskclanPlans = ({ currentPlan, taxEnabled }: { currentPlan?: string; taxEnabled?: boolean }) => {
   const [plans, setPlans] = useState<PlanCard[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [acting, setActing] = useState<string | null>(null)
@@ -167,6 +170,7 @@ export const TaskclanPlans = ({ currentPlan }: { currentPlan?: string }) => {
           <p className="text-sm text-foreground-light">
             Your plan sets your app sizes, autoscaling, and monthly included usage. Usage beyond that
             is billed as metered credits or pay-as-you-go below.
+            {taxEnabled ? ` ${TAX_NOTE}` : ''}
           </p>
         </div>
         {isSubscribed && (
