@@ -4,10 +4,14 @@
  * Forwards to the engine's owner-gated billing endpoint:
  *   { action: 'upgrade', plan } — first-time subscribe returns { checkoutUrl }
  *     (Stripe Checkout, subscription mode); an org that already subscribes gets
- *     { portalUrl, manage: true } to switch or cancel in the Stripe portal;
- *     'free' downgrades in place; 'enterprise' returns { contactSales: true }.
- *   { action: 'portal' } — manage the current subscription / payment method /
- *     cancellation, returning { portalUrl }.
+ *     { portalUrl, manage: true } (cancel there); 'free' downgrades in place;
+ *     'enterprise' returns { contactSales: true }.
+ *   { action: 'preview_switch', plan } — a subscriber's prorated price for
+ *     another paid plan, { preview }; changes nothing.
+ *   { action: 'upgrade', plan, confirm: true, prorationDate } — the subscriber
+ *     confirmed that price: the engine switches the subscription in place and
+ *     settles it at once, { ok, switched, settledUsd }.
+ *   { action: 'portal' } — cancel, change the card, read invoices: { portalUrl }.
  *
  * Card details never touch this console — the customer lands on Stripe's own
  * hosted Checkout or billing portal.

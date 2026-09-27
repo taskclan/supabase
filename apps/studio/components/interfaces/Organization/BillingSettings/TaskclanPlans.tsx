@@ -7,10 +7,12 @@
  * beyond that as metered usage (credits or pay-as-you-go, shown below).
  *
  * The catalog is fetched from the engine so the numbers here can never drift
- * from what the platform actually charges and enforces. Subscribing and every
- * plan change / cancellation happen on Stripe's own hosted pages: first-time
- * subscribers go to Checkout (subscription mode), existing subscribers to the
- * billing portal. Card details never reach this console.
+ * from what the platform actually charges and enforces. First-time subscribers
+ * go to Stripe Checkout (subscription mode). A subscriber moving between paid
+ * plans confirms the exact prorated amount in TaskclanPlanSwitchDialog and the
+ * engine switches the subscription in place; cancelling, changing the card and
+ * reading invoices happen in Stripe's billing portal. Card details never reach
+ * this console.
  */
 import { Check } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
@@ -18,6 +20,7 @@ import { toast } from 'sonner'
 import { Badge, Button, Card, CardContent } from 'ui'
 import { Admonition } from 'ui-patterns/Admonition'
 
+import { TaskclanPlanSwitchDialog } from './TaskclanPlanSwitchDialog'
 import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
 import { formatUsd } from '@/lib/taskclan/usage'
 
@@ -48,6 +51,8 @@ export const TaskclanPlans = ({ currentPlan }: { currentPlan?: string }) => {
   const [plans, setPlans] = useState<PlanCard[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [acting, setActing] = useState<string | null>(null)
+  /** The paid plan a subscriber is switching to; opens the confirm dialog. */
+  const [switchTo, setSwitchTo] = useState<PlanCard | null>(null)
 
   useEffect(() => {
     let live = true
@@ -67,9 +72,10 @@ export const TaskclanPlans = ({ currentPlan }: { currentPlan?: string }) => {
     }
   }, [])
 
-  // Every subscribe / switch / cancel is one call: the engine decides whether
-  // this org goes to Checkout (no subscription yet) or the billing portal (has
-  // one), and we follow whichever URL comes back.
+  // Subscribe, go to Free, or open the portal: one call, and the engine decides
+  // whether this org goes to Checkout (no subscription yet) or the billing
+  // portal (has one); we follow whichever URL comes back. Switching between
+  // paid plans goes through the confirm dialog instead.
   const act = useCallback(async (body: Record<string, unknown>, key: string) => {
     setActing(key)
     try {
@@ -105,13 +111,15 @@ export const TaskclanPlans = ({ currentPlan }: { currentPlan?: string }) => {
     }
   }, [])
 
-  const choosePlan = (plan: PlanCard) => {
-    if (plan.monthlyUsd == null) {
-      window.location.href = `mailto:${SALES_EMAIL}?subject=Taskclan%20Cloud%20Enterprise`
-      return
-    }
-    void act({ action: 'upgrade', plan: plan.id }, plan.id)
-  }
+  // A paid plan with no Stripe subscription behind it (set by hand) has nothing
+  // to switch, so the dialog hands back and this subscribes through Checkout.
+  const subscribeInstead = useCallback(
+    (planId: string) => {
+      setSwitchTo(null)
+      void act({ action: 'upgrade', plan: planId }, planId)
+    },
+    [act]
+  )
 
   if (error) {
     return (
@@ -127,6 +135,19 @@ export const TaskclanPlans = ({ currentPlan }: { currentPlan?: string }) => {
   const current = (currentPlan ?? 'free').toLowerCase()
   const isSubscribed = rank(current) > 0 && current !== 'enterprise'
   const cards = plans ?? []
+
+  const choosePlan = (plan: PlanCard) => {
+    if (plan.monthlyUsd == null) {
+      window.location.href = `mailto:${SALES_EMAIL}?subject=Taskclan%20Cloud%20Enterprise`
+      return
+    }
+    // Paid to paid: confirm the prorated amount, then switch in place.
+    if (isSubscribed && plan.monthlyUsd > 0) {
+      setSwitchTo(plan)
+      return
+    }
+    void act({ action: 'upgrade', plan: plan.id }, plan.id)
+  }
 
   const priceLabel = (p: PlanCard) =>
     p.monthlyUsd == null ? 'Custom' : p.monthlyUsd === 0 ? 'Free' : formatUsd(p.monthlyUsd)
@@ -249,6 +270,13 @@ export const TaskclanPlans = ({ currentPlan }: { currentPlan?: string }) => {
             </Card>
           )
         })()}
+
+      <TaskclanPlanSwitchDialog
+        plan={switchTo}
+        currentName={cards.find((p) => p.id.toLowerCase() === current)?.name ?? 'plan'}
+        onClose={() => setSwitchTo(null)}
+        onNeedsCheckout={subscribeInstead}
+      />
     </section>
   )
 }
