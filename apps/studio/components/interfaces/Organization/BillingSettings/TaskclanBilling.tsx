@@ -26,7 +26,7 @@ import { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
 import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
 import { formatCredits, formatUsd } from '@/lib/taskclan/usage'
 import { TaskclanPaymentMethods } from './TaskclanPaymentMethods'
-import { TaskclanPlans } from './TaskclanPlans'
+import { TAX_NOTE, TaskclanPlans } from './TaskclanPlans'
 import { TaskclanInvoices } from './TaskclanInvoices'
 
 interface Pack {
@@ -43,12 +43,19 @@ interface CreditsResponse {
   balanceUsd?: number
   usage?: { periodDays?: number; totalUsd?: number }
   packs?: Pack[]
+  role?: string
+  /** Prices carry GST/HST on top for customers in Canada. */
+  taxEnabled?: boolean
+  /** The org has no address Stripe can place, so its charges can't carry the right tax yet. */
+  billingAddressNeeded?: boolean
 }
+
 
 export const TaskclanBilling = () => {
   const [data, setData] = useState<CreditsResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [buying, setBuying] = useState<string | null>(null)
+  const [openingPortal, setOpeningPortal] = useState(false)
 
   useEffect(() => {
     let live = true
@@ -90,6 +97,29 @@ export const TaskclanBilling = () => {
     }
   }
 
+  // The billing portal is where a customer adds their address (Stripe keeps it,
+  // not this console), and saving it there turns tax on for their subscription.
+  const addAddress = async () => {
+    setOpeningPortal(true)
+    try {
+      const res = await taskclanFetch('/api/taskclan/billing/subscribe', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: 'portal' }),
+      })
+      const body = await res.json()
+      if (!res.ok || !body?.portalUrl) {
+        toast.error(body?.error ?? 'Could not open billing')
+        return
+      }
+      window.location.href = body.portalUrl as string
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Could not open billing')
+    } finally {
+      setOpeningPortal(false)
+    }
+  }
+
   if (error) {
     return (
       <div className="p-6">
@@ -118,8 +148,24 @@ export const TaskclanBilling = () => {
 
   return (
     <div className="flex flex-col gap-8 p-6">
+      {data.billingAddressNeeded && (
+        <Admonition type="note" title="Add your billing address">
+          <p>
+            Taskclan charges GST/HST to customers in Canada. With your billing address on file, your
+            invoices and receipts show the right tax.
+          </p>
+          {data.role === 'owner' ? (
+            <Button className="mt-3" variant="default" loading={openingPortal} onClick={() => void addAddress()}>
+              Add billing address
+            </Button>
+          ) : (
+            <p className="mt-2">Ask your workspace owner to add it.</p>
+          )}
+        </Admonition>
+      )}
+
       {/* Primary: the plan tier drives everything below it. */}
-      <TaskclanPlans currentPlan={data.plan} />
+      <TaskclanPlans currentPlan={data.plan} taxEnabled={data.taxEnabled} />
 
       <TaskclanPaymentMethods />
 
@@ -159,6 +205,7 @@ export const TaskclanBilling = () => {
         <p className="mb-4 text-sm text-foreground-light">
           Top up your balance for usage beyond your plan. Payment is handled by Stripe; card details
           never reach this console, and Stripe emails a receipt for each purchase.
+          {data.taxEnabled ? ` ${TAX_NOTE}` : ''}
         </p>
         <div className="grid gap-4 sm:grid-cols-3">
           {(data.packs ?? []).map((pack) => (

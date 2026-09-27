@@ -6,7 +6,7 @@
  * billing screen that renders a confident wrong number is worse than one that
  * admits it could not load, because nobody re-checks a figure that looked fine.
  */
-import { screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { TaskclanBilling } from './TaskclanBilling'
@@ -78,5 +78,71 @@ describe('TaskclanBilling', () => {
 
     await waitFor(() => expect(screen.getByText(/could not load billing/i)).toBeInTheDocument())
     expect(screen.queryByText('$0.00')).not.toBeInTheDocument()
+  })
+})
+
+/**
+ * Sales tax. Charges carry GST/HST only once Stripe knows where the customer
+ * is. Customers from before tax was on may have no address, so the page asks
+ * the one person who can add it (the owner, in the billing portal) and tells
+ * everyone else who to ask.
+ */
+describe('TaskclanBilling — sales tax', () => {
+  const route = (credits: object) => {
+    const calls: string[] = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        const u = String(url)
+        calls.push(u)
+        const body = u.endsWith('/api/taskclan/credits')
+          ? credits
+          : u.includes('/billing/subscribe')
+            ? { portalUrl: 'https://billing.stripe.test/p' }
+            : {}
+        return { ok: true, status: 200, json: async () => body } as unknown as Response
+      })
+    )
+    return calls
+  }
+
+  const realLocation = window.location
+  afterEach(() => {
+    Object.defineProperty(window, 'location', { value: realLocation, writable: true, configurable: true })
+  })
+
+  it('asks an owner with no address to add one, in the billing portal', async () => {
+    const loc = { href: '' }
+    Object.defineProperty(window, 'location', { value: loc, writable: true, configurable: true })
+    route({ ...CREDITS, role: 'owner', taxEnabled: true, billingAddressNeeded: true })
+
+    customRender(<TaskclanBilling />)
+    expect(await screen.findByText('Add your billing address')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Add billing address' }))
+
+    await waitFor(() => expect(loc.href).toBe('https://billing.stripe.test/p'))
+  })
+
+  it('tells anyone else to ask the owner', async () => {
+    route({ ...CREDITS, role: 'developer', taxEnabled: true, billingAddressNeeded: true })
+
+    customRender(<TaskclanBilling />)
+
+    expect(await screen.findByText('Ask your workspace owner to add it.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Add billing address' })).not.toBeInTheDocument()
+  })
+
+  it('says tax goes on top only once tax is on', async () => {
+    route({ ...CREDITS, taxEnabled: true, billingAddressNeeded: false })
+    const { unmount } = customRender(<TaskclanBilling />)
+    // Under the plans and under the packs: both are prices.
+    expect(await screen.findAllByText(/GST\/HST is added for customers in Canada/)).toHaveLength(2)
+    expect(screen.queryByText('Add your billing address')).not.toBeInTheDocument()
+    unmount()
+
+    route({ ...CREDITS, taxEnabled: false })
+    customRender(<TaskclanBilling />)
+    await screen.findByText('$9,976.49')
+    expect(screen.queryByText(/GST\/HST/)).not.toBeInTheDocument()
   })
 })
