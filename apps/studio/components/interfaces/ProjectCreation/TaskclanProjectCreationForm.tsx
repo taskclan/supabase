@@ -38,6 +38,7 @@ import { Admonition } from 'ui-patterns/Admonition'
 
 import { TaskclanAddCardModal } from '@/components/interfaces/Organization/BillingSettings/TaskclanAddCardModal'
 import Panel from '@/components/ui/Panel'
+import { useGitHubReturn } from '@/hooks/misc/useGitHubReturn'
 import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
 import {
   availabilityMessage,
@@ -72,6 +73,40 @@ interface Repo {
 // Non-managed database choices, matching the per-app "Set up a database" dialog.
 const BYO = 'byo'
 const OWN_SUPABASE = 'supabase-oauth'
+
+// What the form held when the person left to install the GitHub App. GitHub is
+// a full page load away and back, so React state does not survive the trip;
+// this tab's session storage does.
+const GITHUB_DRAFT_KEY = 'taskclan-new-app-draft'
+
+interface Draft {
+  name: string
+  type: 'service' | 'static'
+}
+
+function saveDraft(draft: Draft) {
+  try {
+    sessionStorage.setItem(GITHUB_DRAFT_KEY, JSON.stringify(draft))
+  } catch {
+    // Storage can be unavailable (Safari's private mode); the form comes back
+    // empty instead, which is what it did before.
+  }
+}
+
+/** The draft saved on the way out to GitHub, read once. */
+function takeDraft(): Partial<Draft> {
+  try {
+    const raw = sessionStorage.getItem(GITHUB_DRAFT_KEY)
+    sessionStorage.removeItem(GITHUB_DRAFT_KEY)
+    const draft = raw ? JSON.parse(raw) : null
+    return {
+      name: typeof draft?.name === 'string' ? draft.name : undefined,
+      type: draft?.type === 'static' || draft?.type === 'service' ? draft.type : undefined,
+    }
+  } catch {
+    return {}
+  }
+}
 
 /** 1 credit = $0.001, so credits/1000 = dollars/month. */
 const price = (credits: number) => (credits === 0 ? 'Free' : `$${Math.round(credits / 1000)}/mo`)
@@ -230,6 +265,7 @@ export const TaskclanProjectCreationForm = () => {
         toast.error(body?.error ?? 'Could not start the GitHub connection')
         return
       }
+      saveDraft({ name, type })
       window.location.href = body.url as string
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Could not start the GitHub connection')
@@ -237,6 +273,16 @@ export const TaskclanProjectCreationForm = () => {
       setIsConnectingGitHub(false)
     }
   }
+
+  // Back from GitHub, however it went: to the repository picker the person
+  // left for it, with what they had typed. A failed install lands on the same
+  // picker, with its Connect button, which is where a retry starts.
+  useGitHubReturn(() => {
+    setSource('github')
+    const draft = takeDraft()
+    if (draft.name) setName(draft.name)
+    if (draft.type) setType(draft.type)
+  })
 
   const dbOptions = useMemo(() => {
     const out: { value: string; title: string; blurb: string; price: string }[] = []

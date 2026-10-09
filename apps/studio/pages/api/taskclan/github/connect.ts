@@ -6,15 +6,18 @@
  * right organisation. That state is why the URL cannot be assembled in the
  * browser: only Cloud can sign it.
  *
- * `returnTo` is passed through so GitHub sends the person back to the console
- * they started from rather than to a default. Cloud validates it against its
- * own allowlist of `*.taskclan.com` origins; this route does not second-guess
- * that, it just forwards what the browser asked for.
+ * `returnTo` is the page the person is on, so GitHub sends them back to it
+ * rather than to a default. Cloud reads that as two halves, `origin` and
+ * `returnPath`, and validates each against its own allowlist (`*.taskclan.com`
+ * hosts, known console paths); this route splits the URL into them and does not
+ * second-guess the rest. Sent whole as `returnTo`, Cloud never read it, and
+ * every install ended on the engine's old console.
  */
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 import { authHeadersFor, callerFromRequest, inOrg } from '@/lib/taskclan/callerContext'
 import { cloudBaseUrl, siteForCaller } from '@/lib/taskclan/client'
+import { returnTarget } from '@/lib/taskclan/githubReturn'
 
 const TIMEOUT_MS = 15000
 
@@ -30,8 +33,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const cloud = cloudBaseUrl()
   if (!cloud.ok) return res.status(501).json({ error: 'not_configured', detail: cloud.reason })
 
-  const returnTo = typeof req.query.returnTo === 'string' ? req.query.returnTo : ''
-  const qs = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''
+  const target = returnTarget(req.query.returnTo)
+  const qs = target
+    ? `?${new URLSearchParams({ origin: target.origin, returnPath: target.returnPath })}`
+    : ''
 
   try {
     // Started from an app (?ref=), the installation belongs to the app's

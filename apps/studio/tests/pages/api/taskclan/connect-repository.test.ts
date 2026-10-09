@@ -31,6 +31,8 @@ let saved: Record<string, string | undefined> = {}
 interface Call {
   method: string
   path: string
+  /** Only on a call that had one, so calls without stay comparable as they were. */
+  query?: Record<string, string>
   org: string | null
   body: unknown
 }
@@ -71,9 +73,11 @@ function cloud(routes: Routes, site: { type: 'static' | 'service' } = { type: 's
       url: string,
       init: { method?: string; headers?: Record<string, string>; body?: string } = {}
     ) => {
+      const { pathname, search, searchParams } = new URL(url)
       const call: Call = {
         method: init.method ?? 'GET',
-        path: new URL(url).pathname,
+        path: pathname,
+        ...(search ? { query: Object.fromEntries(searchParams) } : {}),
         org: init.headers?.['x-taskclan-org'] ?? null,
         body: init.body ? JSON.parse(init.body) : undefined,
       }
@@ -316,6 +320,76 @@ describe('GET /api/taskclan/github/connect', () => {
 
     expect(res.status).toBe(404)
     expect(onBehalf(calls)).toEqual([])
+  })
+
+  describe('the way back', () => {
+    // Cloud reads `origin` and `returnPath`. A `returnTo` is not something it
+    // has ever read, which is how every install finished on the engine's old
+    // console instead of the page it began on.
+    const INSTALL_URL = 'https://github.com/apps/taskclan-cloud/installations/new?state=x'
+    const connectCall = (calls: Call[]) => calls.find((c) => c.path === '/api/cloud/v1/git/connect')
+
+    it('sends the page as the two halves Cloud reads', async () => {
+      const calls = cloud({
+        'GET /api/cloud/v1/git/connect': () => ({ body: { url: INSTALL_URL } }),
+      })
+
+      const res = await call(connectHandler, {
+        query: { returnTo: 'https://cloud.taskclan.com/org/acme/integrations' },
+      })
+
+      expect(res.status).toBe(200)
+      expect(connectCall(calls)?.query).toEqual({
+        origin: 'https://cloud.taskclan.com',
+        returnPath: '/org/acme/integrations',
+      })
+    })
+
+    it("started from an app, keeps the app's workspace and the way back together", async () => {
+      const calls = cloud({
+        'GET /api/cloud/v1/git/connect': () => ({ body: { url: INSTALL_URL } }),
+      })
+
+      await call(connectHandler, {
+        query: {
+          ref: 'aiya-app',
+          returnTo: 'https://cloud.taskclan.com/project/aiya-app/deployments',
+        },
+      })
+
+      expect(connectCall(calls)).toEqual(
+        expect.objectContaining({
+          org: AIYA,
+          query: {
+            origin: 'https://cloud.taskclan.com',
+            returnPath: '/project/aiya-app/deployments',
+          },
+        })
+      )
+    })
+
+    it('leaves out the outcome of an earlier attempt', async () => {
+      const calls = cloud({
+        'GET /api/cloud/v1/git/connect': () => ({ body: { url: INSTALL_URL } }),
+      })
+
+      await call(connectHandler, {
+        query: { returnTo: 'https://cloud.taskclan.com/new/acme?git=error' },
+      })
+
+      expect(connectCall(calls)?.query?.returnPath).toBe('/new/acme')
+    })
+
+    it('asks without a way back when there is no page to return to', async () => {
+      // Cloud then sends the person to its own console, which at least renders.
+      const calls = cloud({
+        'GET /api/cloud/v1/git/connect': () => ({ body: { url: INSTALL_URL } }),
+      })
+
+      await call(connectHandler, { query: { returnTo: '/new/acme' } })
+
+      expect(connectCall(calls)?.query).toBeUndefined()
+    })
   })
 })
 
