@@ -20,8 +20,8 @@
  * request carries a fresh token. The shared key survives for the callers that
  * genuinely have no session; what it stops being is a stand-in for identity.
  */
-import { authHeadersFor, type Caller } from './callerContext'
-import { findSiteByRef, type CloudSite } from './projects'
+import { authHeadersFor, inOrg, type Caller } from './callerContext'
+import { DEFAULT_REF, findSiteByRef, type CloudSite } from './projects'
 
 const KEY_PREFIX = 'sk_cloud_'
 
@@ -266,12 +266,21 @@ export async function getCloudOrg(caller: Caller): Promise<CloudResult<CloudOrg 
 }
 
 /**
- * The caller's app matching `ref`.
+ * The caller's app matching `ref`, in whichever of their organisations it is.
  *
  * Folded into one place from the seven routes that each had their own copy.
- * Resolving the ref against the caller's OWN site list is what makes a ref
- * belonging to another org return nothing, so this is the tenancy check as much
- * as it is a lookup, and it should not be reimplemented per route again.
+ * Resolving the ref against the caller's OWN sites is what makes a ref
+ * belonging to someone else's org return nothing, so this is the tenancy check
+ * as much as it is a lookup, and it should not be reimplemented per route again.
+ *
+ * The current organisation first, then the caller's others. Studio routes a
+ * project by its ref alone, and its requests name no organisation (or the last
+ * one visited), so looking only in the current one answered 404 for every app
+ * anywhere else: the first app in a second workspace could not be opened at
+ * all (aiya-logistics-web, 2026-10-09). A ref is a subdomain, unique across
+ * Cloud, so the first match is the app. `default` means the preferred app of
+ * the current organisation, so it never crosses; nor does the shared key,
+ * which has one organisation.
  *
  * Returns a result rather than `CloudSite | null` so that "looked, and there is
  * no such app" stays distinct from "could not look". Collapsing them tells
@@ -286,5 +295,18 @@ export async function siteForCaller(
   if (!result.ok) return result
   // The same picker the project handlers use, so an app cannot resolve to one
   // id for its page and a different one for its database.
-  return { ok: true, data: findSiteByRef(result.data, ref) ?? null }
+  const here = findSiteByRef(result.data, ref) ?? null
+  if (here || ref === DEFAULT_REF || caller.kind === 'shared') return { ok: true, data: here }
+
+  const orgs = await listCloudOrgs(caller)
+  if (!orgs.ok) return orgs
+  const searched = new Set(result.data.map((s) => s.orgId).filter(Boolean))
+  for (const org of orgs.data.orgs) {
+    if (searched.has(org.id) || org.id === orgs.data.activeOrgId) continue
+    const sites = await listCloudSites(inOrg(caller, org.id))
+    if (!sites.ok) return sites
+    const found = sites.data.find((s) => s.subdomain === ref) ?? sites.data.find((s) => s.id === ref)
+    if (found) return { ok: true, data: found }
+  }
+  return { ok: true, data: null }
 }

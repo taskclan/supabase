@@ -6,7 +6,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 import { cloudBaseUrl, siteForCaller } from '@/lib/taskclan/client'
-import { authHeadersFor, callerFromRequest } from '@/lib/taskclan/callerContext'
+import { authHeadersFor, callerFromRequest, inOrg } from '@/lib/taskclan/callerContext'
 
 const TIMEOUT_MS = 60000
 
@@ -32,9 +32,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const site = lookup.data
     if (!site) return res.status(404).json({ error: `no Taskclan app matches "${ref}"` })
 
+    // The purchase is the app's workspace's: its card, its domain. The app can
+    // be in any of the caller's workspaces (siteForCaller), and this request
+    // names the last one visited, so name the app's own.
+    const buyer = site.orgId ? inOrg(caller, site.orgId) : caller
     const r = await fetch(`${cloud.url}/api/cloud/v1/domains/register`, {
       method: 'POST',
-      headers: { ...authHeadersFor(caller), 'content-type': 'application/json' },
+      headers: { ...authHeadersFor(buyer), 'content-type': 'application/json' },
       body: JSON.stringify({ domain, siteId: site.id }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     })

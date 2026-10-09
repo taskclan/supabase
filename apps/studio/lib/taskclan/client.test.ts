@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { listCloudSites, taskclanConfig, taskclanConfigured } from './client'
+import { listCloudSites, siteForCaller, taskclanConfig, taskclanConfigured } from './client'
 
 /**
  * Configuration and failure reporting.
@@ -119,5 +119,87 @@ describe('listCloudSites', () => {
     const r = await listCloudSites(SHARED)
     expect(r).toMatchObject({ ok: false, reason: 'not_configured' })
     expect(fetchMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('siteForCaller', () => {
+  /**
+   * The app a ref names, in whichever of the caller's organisations it is.
+   *
+   * It used to look only in the current one. Studio routes a project by ref
+   * alone and names no organisation, so the first app in a second workspace
+   * (aiya-logistics-web, 2026-10-09) answered 404 on every screen.
+   */
+  const USER = { kind: 'user', token: 'jwt', org: null } as const
+  const SITES: Record<string, Array<{ id: string; subdomain: string; orgId: string }>> = {
+    personal: [{ id: 's1', subdomain: 'billing', orgId: 'personal' }],
+    aiya: [{ id: 's2', subdomain: 'aiya-logistics-web', orgId: 'aiya' }],
+  }
+
+  /** Cloud for one person in two workspaces; the header picks the workspace, personal by default. */
+  function cloud() {
+    return vi.fn(async (url: string, init: { headers: Record<string, string> }) => {
+      if (url.endsWith('/api/cloud/v1/orgs')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ activeOrgId: 'personal', orgs: [{ id: 'personal', name: 'Personal' }, { id: 'aiya', name: 'Aiya' }] }),
+        }
+      }
+      const org = init.headers['x-taskclan-org'] ?? 'personal'
+      return { ok: true, status: 200, json: async () => ({ sites: SITES[org] ?? [] }) }
+    })
+  }
+
+  beforeEach(() => {
+    process.env.TASKCLAN_CLOUD_URL = 'https://engine.taskclan.com'
+    process.env.TASKCLAN_CLOUD_API_KEY = GOOD_KEY
+  })
+
+  it('finds an app in the current workspace with one lookup', async () => {
+    const fetchMock = cloud()
+    vi.stubGlobal('fetch', fetchMock)
+
+    expect(await siteForCaller('billing', USER)).toMatchObject({ ok: true, data: { id: 's1' } })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it("finds an app in another of the caller's workspaces, asking for it by name", async () => {
+    const fetchMock = cloud()
+    vi.stubGlobal('fetch', fetchMock)
+
+    expect(await siteForCaller('aiya-logistics-web', USER)).toMatchObject({ ok: true, data: { id: 's2', orgId: 'aiya' } })
+    const lastCall = fetchMock.mock.calls.at(-1) as unknown as [string, { headers: Record<string, string> }]
+    expect(lastCall[1].headers['x-taskclan-org']).toBe('aiya')
+  })
+
+  it("still finds nothing outside the caller's own workspaces", async () => {
+    vi.stubGlobal('fetch', cloud())
+    expect(await siteForCaller('someone-elses-app', USER)).toEqual({ ok: true, data: null })
+  })
+
+  it('keeps `default` to the current workspace, which is what it means', async () => {
+    const fetchMock = cloud()
+    vi.stubGlobal('fetch', fetchMock)
+
+    await siteForCaller('default', USER)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the shared key to its own workspace', async () => {
+    const fetchMock = cloud()
+    vi.stubGlobal('fetch', fetchMock)
+
+    expect(await siteForCaller('aiya-logistics-web', SHARED)).toEqual({ ok: true, data: null })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('says it could not look, rather than that the app does not exist', async () => {
+    vi.stubGlobal('fetch', vi.fn(async (url: string) =>
+      url.endsWith('/api/cloud/v1/orgs')
+        ? { ok: false, status: 503, text: async () => 'unavailable' }
+        : { ok: true, status: 200, json: async () => ({ sites: [] }) }
+    ))
+    expect(await siteForCaller('aiya-logistics-web', USER)).toMatchObject({ ok: false })
   })
 })

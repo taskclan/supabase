@@ -2,10 +2,10 @@ import { NextApiRequest, NextApiResponse } from 'next'
 
 import { apiWrapper } from '@/lib/api/apiWrapper'
 import { DEFAULT_PROJECT, PROJECT_REST_URL } from '@/lib/constants/api'
-import { listCloudSites, taskclanConfigured } from '@/lib/taskclan/client'
+import { siteForCaller, taskclanConfigured } from '@/lib/taskclan/client'
 import { callerFromRequest } from '@/lib/taskclan/callerContext'
-import { findSiteByRef, toStudioProject } from '@/lib/taskclan/projects'
-import { taskclanOrg } from '@/lib/taskclan/org'
+import { toStudioProject } from '@/lib/taskclan/projects'
+import { taskclanOrgs } from '@/lib/taskclan/org'
 
 export default (req: NextApiRequest, res: NextApiResponse) => apiWrapper(req, res, handler)
 
@@ -46,22 +46,29 @@ const handleGet = async (req: NextApiRequest, res: NextApiResponse) => {
   }
   const caller = resolved.caller
 
-  const [org, sites] = await Promise.all([taskclanOrg(caller), listCloudSites(caller)])
-  if (!org.ok) {
-    return res.status(502).json({ data: null, error: { message: `Taskclan Cloud did not answer: ${org.detail}` } })
+  // siteForCaller looks in every one of the caller's organisations: a project
+  // page names only its ref, and this request names no organisation.
+  const [orgs, found] = await Promise.all([taskclanOrgs(caller), siteForCaller(ref, caller)])
+  if (!orgs.ok) {
+    return res.status(502).json({ data: null, error: { message: `Taskclan Cloud did not answer: ${orgs.detail}` } })
   }
-  if (!sites.ok) {
-    return res.status(502).json({ data: null, error: { message: `Taskclan Cloud did not answer: ${sites.detail}` } })
+  if (!found.ok) {
+    return res.status(502).json({ data: null, error: { message: `Taskclan Cloud did not answer: ${found.detail}` } })
   }
-
-  const site = findSiteByRef(sites.data, ref)
+  const site = found.data
   if (!site) {
     return res.status(404).json({ data: null, error: { message: `No Taskclan app matches "${ref}"` } })
+  }
+  // The app's own organisation, which need not be the caller's current one:
+  // Studio files the project under this id. A personal app has none.
+  const org = orgs.data.orgs.find((o) => o.uuid === site.orgId) ?? orgs.data.active
+  if (!org) {
+    return res.status(502).json({ data: null, error: { message: 'the caller belongs to no organisation' } })
   }
 
   res.setHeader('x-taskclan-source', 'cloud')
   return res.status(200).json({
-    ...toStudioProject(site, org.data.id),
+    ...toStudioProject(site, org.id),
     // Cloud does not hand out a Postgres connection string for an app — the
     // app owns its own database credentials. Empty rather than invented: a
     // wrong connection string would be copied into someone's terminal.
