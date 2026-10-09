@@ -13,8 +13,8 @@
  */
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-import { authHeadersFor, callerFromRequest } from '@/lib/taskclan/callerContext'
-import { cloudBaseUrl } from '@/lib/taskclan/client'
+import { authHeadersFor, callerFromRequest, inOrg } from '@/lib/taskclan/callerContext'
+import { cloudBaseUrl, siteForCaller } from '@/lib/taskclan/client'
 
 const TIMEOUT_MS = 15000
 
@@ -34,8 +34,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const qs = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''
 
   try {
+    // Started from an app (?ref=), the installation belongs to the app's
+    // workspace, which need not be the one this request names: Cloud binds
+    // it to whichever workspace asks.
+    let caller = resolved.caller
+    const ref = typeof req.query.ref === 'string' ? req.query.ref : ''
+    if (ref) {
+      const lookup = await siteForCaller(ref, caller)
+      if (!lookup.ok) return res.status(502).json({ error: lookup.detail })
+      if (!lookup.data) return res.status(404).json({ error: `no Taskclan app matches "${ref}"` })
+      if (lookup.data.orgId) caller = inOrg(caller, lookup.data.orgId)
+    }
+
     const r = await fetch(`${cloud.url}/api/cloud/v1/git/connect${qs}`, {
-      headers: authHeadersFor(resolved.caller),
+      headers: authHeadersFor(caller),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     })
     const body = await r.json().catch(() => ({}))
