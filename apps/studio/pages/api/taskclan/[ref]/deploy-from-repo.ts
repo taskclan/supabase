@@ -13,7 +13,7 @@
  * them has a container to size:
  *
  *   service → `deploy-service` (repo, branch, instance size, autoscaling)
- *   static  → `deploy` (repo only; the engine reads the files and serves them)
+ *   static  → `git` (repo, branch, installation; links it, then serves its files)
  *
  * Sizing is re-clamped here even though the form clamps it too. The engine
  * silently rewrites an out-of-range count rather than rejecting it, so an
@@ -21,8 +21,8 @@
  */
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-import { cloudBaseUrl, siteForCaller } from '@/lib/taskclan/client'
 import { authHeadersFor, callerFromRequest } from '@/lib/taskclan/callerContext'
+import { cloudBaseUrl, siteForCaller } from '@/lib/taskclan/client'
 
 /** Long enough for the engine to queue a build; the build itself is polled. */
 const DEPLOY_TIMEOUT_MS = 30000
@@ -65,12 +65,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const auth = { ...authHeadersFor(caller), 'content-type': 'application/json' }
     const isStatic = body.type === 'static'
+    const branch = typeof body.branch === 'string' ? body.branch.trim() : ''
 
     if (isStatic) {
-      const r = await fetch(`${cloud.url}/api/cloud/v1/sites/${site.id}/deploy`, {
+      // Through the app's git link, not `deploy { repo }`. That one fetched the
+      // repo without a GitHub token, so a private repo, which is every tenant's,
+      // failed with GitHub's 404. It also saved no link, so the app still had no
+      // repository afterwards and its Deploy button could only refuse. `git`
+      // links the repo with the installation and deploys it with that token.
+      //
+      // `git` deploys by the app's own type. An app that runs as a server would
+      // quietly get a server build here, so refuse rather than do the other thing.
+      if (site.type === 'service') {
+        return res.status(409).json({
+          error: 'this app runs as a server, so it cannot be deployed as static files',
+        })
+      }
+      const link: Record<string, unknown> = { repo }
+      if (branch) link.branch = branch
+      if (Number.isInteger(body.installationId)) link.installationId = body.installationId
+      const r = await fetch(`${cloud.url}/api/cloud/v1/sites/${site.id}/git`, {
         method: 'POST',
         headers: auth,
-        body: JSON.stringify({ repo }),
+        body: JSON.stringify(link),
         signal: AbortSignal.timeout(DEPLOY_TIMEOUT_MS),
       })
       const out = await r.json().catch(() => ({}))
@@ -91,12 +108,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // shows the result, and the engine, which enforces the plan with a message
     // naming it.
     const requested = Number(body.maxInstances)
-    const maxInstances = autoscale
-      ? Math.max(2, Number.isInteger(requested) ? requested : 3)
-      : 1
+    const maxInstances = autoscale ? Math.max(2, Number.isInteger(requested) ? requested : 3) : 1
 
     const payload: Record<string, unknown> = { repo, autoscale, maxInstances }
-    if (typeof body.branch === 'string' && body.branch.trim()) payload.ref = body.branch.trim()
+    if (branch) payload.ref = branch
     if (typeof body.instanceType === 'string' && body.instanceType) payload.plan = body.instanceType
     if (Number.isInteger(body.installationId)) payload.installationId = body.installationId
 

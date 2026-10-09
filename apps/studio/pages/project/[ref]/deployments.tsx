@@ -11,7 +11,15 @@
  * holds the credential and resolves the app by ref.
  */
 import { useParams } from 'common'
-import { CheckCircle2, CircleSlash, ChevronRight, ExternalLink, Loader2, RefreshCw, XCircle } from 'lucide-react'
+import {
+  CheckCircle2,
+  ChevronRight,
+  CircleSlash,
+  ExternalLink,
+  Loader2,
+  RefreshCw,
+  XCircle,
+} from 'lucide-react'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
@@ -19,6 +27,7 @@ import { Badge, Button, cn } from 'ui'
 import { Admonition } from 'ui-patterns/Admonition'
 import { ConfirmationModal } from 'ui-patterns/Dialogs/ConfirmationModal'
 
+import { TaskclanConnectRepository } from '@/components/interfaces/Deployments/TaskclanConnectRepository'
 import { DefaultLayout } from '@/components/layouts/DefaultLayout'
 import { PageLayout } from '@/components/layouts/PageLayout/PageLayout'
 import { ProjectLayoutWithAuth } from '@/components/layouts/ProjectLayout'
@@ -78,6 +87,9 @@ const DeploymentsPage: NextPageWithLayout = () => {
   const [deploying, setDeploying] = useState(false)
   const [confirm, setConfirm] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Whether the app builds from a repository; null until the panel below finds
+  // out. Without one, Deploy has nothing to build and can only be refused.
+  const [linked, setLinked] = useState<boolean | null>(null)
   // Survives re-renders so a poll started before a navigation cannot keep firing.
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -157,7 +169,7 @@ const DeploymentsPage: NextPageWithLayout = () => {
           <Button
             variant="primary"
             loading={deploying}
-            disabled={action.disabled || deploying}
+            disabled={action.disabled || deploying || linked === false}
             onClick={() => setConfirm(true)}
           >
             {action.label}
@@ -210,15 +222,26 @@ const DeploymentsPage: NextPageWithLayout = () => {
             )}
           </div>
 
+          {ref && (
+            <TaskclanConnectRepository
+              projectRef={ref}
+              onLinkedChange={setLinked}
+              onDeploy={() => void load()}
+            />
+          )}
+
           {loading && deployments.length === 0 ? (
             <p className="text-sm text-foreground-lighter">Loading deployments…</p>
           ) : deployments.length === 0 ? (
-            <div className="rounded-md border border-dashed border-default px-5 py-10 text-center">
-              <p className="text-sm text-foreground">This app has never been deployed.</p>
-              <p className="mt-1 text-sm text-foreground-lighter">
-                Deploy ships the app&apos;s linked repository and branch.
-              </p>
-            </div>
+            // With no repository the panel above already says what to do next.
+            linked === false ? null : (
+              <div className="rounded-md border border-dashed border-default px-5 py-10 text-center">
+                <p className="text-sm text-foreground">This app has never been deployed.</p>
+                <p className="mt-1 text-sm text-foreground-lighter">
+                  Deploy ships the app&apos;s linked repository and branch.
+                </p>
+              </div>
+            )
           ) : (
             <div className="overflow-x-auto rounded-md border border-default">
               <table className="w-full text-sm">
