@@ -448,7 +448,9 @@ export const TaskclanProjectCreationForm = () => {
     setShowAddCard(false)
     setHasCard(true)
     await reloadInstances()
-    toast.success("Payment method added — you're on pay-as-you-go. Pick a size and create your project.")
+    toast.success(
+      "Payment method added — you're on pay-as-you-go. Pick a size and create your project."
+    )
   }
 
   // The primary action: a web service with no card opens the billing modal
@@ -527,7 +529,7 @@ export const TaskclanProjectCreationForm = () => {
               <RadioGroupStackedItem
                 value="static"
                 label="Static site"
-                description="Prebuilt static files served from the edge."
+                description="Prebuilt static files served from the edge. Can still use a database, like a waitlist in Supabase."
               />
             </RadioGroupStacked>
           </div>

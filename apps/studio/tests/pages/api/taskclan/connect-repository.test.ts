@@ -349,7 +349,7 @@ describe('POST /api/taskclan/{ref}/deploy-from-repo', () => {
     ])
   })
 
-  it('refuses static files for an app that runs as a server', async () => {
+  it('refuses to deploy a web service as a static site', async () => {
     // Cloud's git route deploys by the app's own type, so this would have
     // quietly built a server instead.
     const calls = cloud({}, { type: 'service' })
