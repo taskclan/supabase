@@ -23,6 +23,7 @@ import { Admonition } from 'ui-patterns/Admonition'
 import { FormLayout } from 'ui-patterns/form/Layout/FormLayout'
 import { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
 
+import { githubAccessUrl } from '@/components/interfaces/Deployments/TaskclanConnectRepository'
 import { IntegrationSectionIcon } from '@/components/interfaces/Settings/Integrations/IntegrationsSettings'
 import { useGitHubReturn } from '@/hooks/misc/useGitHubReturn'
 import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
@@ -150,8 +151,16 @@ export const TaskclanGitHubSection = () => {
                 >
                   <a
                     href={
+                      // An organisation's installation is managed under the
+                      // organisation, not the person's own settings. This is
+                      // also where repository access changes, and GitHub never
+                      // sends those back here, so the link has to be right.
                       installation.installationId
-                        ? `https://github.com/settings/installations/${installation.installationId}`
+                        ? githubAccessUrl({
+                            installationId: installation.installationId,
+                            accountLogin: installation.accountLogin ?? null,
+                            accountType: installation.accountType,
+                          })
                         : 'https://github.com/settings/installations'
                     }
                     target="_blank"

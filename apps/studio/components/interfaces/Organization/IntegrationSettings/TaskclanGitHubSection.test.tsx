@@ -62,6 +62,31 @@ describe('TaskclanGitHubSection', () => {
     expect(await screen.findByText('2 repositories available')).toBeInTheDocument()
   })
 
+  it("sends each account's Configure to the page that manages it", async () => {
+    // An organisation's installation lives under the organisation; the
+    // person's own settings page does not have it.
+    vi.stubGlobal(
+      'fetch',
+      respond({
+        installations: [
+          { installationId: 7, accountLogin: 'taskclan', accountType: 'Organization' },
+          { installationId: 9, accountLogin: 'dnlamah1', accountType: 'User' },
+        ],
+        repos: [],
+      })
+    )
+
+    customRender(<TaskclanGitHubSection />)
+
+    await screen.findByText('taskclan')
+    expect(
+      screen.getAllByRole('link', { name: /configure/i }).map((a) => a.getAttribute('href'))
+    ).toEqual([
+      'https://github.com/organizations/taskclan/settings/installations/7',
+      'https://github.com/settings/installations/9',
+    ])
+  })
+
   it('offers to connect when nothing is connected yet', async () => {
     vi.stubGlobal('fetch', respond({ installations: [], repos: [] }))
 
