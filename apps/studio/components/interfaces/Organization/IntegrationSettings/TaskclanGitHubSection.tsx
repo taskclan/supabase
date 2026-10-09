@@ -23,7 +23,9 @@ import { Admonition } from 'ui-patterns/Admonition'
 import { FormLayout } from 'ui-patterns/form/Layout/FormLayout'
 import { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
 
+import { githubAccessUrl } from '@/components/interfaces/Deployments/TaskclanConnectRepository'
 import { IntegrationSectionIcon } from '@/components/interfaces/Settings/Integrations/IntegrationsSettings'
+import { useGitHubReturn } from '@/hooks/misc/useGitHubReturn'
 import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
 
 interface Installation {
@@ -41,6 +43,10 @@ export const TaskclanGitHubSection = () => {
   const [data, setData] = useState<ReposResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isConnecting, setIsConnecting] = useState(false)
+
+  // Back from GitHub. The list below is read fresh on the way in, so it already
+  // shows what the install added; this says how it went.
+  useGitHubReturn()
 
   useEffect(() => {
     let live = true
@@ -65,8 +71,9 @@ export const TaskclanGitHubSection = () => {
     try {
       // Cloud signs the state, so the URL has to come from it. Sending the
       // current page as returnTo means GitHub hands the person back where they
-      // started instead of to a default.
-      const returnTo = window.location.origin
+      // started instead of to a default. The whole page, path included: Cloud
+      // returns to known pages only, and the console's root is not one.
+      const returnTo = window.location.href
       const res = await taskclanFetch(
         `/api/taskclan/github/connect?returnTo=${encodeURIComponent(returnTo)}`
       )
@@ -144,8 +151,16 @@ export const TaskclanGitHubSection = () => {
                 >
                   <a
                     href={
+                      // An organisation's installation is managed under the
+                      // organisation, not the person's own settings. This is
+                      // also where repository access changes, and GitHub never
+                      // sends those back here, so the link has to be right.
                       installation.installationId
-                        ? `https://github.com/settings/installations/${installation.installationId}`
+                        ? githubAccessUrl({
+                            installationId: installation.installationId,
+                            accountLogin: installation.accountLogin ?? null,
+                            accountType: installation.accountType,
+                          })
                         : 'https://github.com/settings/installations'
                     }
                     target="_blank"

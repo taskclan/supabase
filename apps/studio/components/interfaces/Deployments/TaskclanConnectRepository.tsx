@@ -12,9 +12,10 @@
  * the person already holds elsewhere and can bring in with one click.
  *
  * GitHub opens in a new tab, and the panel looks again when the person comes
- * back. Cloud's install callback cannot return to a console project page, and
- * GitHub sends a change to an existing installation's repositories to its own
- * settings page without calling back at all, so neither trip would end here.
+ * back to this one. A first install does return, but in the GitHub tab, as a
+ * second copy of this page; a change to an existing installation's
+ * repositories ends on GitHub's own settings page, with no call back at all.
+ * Either way it is this tab that has to look again.
  */
 import { ExternalLink, Github } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -22,6 +23,7 @@ import { toast } from 'sonner'
 import { Button, Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from 'ui'
 import { Admonition } from 'ui-patterns/Admonition'
 
+import { useGitHubReturn } from '@/hooks/misc/useGitHubReturn'
 import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
 
 export interface GitAccount {
@@ -94,6 +96,10 @@ export function TaskclanConnectRepository({
   // to this one is the cue to look again.
   const [awaitingGitHub, setAwaitingGitHub] = useState(false)
 
+  // In the tab GitHub returns to, say how the install went. The state below is
+  // read fresh on the way in, so it already shows what the install added.
+  useGitHubReturn()
+
   const load = useCallback(async () => {
     try {
       const res = await taskclanFetch(`/api/taskclan/${projectRef}/git`)
@@ -139,7 +145,7 @@ export function TaskclanConnectRepository({
     setBusy('install')
     try {
       const res = await taskclanFetch(
-        `/api/taskclan/github/connect?ref=${encodeURIComponent(projectRef)}`
+        `/api/taskclan/github/connect?ref=${encodeURIComponent(projectRef)}&returnTo=${encodeURIComponent(window.location.href)}`
       )
       const body = await json(res)
       if (!res.ok || !body.url) {

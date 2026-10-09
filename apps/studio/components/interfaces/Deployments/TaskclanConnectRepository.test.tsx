@@ -129,8 +129,12 @@ describe('TaskclanConnectRepository', () => {
     )
     expect(tab.opener).toBeNull()
     expect(onLinkedChange).toHaveBeenCalledWith(false)
-    // The installation has to land in the app's workspace, which only the ref names.
-    expect(sent.some((s) => s.path === '/api/taskclan/github/connect?ref=aiya-app')).toBe(true)
+    // The installation has to land in the app's workspace, which only the ref
+    // names, and the GitHub tab has to finish on this page, not on a default.
+    const connect = sent.find((s) => s.path.startsWith('/api/taskclan/github/connect?'))
+    const asked = new URLSearchParams(connect?.path.split('?')[1])
+    expect(asked.get('ref')).toBe('aiya-app')
+    expect(asked.get('returnTo')).toBe(window.location.href)
     // Coming back from GitHub is the cue to look again.
     expect(await screen.findByRole('button', { name: 'Check again' })).toBeInTheDocument()
   })
