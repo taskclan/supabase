@@ -3,9 +3,10 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { apiWrapper } from '@/lib/api/apiWrapper'
 import { DEFAULT_PROJECT } from '@/lib/constants/api'
 import { createCloudSite, listCloudSites, taskclanConfigured } from '@/lib/taskclan/client'
-import { callerFromRequest } from '@/lib/taskclan/callerContext'
+import { callerFromRequest, inOrg } from '@/lib/taskclan/callerContext'
 import { toStudioProject, toStudioProjects } from '@/lib/taskclan/projects'
-import { taskclanOrg } from '@/lib/taskclan/org'
+import { taskclanOrg, taskclanOrgs } from '@/lib/taskclan/org'
+import { applyProjectsQuery, projectsPage, readProjectsQuery } from '@/lib/taskclan/projectsPage'
 
 export default (req: NextApiRequest, res: NextApiResponse) => apiWrapper(req, res, handler)
 
@@ -14,7 +15,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   switch (method) {
     case 'GET':
-      return handleGetAll(req, res)
+      // Version 2 is the paginated list every useProjectsInfiniteQuery reads;
+      // the bare list is what anything older still gets.
+      return req.headers.version === '2' ? handleGetPage(req, res) : handleGetAll(req, res)
     case 'POST':
       return handleCreate(req, res)
     default:
@@ -119,4 +122,73 @@ const handleGetAll = async (req: NextApiRequest, res: NextApiResponse) => {
 
   res.setHeader('x-taskclan-source', 'cloud')
   return res.status(200).json(toStudioProjects(result.data, org.data.id))
+}
+
+/**
+ * One page of every app the caller can reach, across all their organisations
+ * (Version 2: `{ projects, pagination }`).
+ *
+ * Studio's useProjectsInfiniteQuery asks for this, and every consumer flattens
+ * `pages.flatMap((page) => page.projects)`. This route answered with the bare
+ * list regardless, so `page.projects` was undefined and each consumer got one
+ * `undefined` project. The command menu destructured it ("Cannot destructure
+ * property 'name' of 'undefined'") and took the New organization page down.
+ *
+ * Every organisation, not the active one: the command menu switches between
+ * all of them, and the New organization form looks for free organisations
+ * that already have projects (by `organization_slug`). A shared key has one
+ * organisation, its own, so it lists just that one rather than the same apps
+ * once per organisation of its minter.
+ */
+const handleGetPage = async (req: NextApiRequest, res: NextApiResponse) => {
+  const query = readProjectsQuery(req.query)
+
+  if (!taskclanConfigured()) {
+    res.setHeader('x-taskclan-source', 'stub')
+    return res.status(200).json({
+      projects: [{ ...DEFAULT_PROJECT, databases: [] }],
+      pagination: { count: 1, limit: query.limit, offset: query.offset },
+    })
+  }
+
+  const resolved = callerFromRequest(req)
+  if (!resolved.ok) {
+    return res.status(resolved.status).json({ data: null, error: { message: resolved.reason } })
+  }
+  const caller = resolved.caller
+
+  const orgs = await taskclanOrgs(caller)
+  if (!orgs.ok) {
+    console.error('[taskclan] resolving orgs failed: %s, %s', orgs.reason, orgs.detail)
+    return res
+      .status(502)
+      .json({ data: null, error: { message: `Taskclan Cloud did not answer: ${orgs.detail}` } })
+  }
+  const targets =
+    caller.kind === 'shared'
+      ? [orgs.data.active].filter((o): o is NonNullable<typeof o> => o != null)
+      : orgs.data.orgs
+
+  const listed = await Promise.all(
+    targets.map(async (org) => ({ org, sites: await listCloudSites(inOrg(caller, org.uuid)) }))
+  )
+  const failed = listed.find((l) => !l.sites.ok)
+  if (failed && !failed.sites.ok) {
+    console.error('[taskclan] listing apps failed: %s, %s', failed.sites.reason, failed.sites.detail)
+    return res.status(502).json({
+      data: null,
+      error: { message: `Taskclan Cloud did not answer: ${failed.sites.detail}` },
+    })
+  }
+
+  const all = applyProjectsQuery(
+    listed.flatMap(({ org, sites }) =>
+      sites.ok
+        ? toStudioProjects(sites.data, org.id).map((p) => ({ ...p, organization_slug: org.slug }))
+        : []
+    ),
+    query
+  )
+  res.setHeader('x-taskclan-source', 'cloud')
+  return res.status(200).json(projectsPage(all, query))
 }
