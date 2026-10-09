@@ -25,6 +25,15 @@ const {
   mockUseVercelRedirectQuery: vi.fn(),
 }))
 
+// The nav reads the organization from the URL (common's useParams). The test
+// setup's global mock answers { ref: 'default' }, so this nav never had a slug
+// here: it rendered anyway, with every link /org//…, which is what next/router
+// warned about in the browser on first render. Links now wait for the slug.
+vi.mock('common', async (importOriginal) => {
+  const actual = (await importOriginal()) as typeof import('common')
+  return { ...actual, useParams: () => ({ slug: 'my-org' }) }
+})
+
 vi.mock('@/hooks/misc/useSelectedOrganization', () => ({
   useSelectedOrganizationQuery: mockUseSelectedOrganizationQuery,
 }))
@@ -294,6 +303,9 @@ describe('the organization settings nav', () => {
     // The two entries this fork adds, which had no desktop entry point at all.
     expect(within(nav).getByText('Releases')).toBeInTheDocument()
     expect(within(nav).getByText('API Keys')).toBeInTheDocument()
+    for (const link of within(nav).getAllByRole('link')) {
+      expect(link.getAttribute('href')).toMatch(/^\/org\/my-org\//)
+    }
   })
 
   it('stays out of the way outside organization scope', () => {

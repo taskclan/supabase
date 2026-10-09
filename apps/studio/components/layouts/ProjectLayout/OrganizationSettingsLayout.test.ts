@@ -186,3 +186,20 @@ describe('OrganizationSettingsLayout helpers', () => {
     ).toBe(true)
   })
 })
+
+describe('before the organization is known', () => {
+  it('offers no links rather than ones that lead to /org//…', () => {
+    // The slug is empty on the first render, before the router is ready, and
+    // next/router warned once for every link built from it.
+    expect(generateOrganizationSettingsSections({ currentPath: '/org//general', slug: '' })).toEqual([])
+    expect(generateOrganizationSettingsSections({ currentPath: '/org//general', slug: undefined })).toEqual([])
+  })
+
+  it('never builds a link with an empty segment once it is', () => {
+    const hrefs = generateOrganizationSettingsSections({ currentPath: '/org/my-org/general', slug: 'my-org' })
+      .flatMap((section) => section.links)
+      .map((link) => link.href)
+    expect(hrefs.length).toBeGreaterThan(0)
+    for (const href of hrefs) expect(href).not.toContain('//')
+  })
+})

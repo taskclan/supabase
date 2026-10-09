@@ -107,6 +107,12 @@ export const generateOrganizationSettingsSections = ({
   showPrivateApps = false,
   showAuditLogDrains = false,
 }: OrganizationSettingsSectionsProps): SidebarSection[] => {
+  // Before the router is ready the slug is empty, and every link would come out
+  // as `/org//general`: next/router warned once per link on each settings page
+  // load. A link without its organization goes nowhere, so there are no links
+  // until the slug is known, a render later.
+  if (!slug) return []
+
   const isLinkActive = (key: string, href: string) =>
     key === 'webhooks'
       ? currentPath === href || currentPath.startsWith(`${href}/`)
