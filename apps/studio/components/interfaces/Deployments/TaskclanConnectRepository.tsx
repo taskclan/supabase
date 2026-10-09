@@ -47,14 +47,17 @@ export interface GitState {
 
 type RunAs = GitState['type']
 
+// Named as the new-app form names them, so the choice reads the same in both
+// places. A static site is not "files with nothing behind them": a landing page
+// with a waitlist still needs somewhere to keep the signups.
 const RUN_AS: Record<RunAs, { label: string; hint: string }> = {
   static: {
-    label: 'Static files',
-    hint: 'Served as they are, with no build step. For a repository of finished HTML, CSS and JavaScript.',
+    label: 'Static site',
+    hint: 'Prebuilt files served from the edge, with no server running. It can still use a database the page talks to directly, like Supabase for a waitlist.',
   },
   service: {
-    label: 'A server',
-    hint: 'Built and run in a container. For Next.js, Node, or anything with a start command.',
+    label: 'Web service',
+    hint: 'A running app in a container: Next.js, Node, or anything with a start command. Choose this when code has to run on a server or keep a secret.',
   },
 }
 
@@ -125,8 +128,8 @@ export function TaskclanConnectRepository({
     () => state?.repos.find((r) => r.fullName === repo) ?? null,
     [state, repo]
   )
-  // A static app can become a server (deploy-service sets the type); a server
-  // has no way back to static files, so only a static app is asked.
+  // A static site can become a web service (deploy-service sets the type); a
+  // web service has no way back to a static site, so only a static site is asked.
   const runAs: RunAs = chosenRunAs ?? state?.type ?? 'service'
 
   const installOnGitHub = async () => {

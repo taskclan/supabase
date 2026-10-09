@@ -153,7 +153,7 @@ describe('TaskclanConnectRepository', () => {
     ])
   })
 
-  it('links and deploys a static app as static files, then gets out of the way', async () => {
+  it('links and deploys a static site as one, then gets out of the way', async () => {
     const sent = consoleApi(
       {
         before: state({ installations: [TASKCLAN], repos: [AIYA_REPO] }),
@@ -181,7 +181,7 @@ describe('TaskclanConnectRepository', () => {
 
     // The branch starts at the repository's default, and the app's own type is the default.
     expect(screen.getByLabelText('Branch')).toHaveValue('main')
-    expect(screen.getByRole('combobox', { name: 'Run it as' })).toHaveTextContent('Static files')
+    expect(screen.getByRole('combobox', { name: 'Run it as' })).toHaveTextContent('Static site')
 
     await user.click(screen.getByRole('button', { name: 'Connect and deploy' }))
 
@@ -197,7 +197,7 @@ describe('TaskclanConnectRepository', () => {
     expect(screen.queryByRole('region', { name: 'Connect a repository' })).not.toBeInTheDocument()
   })
 
-  it('lets a static app switch to a server', async () => {
+  it('lets a static site become a web service', async () => {
     const sent = consoleApi(
       { before: state({ installations: [TASKCLAN], repos: [AIYA_REPO] }) },
       {
@@ -210,7 +210,7 @@ describe('TaskclanConnectRepository', () => {
     await user.click(await screen.findByRole('combobox', { name: 'Repository' }))
     await user.click(await screen.findByRole('option', { name: /taskclan\/taskclan-aiya-web/ }))
     await user.click(screen.getByRole('combobox', { name: 'Run it as' }))
-    await user.click(await screen.findByRole('option', { name: 'A server' }))
+    await user.click(await screen.findByRole('option', { name: 'Web service' }))
     await user.click(screen.getByRole('button', { name: 'Connect and deploy' }))
 
     await waitFor(() => expect(writes(sent)).toHaveLength(1))
@@ -221,8 +221,8 @@ describe('TaskclanConnectRepository', () => {
     })
   })
 
-  it('does not offer static files to an app that runs as a server', async () => {
-    // A server has no way back to static files, so asking would only offer a refusal.
+  it('does not offer a static site to a web service', async () => {
+    // A web service has no way back to a static site, so asking would only offer a refusal.
     consoleApi({
       before: state({ type: 'service', installations: [TASKCLAN], repos: [AIYA_REPO] }),
     })

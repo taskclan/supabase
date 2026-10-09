@@ -78,7 +78,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // quietly get a server build here, so refuse rather than do the other thing.
       if (site.type === 'service') {
         return res.status(409).json({
-          error: 'this app runs as a server, so it cannot be deployed as static files',
+          error: 'this app is a web service, so it cannot be deployed as a static site',
         })
       }
       const link: Record<string, unknown> = { repo }
