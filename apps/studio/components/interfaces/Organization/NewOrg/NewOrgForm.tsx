@@ -66,6 +66,16 @@ import {
 import { useTrack } from '@/lib/telemetry/track'
 import { useTrackFunnelError } from '@/lib/telemetry/use-track-funnel-error'
 
+/**
+ * Taskclan Cloud sells its own plans, from the organization's Billing page once
+ * the organization exists. The Plan picker below and its card form are
+ * Supabase's: the prices are Supabase's, and the card form is wired to nothing
+ * here. Choosing a paid plan made "Create organization" do nothing at all,
+ * because the payment method it waits for never came. Every organization
+ * starts on Free.
+ */
+const OFFERS_SUPABASE_PLANS = false
+
 interface NewOrgFormProps {
   onPaymentMethodReset: () => void
   setupIntent?: SetupIntentResponse
@@ -146,7 +156,7 @@ export const NewOrgForm = ({
   const form = useForm<FormState>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      plan: defaultValues.plan.toUpperCase() as (typeof plans)[number],
+      plan: (OFFERS_SUPABASE_PLANS ? defaultValues.plan.toUpperCase() : 'FREE') as (typeof plans)[number],
       name: defaultValues.name,
       kind: defaultValues.kind as OrgKind,
       size: defaultValues.size as OrgSize,
@@ -156,7 +166,7 @@ export const NewOrgForm = ({
 
   useEffect(() => {
     form.reset({
-      plan: defaultValues.plan.toUpperCase() as (typeof plans)[number],
+      plan: (OFFERS_SUPABASE_PLANS ? defaultValues.plan.toUpperCase() : 'FREE') as (typeof plans)[number],
       name: defaultValues.name,
       kind: defaultValues.kind as OrgKind,
       size: defaultValues.size as OrgSize,
@@ -370,8 +380,8 @@ export const NewOrgForm = ({
   const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = async (formValues) => {
     setNewOrgLoading(true)
 
-    if (formValues.plan === 'FREE') {
-      await createOrg(formValues)
+    if (formValues.plan === 'FREE' || !OFFERS_SUPABASE_PLANS) {
+      await createOrg({ ...formValues, plan: 'FREE' })
       return
     }
 
@@ -450,7 +460,16 @@ export const NewOrgForm = ({
               )}
             />
 
-            {isBillingEnabled && (
+            {isBillingEnabled && !OFFERS_SUPABASE_PLANS && (
+              <Panel.Content>
+                <p className="text-sm text-foreground-lighter">
+                  New organizations start on the Free plan. Choose a plan in the organization&apos;s
+                  Billing settings once it&apos;s created.
+                </p>
+              </Panel.Content>
+            )}
+
+            {isBillingEnabled && OFFERS_SUPABASE_PLANS && (
               <Panel.Content>
                 <FormField
                   control={form.control}
