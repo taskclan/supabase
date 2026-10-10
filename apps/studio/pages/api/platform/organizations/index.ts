@@ -1,14 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import { apiWrapper } from '@/lib/api/apiWrapper'
-import { taskclanConfigured, taskclanMultiTenant } from '@/lib/taskclan/client'
+import { bearerFromHeader, taskclanConfigured, taskclanMultiTenant } from '@/lib/taskclan/client'
 import { taskclanOrg, userOrgs } from '@/lib/taskclan/org'
-
-/** The caller's bearer token, forwarded to the engine so actions are theirs. */
-function bearerToken(req: NextApiRequest): string {
-  const h = req.headers.authorization
-  return (Array.isArray(h) ? h[0] : h)?.trim() ?? ''
-}
 
 export default (req: NextApiRequest, res: NextApiResponse) => apiWrapper(req, res, handler)
 
@@ -54,7 +48,7 @@ const handleGetAll = async (req: NextApiRequest, res: NextApiResponse) => {
   // resolved from their own token by the engine. Falls through to the
   // single-key org when the token path isn't available, so the console keeps
   // working while multi-tenant auth is being wired up.
-  const token = bearerToken(req)
+  const token = bearerFromHeader(req.headers.authorization)
   if (taskclanMultiTenant() && token) {
     const orgs = await userOrgs(token)
     if (orgs.ok) {

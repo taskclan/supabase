@@ -18,8 +18,14 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 
 import { apiWrapper } from '@/lib/api/apiWrapper'
 import { DEFAULT_PROJECT } from '@/lib/constants/api'
-import { listCloudSites, taskclanConfigured } from '@/lib/taskclan/client'
-import { taskclanOrg } from '@/lib/taskclan/org'
+import {
+  bearerFromHeader,
+  listCloudSites,
+  listUserSites,
+  taskclanConfigured,
+  taskclanMultiTenant,
+} from '@/lib/taskclan/client'
+import { findUserOrg, taskclanOrg } from '@/lib/taskclan/org'
 import { toStudioProjects, type StudioProject } from '@/lib/taskclan/projects'
 
 export default (req: NextApiRequest, res: NextApiResponse) => apiWrapper(req, res, handler)
@@ -100,6 +106,35 @@ const handleGet = async (req: NextApiRequest, res: NextApiResponse) => {
     return res
       .status(200)
       .json({ projects: [DEFAULT_PROJECT], pagination: { count: 1, limit, offset } })
+  }
+
+  // `databases` is required, not optional decoration (see the long note below);
+  // every project the grid renders must carry it. Shared by both paths.
+  const page = (projects: StudioProject[]) => {
+    const filtered = applyQuery(projects, { search, statuses, sort })
+    const withDbs = filtered.map((p) => ({ ...p, databases: [] }))
+    res.setHeader('x-taskclan-source', 'cloud-user')
+    return res
+      .status(200)
+      .json({ projects: withDbs.slice(offset, offset + limit), pagination: { count: filtered.length, limit, offset } })
+  }
+
+  // Multi-tenant: the SELECTED org's apps, for the signed-in user, scoped by
+  // their token + the slug. A slug the user is not a member of returns nothing
+  // (never another org's apps). Falls back to the single-key path only when the
+  // engine won't honour the token, so the console keeps working mid-migration.
+  const slug = str(req.query.slug)
+  const token = bearerFromHeader(req.headers.authorization)
+  if (taskclanMultiTenant() && token && slug) {
+    const found = await findUserOrg(token, slug)
+    if (found.ok) {
+      if (!found.data) return page([]) // not a member of this workspace
+      const userSites = await listUserSites(token, slug)
+      if (userSites.ok) return page(toStudioProjects(userSites.data, found.data.id))
+      console.warn('[taskclan] multi-tenant apps list failed, falling back to the key org: %s — %s', userSites.reason, userSites.detail)
+    } else {
+      console.warn('[taskclan] resolving the user org failed, falling back to the key org: %s — %s', found.reason, found.detail)
+    }
   }
 
   const [org, sites] = await Promise.all([taskclanOrg(), listCloudSites()])

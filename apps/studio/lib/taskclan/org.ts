@@ -90,3 +90,10 @@ export async function userOrgs(token: string): Promise<CloudResult<TaskclanUserO
     })),
   }
 }
+
+/** The signed-in user's org matching a slug, or null when they are not a member of it. */
+export async function findUserOrg(token: string, slug: string): Promise<CloudResult<TaskclanUserOrg | null>> {
+  const orgs = await userOrgs(token)
+  if (!orgs.ok) return orgs
+  return { ok: true, data: orgs.data.find((o) => o.slug === slug) ?? null }
+}

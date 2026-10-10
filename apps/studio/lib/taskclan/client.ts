@@ -285,3 +285,21 @@ export function listUserOrgs(token: string): Promise<CloudResult<CloudUserOrg[]>
       }))
   })
 }
+
+/** The signed-in user's apps in one workspace. Engine: GET /api/cloud/v1/sites, scoped by x-taskclan-org. */
+export function listUserSites(token: string, orgHeader: string): Promise<CloudResult<CloudSite[]>> {
+  return cloudGetAs(
+    '/api/cloud/v1/sites',
+    token,
+    (body) => {
+      const sites = (body as { sites?: unknown })?.sites
+      return Array.isArray(sites) ? (sites as CloudSite[]) : []
+    },
+    orgHeader
+  )
+}
+
+/** The caller's bearer token from a Next request header (string | string[] | undefined). */
+export function bearerFromHeader(v: string | string[] | undefined): string {
+  return (Array.isArray(v) ? v[0] : v)?.trim() ?? ''
+}

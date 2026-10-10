@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { listUserSites } from './client'
 import { numericIdFor } from './projects'
-import { orgSlug, userOrgs } from './org'
+import { findUserOrg, orgSlug, userOrgs } from './org'
 
 /**
  * Multi-tenant org listing: the console must show the SIGNED-IN USER's orgs,
@@ -74,5 +75,48 @@ describe('userOrgs', () => {
     stubFetch({ error: 'unauthorized' }, 401)
     const res = await userOrgs('user-jwt')
     expect(res).toMatchObject({ ok: false, reason: 'http_error' })
+  })
+})
+
+describe('findUserOrg', () => {
+  const orgsBody = {
+    orgs: [
+      { id: 'aaaaaaaa-0000-4000-8000-000000000000', name: 'Aiya', slug: 'aiya', role: 'owner' },
+      { id: 'bbbbbbbb-0000-4000-8000-000000000000', name: 'Beta', slug: 'beta', role: 'viewer' },
+    ],
+  }
+  const stub = (body: unknown, status = 200) =>
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } })))
+
+  it('returns the matching workspace', async () => {
+    stub(orgsBody)
+    const res = await findUserOrg('user-jwt', 'beta')
+    expect(res.ok && res.data?.slug).toBe('beta')
+    expect(res.ok && res.data?.role).toBe('viewer')
+  })
+
+  it('returns null when the user is not a member of that slug (never another org)', async () => {
+    stub(orgsBody)
+    const res = await findUserOrg('user-jwt', 'someone-elses-org')
+    expect(res).toMatchObject({ ok: true, data: null })
+  })
+})
+
+describe('listUserSites', () => {
+  it('forwards the user token and names the workspace with x-taskclan-org', async () => {
+    const seen: { auth?: string; org?: string } = {}
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url: string, init?: RequestInit) => {
+        const h = (init?.headers ?? {}) as Record<string, string>
+        seen.auth = h.authorization
+        seen.org = h['x-taskclan-org']
+        return new Response(JSON.stringify({ sites: [{ id: 's1' }] }), { status: 200, headers: { 'content-type': 'application/json' } })
+      })
+    )
+    const res = await listUserSites('user-jwt', 'aiya')
+    expect(res.ok).toBe(true)
+    expect(seen.auth).toBe('Bearer user-jwt')
+    expect(seen.org).toBe('aiya')
   })
 })
