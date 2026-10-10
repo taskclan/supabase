@@ -29,6 +29,12 @@
   //   TC_ACCESS_TOKEN         optional; enables the Worker's private-site gate
   "vars": {
     "TASKCLAN_CLOUD_URL": "https://engine.taskclan.com",
+    // Server-side gate for the user-token multi-tenant path (cloudProxy +
+    // org-scoped routes from taskclan/supabase#29): forward the signed-in
+    // user's JWT to the engine instead of falling back to the single sk_cloud
+    // key. Pairs with the build-time NEXT_PUBLIC_TASKCLAN_MULTI_TENANT in
+    // apps/studio/.env. Only meaningful once #29 is deployed.
+    "TASKCLAN_MULTI_TENANT": "true",
     // The shared Supabase project every Taskclan app connects to via
     // supabase-js. The Connect panel's Framework/Mobile/Server tabs surface this
     // REST URL + the anon key (TASKCLAN_SUPABASE_ANON_KEY, a Worker secret). The
