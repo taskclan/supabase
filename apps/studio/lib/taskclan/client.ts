@@ -205,3 +205,83 @@ export function getCloudOrg(): Promise<CloudResult<{ id: string; name: string } 
     return orgs.find((o) => o.id === b?.activeOrgId) ?? orgs[0]
   })
 }
+
+// ---------------------------------------------------------------------------
+// Multi-tenant (Phase 1): act as the signed-in user, not the shared key.
+//
+// The shared sk_cloud_* key resolves to one org (the key IS the scope). To make
+// the console multi-tenant we forward the caller's OWN bearer token to the
+// engine, which authenticates the user and scopes by their membership + role
+// exactly as it already does for its own console. An optional x-taskclan-org
+// header names the workspace (slug or id) for org-scoped reads. Gated by
+// TASKCLAN_MULTI_TENANT so the single-org behaviour is unchanged until the
+// console's auth is pointed at the engine's identity and this is switched on.
+// ---------------------------------------------------------------------------
+
+/** Multi-tenant mode: forward the user's token instead of acting as the shared key. */
+export function taskclanMultiTenant(): boolean {
+  return process.env.TASKCLAN_MULTI_TENANT === 'true'
+}
+
+async function cloudGetAs<T>(
+  path: string,
+  token: string,
+  pick: (body: unknown) => T,
+  orgHeader?: string
+): Promise<CloudResult<T>> {
+  const cfg = taskclanConfig()
+  if (!cfg.ok) return { ok: false, reason: 'not_configured', detail: cfg.reason }
+  if (!token) return { ok: false, reason: 'not_configured', detail: 'no user token on the request' }
+
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
+  try {
+    const res = await fetch(`${cfg.config.url}${path}`, {
+      headers: {
+        authorization: /^bearer /i.test(token) ? token : `Bearer ${token}`,
+        accept: 'application/json',
+        ...(orgHeader ? { 'x-taskclan-org': orgHeader } : {}),
+      },
+      signal: controller.signal,
+    })
+    if (!res.ok) {
+      const body = await res.text().catch(() => '')
+      return { ok: false, reason: 'http_error', detail: `${res.status} ${body.slice(0, 200)}` }
+    }
+    return { ok: true, data: pick(await res.json()) }
+  } catch (e) {
+    return { ok: false, reason: 'network_error', detail: e instanceof Error ? e.message : String(e) }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+export interface CloudUserOrg {
+  /** The org's uuid — its real identity. */
+  id: string
+  name: string
+  /** Real slug from Cloud (e.g. "aiya"); '' when the engine didn't send one. */
+  slug: string
+  /** The signed-in user's role in this org. */
+  role: string
+}
+
+/**
+ * The orgs the signed-in user belongs to, each with their role. Engine:
+ * GET /api/cloud/v1/orgs resolves the user from their token and returns all of
+ * their memberships — the multi-tenant replacement for the single-key org.
+ */
+export function listUserOrgs(token: string): Promise<CloudResult<CloudUserOrg[]>> {
+  return cloudGetAs('/api/cloud/v1/orgs', token, (body) => {
+    const orgs = (body as { orgs?: unknown })?.orgs
+    if (!Array.isArray(orgs)) return []
+    return (orgs as Array<Record<string, unknown>>)
+      .filter((o) => typeof o.id === 'string' && typeof o.name === 'string')
+      .map((o) => ({
+        id: o.id as string,
+        name: o.name as string,
+        slug: typeof o.slug === 'string' ? (o.slug as string) : '',
+        role: typeof o.role === 'string' ? (o.role as string) : 'member',
+      }))
+  })
+}

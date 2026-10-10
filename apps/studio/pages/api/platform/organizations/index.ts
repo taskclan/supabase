@@ -1,8 +1,14 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import { apiWrapper } from '@/lib/api/apiWrapper'
-import { taskclanConfigured } from '@/lib/taskclan/client'
-import { taskclanOrg } from '@/lib/taskclan/org'
+import { taskclanConfigured, taskclanMultiTenant } from '@/lib/taskclan/client'
+import { taskclanOrg, userOrgs } from '@/lib/taskclan/org'
+
+/** The caller's bearer token, forwarded to the engine so actions are theirs. */
+function bearerToken(req: NextApiRequest): string {
+  const h = req.headers.authorization
+  return (Array.isArray(h) ? h[0] : h)?.trim() ?? ''
+}
 
 export default (req: NextApiRequest, res: NextApiResponse) => apiWrapper(req, res, handler)
 
@@ -38,10 +44,36 @@ const STUB_ORG = {
  * with a single-org list (it is what self-hosted mode has always returned) and
  * the switcher simply has nothing to switch to.
  */
-const handleGetAll = async (_req: NextApiRequest, res: NextApiResponse) => {
+const handleGetAll = async (req: NextApiRequest, res: NextApiResponse) => {
   if (!taskclanConfigured()) {
     res.setHeader('x-taskclan-source', 'stub')
     return res.status(200).json([STUB_ORG])
+  }
+
+  // Multi-tenant: return the SIGNED-IN USER's orgs (each with their role),
+  // resolved from their own token by the engine. Falls through to the
+  // single-key org when the token path isn't available, so the console keeps
+  // working while multi-tenant auth is being wired up.
+  const token = bearerToken(req)
+  if (taskclanMultiTenant() && token) {
+    const orgs = await userOrgs(token)
+    if (orgs.ok) {
+      res.setHeader('x-taskclan-source', 'cloud-user')
+      return res.status(200).json(
+        orgs.data.map((o) => ({
+          id: o.id,
+          name: o.name,
+          slug: o.slug,
+          role: o.role,
+          billing_email: null,
+          plan: { id: 'enterprise', name: 'Taskclan Cloud' },
+        }))
+      )
+    }
+    // Token present but the engine wouldn't honour it (e.g. the console's auth
+    // isn't pointed at the engine's identity yet). Log and fall back rather
+    // than 502, so the single-org view still renders.
+    console.warn('[taskclan] multi-tenant org list failed, falling back to the key org: %s — %s', orgs.reason, orgs.detail)
   }
 
   const org = await taskclanOrg()
