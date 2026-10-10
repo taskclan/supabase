@@ -199,6 +199,7 @@ import { Route as AppOrgSlugSsoRouteImport } from './routes/_app/org/$slug/sso'
 import { Route as AppOrgSlugSecurityRouteImport } from './routes/_app/org/$slug/security'
 import { Route as AppOrgSlugIntegrationsRouteImport } from './routes/_app/org/$slug/integrations'
 import { Route as AppOrgSlugGeneralRouteImport } from './routes/_app/org/$slug/general'
+import { Route as AppOrgSlugDomainsRouteImport } from './routes/_app/org/$slug/domains'
 import { Route as AppOrgSlugDocumentsRouteImport } from './routes/_app/org/$slug/documents'
 import { Route as AppOrgSlugBillingRouteImport } from './routes/_app/org/$slug/billing'
 import { Route as AppOrgSlugAuditLogDrainsRouteImport } from './routes/_app/org/$slug/audit-log-drains'
@@ -1348,6 +1349,11 @@ const AppOrgSlugGeneralRoute = AppOrgSlugGeneralRouteImport.update({
   path: '/$slug/general',
   getParentRoute: () => AppOrgRoute,
 } as any)
+const AppOrgSlugDomainsRoute = AppOrgSlugDomainsRouteImport.update({
+  id: '/$slug/domains',
+  path: '/$slug/domains',
+  getParentRoute: () => AppOrgRoute,
+} as any)
 const AppOrgSlugDocumentsRoute = AppOrgSlugDocumentsRouteImport.update({
   id: '/$slug/documents',
   path: '/$slug/documents',
@@ -2202,6 +2208,7 @@ export interface FileRoutesByFullPath {
   '/org/$slug/audit-log-drains': typeof AppOrgSlugAuditLogDrainsRoute
   '/org/$slug/billing': typeof AppOrgSlugBillingRoute
   '/org/$slug/documents': typeof AppOrgSlugDocumentsRoute
+  '/org/$slug/domains': typeof AppOrgSlugDomainsRoute
   '/org/$slug/general': typeof AppOrgSlugGeneralRoute
   '/org/$slug/integrations': typeof AppOrgSlugIntegrationsRoute
   '/org/$slug/security': typeof AppOrgSlugSecurityRoute
@@ -2511,6 +2518,7 @@ export interface FileRoutesByTo {
   '/org/$slug/audit-log-drains': typeof AppOrgSlugAuditLogDrainsRoute
   '/org/$slug/billing': typeof AppOrgSlugBillingRoute
   '/org/$slug/documents': typeof AppOrgSlugDocumentsRoute
+  '/org/$slug/domains': typeof AppOrgSlugDomainsRoute
   '/org/$slug/general': typeof AppOrgSlugGeneralRoute
   '/org/$slug/integrations': typeof AppOrgSlugIntegrationsRoute
   '/org/$slug/security': typeof AppOrgSlugSecurityRoute
@@ -2831,6 +2839,7 @@ export interface FileRoutesById {
   '/_app/org/$slug/audit-log-drains': typeof AppOrgSlugAuditLogDrainsRoute
   '/_app/org/$slug/billing': typeof AppOrgSlugBillingRoute
   '/_app/org/$slug/documents': typeof AppOrgSlugDocumentsRoute
+  '/_app/org/$slug/domains': typeof AppOrgSlugDomainsRoute
   '/_app/org/$slug/general': typeof AppOrgSlugGeneralRoute
   '/_app/org/$slug/integrations': typeof AppOrgSlugIntegrationsRoute
   '/_app/org/$slug/security': typeof AppOrgSlugSecurityRoute
@@ -3153,6 +3162,7 @@ export interface FileRouteTypes {
     | '/org/$slug/audit-log-drains'
     | '/org/$slug/billing'
     | '/org/$slug/documents'
+    | '/org/$slug/domains'
     | '/org/$slug/general'
     | '/org/$slug/integrations'
     | '/org/$slug/security'
@@ -3462,6 +3472,7 @@ export interface FileRouteTypes {
     | '/org/$slug/audit-log-drains'
     | '/org/$slug/billing'
     | '/org/$slug/documents'
+    | '/org/$slug/domains'
     | '/org/$slug/general'
     | '/org/$slug/integrations'
     | '/org/$slug/security'
@@ -3781,6 +3792,7 @@ export interface FileRouteTypes {
     | '/_app/org/$slug/audit-log-drains'
     | '/_app/org/$slug/billing'
     | '/_app/org/$slug/documents'
+    | '/_app/org/$slug/domains'
     | '/_app/org/$slug/general'
     | '/_app/org/$slug/integrations'
     | '/_app/org/$slug/security'
@@ -5476,6 +5488,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOrgSlugGeneralRouteImport
       parentRoute: typeof AppOrgRoute
     }
+    '/_app/org/$slug/domains': {
+      id: '/_app/org/$slug/domains'
+      path: '/$slug/domains'
+      fullPath: '/org/$slug/domains'
+      preLoaderRoute: typeof AppOrgSlugDomainsRouteImport
+      parentRoute: typeof AppOrgRoute
+    }
     '/_app/org/$slug/documents': {
       id: '/_app/org/$slug/documents'
       path: '/$slug/documents'
@@ -6416,6 +6435,7 @@ interface AppOrgRouteChildren {
   AppOrgSlugAuditLogDrainsRoute: typeof AppOrgSlugAuditLogDrainsRoute
   AppOrgSlugBillingRoute: typeof AppOrgSlugBillingRoute
   AppOrgSlugDocumentsRoute: typeof AppOrgSlugDocumentsRoute
+  AppOrgSlugDomainsRoute: typeof AppOrgSlugDomainsRoute
   AppOrgSlugGeneralRoute: typeof AppOrgSlugGeneralRoute
   AppOrgSlugIntegrationsRoute: typeof AppOrgSlugIntegrationsRoute
   AppOrgSlugSecurityRoute: typeof AppOrgSlugSecurityRoute
@@ -6435,6 +6455,7 @@ const AppOrgRouteChildren: AppOrgRouteChildren = {
   AppOrgSlugAuditLogDrainsRoute: AppOrgSlugAuditLogDrainsRoute,
   AppOrgSlugBillingRoute: AppOrgSlugBillingRoute,
   AppOrgSlugDocumentsRoute: AppOrgSlugDocumentsRoute,
+  AppOrgSlugDomainsRoute: AppOrgSlugDomainsRoute,
   AppOrgSlugGeneralRoute: AppOrgSlugGeneralRoute,
   AppOrgSlugIntegrationsRoute: AppOrgSlugIntegrationsRoute,
   AppOrgSlugSecurityRoute: AppOrgSlugSecurityRoute,

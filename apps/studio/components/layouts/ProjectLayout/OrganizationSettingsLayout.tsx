@@ -19,7 +19,16 @@ interface OrganizationSettingsMenuItemsProps {
   showPlatformWebhooks?: boolean
   showPrivateApps?: boolean
   showAuditLogDrains?: boolean
+  /** Buy-a-domain lives behind the multi-tenant/unified-auth rollout; hidden until it's on. */
+  showDomains?: boolean
 }
+
+/**
+ * Domains is reachable only once the console forwards the user's identity to
+ * the engine (TASKCLAN_MULTI_TENANT). The public mirror of that server flag
+ * gates the nav so we never show a link that would 501.
+ */
+const DOMAINS_ENABLED = process.env.NEXT_PUBLIC_TASKCLAN_MULTI_TENANT === 'true'
 
 interface OrganizationSettingsSectionsProps extends OrganizationSettingsMenuItemsProps {
   currentPath: string
@@ -35,12 +44,22 @@ export const generateOrganizationSettingsMenuItems = ({
   showPlatformWebhooks = true,
   showPrivateApps: _showPrivateApps = false,
   showAuditLogDrains = false,
+  showDomains = DOMAINS_ENABLED,
 }: OrganizationSettingsMenuItemsProps) => [
   {
     key: 'general',
     label: 'General',
     href: `/org/${slug}/general`,
   },
+  ...(showDomains
+    ? [
+        {
+          key: 'domains',
+          label: 'Domains',
+          href: `/org/${slug}/domains`,
+        },
+      ]
+    : []),
   ...(showSecuritySettings
     ? [
         {
@@ -107,6 +126,7 @@ export const generateOrganizationSettingsSections = ({
   showPlatformWebhooks = true,
   showPrivateApps = false,
   showAuditLogDrains = false,
+  showDomains = DOMAINS_ENABLED,
 }: OrganizationSettingsSectionsProps): SidebarSection[] => {
   const isLinkActive = (key: string, href: string) =>
     key === 'webhooks'
@@ -120,6 +140,15 @@ export const generateOrganizationSettingsSections = ({
       href: `/org/${slug}/general`,
       shortcutId: SHORTCUT_IDS.NAV_ORG_SETTINGS_GENERAL,
     },
+    ...(showDomains
+      ? [
+          {
+            key: 'domains',
+            label: 'Domains',
+            href: `/org/${slug}/domains`,
+          },
+        ]
+      : []),
     ...(showSecuritySettings
       ? [
           {

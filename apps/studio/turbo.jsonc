@@ -117,6 +117,15 @@
         // to gate Vite-only `import.meta.glob`). Not a real process env var
         // but turbo's `no-undeclared-env-vars` lint flags any `env.SSR` access.
         "SSR",
+        // Taskclan Cloud console → engine bridge (lib/taskclan/*): the engine
+        // base URL and the per-deploy sk_cloud_* key, plus the multi-tenant /
+        // unified-auth switch (and its NEXT_PUBLIC mirror that gates the nav).
+        // Listed so the studio-package turbo env lint rule passes and the build
+        // cache invalidates when any of them change.
+        "TASKCLAN_CLOUD_URL",
+        "TASKCLAN_CLOUD_API_KEY",
+        "TASKCLAN_MULTI_TENANT",
+        "NEXT_PUBLIC_TASKCLAN_MULTI_TENANT",
       ],
       "passThroughEnv": [
         "CURRENT_CLI_VERSION",

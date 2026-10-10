@@ -125,6 +125,7 @@ These are the layout-only TanStack files. Most hold a single product layout comp
 - [x] A `routes/_app/org/$slug/audit-log-drains.tsx` ← `pages/org/[slug]/audit-log-drains.tsx` (wraps in OrganizationSettingsLayout inline)
 - [x] A `routes/_app/org/$slug/billing.tsx` ← `pages/org/[slug]/billing.tsx`
 - [x] A `routes/_app/org/$slug/documents.tsx` ← `pages/org/[slug]/documents.tsx`
+- [x] A `routes/_app/org/$slug/domains.tsx` ← `pages/org/[slug]/domains.tsx` (new page — Buy a domain; wraps in OrganizationSettingsLayout. Added directly in both runtimes, not migrated from an older Next-only page.)
 - [x] A `routes/_app/org/$slug/general.tsx` ← `pages/org/[slug]/general.tsx`
 - [x] A `routes/_app/org/$slug/integrations.tsx` ← `pages/org/[slug]/integrations.tsx`
 - [x] A `routes/_app/org/$slug/security.tsx` ← `pages/org/[slug]/security.tsx`
