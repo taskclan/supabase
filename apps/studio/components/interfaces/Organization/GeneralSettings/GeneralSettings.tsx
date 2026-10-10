@@ -9,6 +9,7 @@ import {
 import { DataPrivacyForm } from './DataPrivacyForm'
 import { OrganizationDeletePanel } from './OrganizationDeletePanel'
 import { OrganizationDetailsForm } from './OrganizationDetailsForm'
+import { TransferOwnershipPanel } from './TransferOwnershipPanel'
 import { NoProjectsOnPaidOrgInfo } from '@/components/interfaces/Billing/NoProjectsOnPaidOrgInfo'
 import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
 
@@ -38,6 +39,17 @@ export const GeneralSettings = () => {
         </PageSectionMeta>
         <PageSectionContent>
           <DataPrivacyForm />
+        </PageSectionContent>
+      </PageSection>
+
+      <PageSection>
+        <PageSectionMeta>
+          <PageSectionSummary>
+            <PageSectionTitle>Transfer ownership</PageSectionTitle>
+          </PageSectionSummary>
+        </PageSectionMeta>
+        <PageSectionContent>
+          <TransferOwnershipPanel />
         </PageSectionContent>
       </PageSection>
 
