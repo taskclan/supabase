@@ -303,3 +303,51 @@ export function listUserSites(token: string, orgHeader: string): Promise<CloudRe
 export function bearerFromHeader(v: string | string[] | undefined): string {
   return (Array.isArray(v) ? v[0] : v)?.trim() ?? ''
 }
+
+/** POST to Cloud as the signed-in user (their token), optionally naming the workspace. Mirrors cloudPost's error parsing. */
+async function cloudPostAs<T>(
+  path: string,
+  token: string,
+  body: unknown,
+  pick: (body: unknown, status: number) => T,
+  orgHeader?: string,
+  timeoutMs = TIMEOUT_MS
+): Promise<CloudResult<T>> {
+  const cfg = taskclanConfig()
+  if (!cfg.ok) return { ok: false, reason: 'not_configured', detail: cfg.reason }
+  if (!token) return { ok: false, reason: 'not_configured', detail: 'no user token on the request' }
+
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const res = await fetch(`${cfg.config.url}${path}`, {
+      method: 'POST',
+      headers: {
+        authorization: /^bearer /i.test(token) ? token : `Bearer ${token}`,
+        accept: 'application/json',
+        'content-type': 'application/json',
+        ...(orgHeader ? { 'x-taskclan-org': orgHeader } : {}),
+      },
+      body: JSON.stringify(body ?? {}),
+      signal: controller.signal,
+    })
+    if (!res.ok) {
+      const text = await res.text().catch(() => '')
+      let detail = `${res.status}`
+      try {
+        const parsed = JSON.parse(text) as { error?: string }
+        detail = parsed?.error ? parsed.error : `${res.status} ${text.slice(0, 200)}`
+      } catch {
+        detail = `${res.status} ${text.slice(0, 200)}`
+      }
+      return { ok: false, reason: 'http_error', detail }
+    }
+    return { ok: true, data: pick(await res.json().catch(() => ({})), res.status) }
+  } catch (e) {
+    return { ok: false, reason: 'network_error', detail: e instanceof Error ? e.message : String(e) }
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+export { cloudGetAs, cloudPostAs }
