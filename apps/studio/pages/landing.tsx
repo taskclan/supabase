@@ -18,7 +18,7 @@
  * tokens so the page and the product it opens into look like one thing.
  *
  * Everything asserted here is a capability that exists: per-second container
- * metering, managed Postgres, review apps, instant rollback, a hard spend cap.
+ * metering, managed Postgres, branch preview deploys, a monthly spend cap.
  * A landing page that promises what the platform does not do is a support
  * ticket with a nicer font.
  */
@@ -86,10 +86,16 @@ const PRODUCTS: Array<{ name: string; blurb: string; href: string }> = [
  *     back on the list when the UI ships.
  *   "One-off containers for migrations and jobs" — nothing of the kind exists
  *     anywhere in the cloud subsystem.
+ *
+ * On 2026-10-11 the spend cap stopped being "hard": at the cap the platform
+ * scales apps back to a single container and emails the owners, it does not
+ * stop them. The pricing copy below stopped saying seats are free (Free allows
+ * three members) and that there is no plan tier (Starter, Pro and Scale are
+ * sold), and the terminal now shows only commands tsk has (taskclan/tsk).
  */
 const INCLUDED = [
   'Preview deploys for every branch you push',
-  'A hard spend cap you set, enforced by the platform',
+  'A monthly spend cap you set, enforced by the platform',
   'Custom domains with managed certificates',
   'Containers that sleep when idle, billed on what runs',
   'A managed Postgres for every app',
@@ -119,7 +125,7 @@ export default function LandingPage() {
         <title>Taskclan Cloud</title>
         <meta
           name="description"
-          content="Ship a repository to a URL. Managed Postgres, per-second containers, review apps and rollback, on infrastructure you can read the bill for."
+          content="Ship a repository to a URL. Managed Postgres, per-second containers, branch previews and rollback, on infrastructure you can read the bill for."
         />
       </Head>
 
@@ -205,24 +211,22 @@ export default function LandingPage() {
             </div>
             <pre className="overflow-x-auto px-5 py-5 text-[13px] leading-7">
               <code>
-                <span className="text-foreground-lighter"># point Taskclan at a repository</span>
+                <span className="text-foreground-lighter"># sign in once</span>
                 {'\n'}
-                <span className="text-brand">tsk</span> apps create my-api --repo taskclan/my-api
+                <span className="text-brand">tsk</span> login
                 {'\n\n'}
-                <span className="text-foreground-lighter"># ship it</span>
+                <span className="text-foreground-lighter"># ship the app’s repository</span>
                 {'\n'}
-                <span className="text-brand">tsk</span> deploy
+                <span className="text-brand">tsk</span> deploy --app my-api
                 {'\n'}
                 <span className="text-foreground-light">
                   {'  '}building… rolled after 3m16s{'\n'}
                   {'  '}https://my-api.taskclan.app
                 </span>
                 {'\n\n'}
-                <span className="text-foreground-lighter">
-                  # a one-off, against the same database
-                </span>
+                <span className="text-foreground-lighter"># roll back, no rebuild</span>
                 {'\n'}
-                <span className="text-brand">tsk</span> run -- npm run migrate
+                <span className="text-brand">tsk</span> releases:rollback --app my-api
               </code>
             </pre>
           </div>
@@ -260,12 +264,13 @@ export default function LandingPage() {
           <div className="grid gap-10 rounded-lg border border-muted p-8 lg:grid-cols-2 lg:p-12">
             <div>
               <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                Metered per second. Seats are free.
+                Metered per second. No per-seat fees.
               </h2>
               <p className="mt-4 leading-relaxed text-foreground-light">
-                You are billed for the compute your containers actually use, not for a plan tier or
-                a headcount. Idle apps sleep and stop costing. Set a spend cap and the platform
-                enforces it: it will stop deploying before it surprises you.
+                Plans start free, and paid plans from $13 a month include usage. Past that, you pay
+                for the compute your containers use, and idle apps sleep and stop costing. Set a
+                monthly spend cap: at the cap, apps scale back to a single container and the
+                workspace owners are emailed.
               </p>
               <Link
                 href="/organizations"
