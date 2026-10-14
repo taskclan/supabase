@@ -1,7 +1,7 @@
 import { useParams } from 'common'
 import { Shield } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
-import { AiIconAnimation, Badge, Button, Card, CardContent, CardHeader, CardTitle, cn } from 'ui'
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, cn } from 'ui'
 import { Row } from 'ui-patterns/Row'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/AdvisorPanel/AdvisorPanel.utils'
 import { useAdvisorSignals } from '@/components/ui/AdvisorPanel/useAdvisorSignals'
 import { AiAssistantDropdown } from '@/components/ui/AiAssistantDropdown'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 import { useProjectHealthLintsQuery } from '@/data/lint/health-lints-query'
 import { useProjectLintsQuery } from '@/data/lint/lint-query'
 import { useTrack } from '@/lib/telemetry/track'
@@ -123,8 +124,8 @@ export const AdvisorSection = ({ showEmptyState = false }: { showEmptyState?: bo
       ) : (
         <div className="flex justify-between items-center mb-6">
           {titleContent}
-          <Button icon={<AiIconAnimation />} onClick={handleAskAssistant}>
-            Ask Assistant
+          <Button icon={<KinAvatar />} onClick={handleAskAssistant}>
+            Ask Kin
           </Button>
         </div>
       )}
@@ -185,7 +186,7 @@ export const AdvisorSection = ({ showEmptyState = false }: { showEmptyState?: bo
                           }}
                         >
                           <AiAssistantDropdown
-                            label="Ask Assistant"
+                            label="Ask Kin"
                             iconOnly
                             tooltip="Help me fix this issue"
                             buildPrompt={() => createLintSummaryPrompt(item.original)}

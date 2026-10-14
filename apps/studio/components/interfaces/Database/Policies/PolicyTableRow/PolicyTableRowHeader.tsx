@@ -2,7 +2,9 @@ import { PermissionAction } from '@supabase/shared-types/out/constants'
 import { useParams } from 'common'
 import { noop } from 'lodash'
 import { Lock, Table } from 'lucide-react'
-import { AiIconAnimation, Badge, CardTitle } from 'ui'
+import { Badge, CardTitle } from 'ui'
+
+import { KinAvatar } from '@/components/ui/KinAvatar'
 
 import type { PolicyTable } from './PolicyTableRow.types'
 import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
@@ -130,16 +132,16 @@ export const PolicyTableRowHeader = ({
                   text:
                     !canToggleRLS || !canCreatePolicies
                       ? 'You need additional permissions to create RLS policies'
-                      : 'Create with Assistant',
+                      : 'Create with Kin',
                 },
               }}
               aria-label={
                 !canToggleRLS || !canCreatePolicies
                   ? 'You need additional permissions to create RLS policies'
-                  : 'Create with Assistant'
+                  : 'Create with Kin'
               }
             >
-              <AiIconAnimation size={16} />
+              <KinAvatar size={16} />
             </ButtonTooltip>
           </div>
         </div>

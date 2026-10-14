@@ -1,7 +1,6 @@
 import { ArrowUpRight } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import {
-  AiIconAnimation,
   Card,
   CardContent,
   CardDescription,
@@ -10,6 +9,8 @@ import {
   cn,
   Skeleton,
 } from 'ui'
+
+import { KinAvatar } from '@/components/ui/KinAvatar'
 
 import type { SubmittedSupportRequest } from './SupportForm.state'
 import { NO_PROJECT_MARKER } from './SupportForm.utils'
@@ -44,7 +45,7 @@ function SupportAssistantSuccessCardLoadingShell({ className }: { className?: st
     <Card
       role="button"
       tabIndex={0}
-      aria-label="Open assistant response"
+      aria-label="Open Kin response"
       className={cn(
         'group cursor-pointer bg-muted/50 transition-colors hover:bg-muted/50 focus-ring',
         className
@@ -53,11 +54,11 @@ function SupportAssistantSuccessCardLoadingShell({ className }: { className?: st
       <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border bg-background">
-            <AiIconAnimation size={14} />
+            <KinAvatar size={14} />
           </div>
           <div className="min-w-0 space-y-1">
             <CardTitle>While you wait</CardTitle>
-            <CardDescription>Assistant may be able to help</CardDescription>
+            <CardDescription>Kin may be able to help</CardDescription>
           </div>
         </div>
         <ArrowUpRight

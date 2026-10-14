@@ -5,7 +5,6 @@ import { parseAsBoolean, parseAsJson, parseAsString, useQueryState } from 'nuqs'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import {
-  AiIconAnimation,
   Button,
   Card,
   Table,
@@ -29,6 +28,7 @@ import {
 import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 import { AlertError } from '@/components/ui/AlertError'
 import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 import { SchemaSelector } from '@/components/ui/SchemaSelector'
 import { Shortcut } from '@/components/ui/Shortcut'
 import { TextConfirmModal } from '@/components/ui/TextConfirmModalWrapper'
@@ -306,7 +306,7 @@ export const FunctionsList = () => {
                 <ButtonTooltip
                   disabled={!canCreateFunctions}
                   className="px-1 pointer-events-auto"
-                  icon={<AiIconAnimation size={16} />}
+                  icon={<KinAvatar size={16} />}
                   onClick={() => {
                     openSidebar(SIDEBAR_KEYS.AI_ASSISTANT)
                     aiSnap.newChat({
@@ -319,7 +319,7 @@ export const FunctionsList = () => {
                       side: 'bottom',
                       text: !canCreateFunctions
                         ? 'You need additional permissions to create functions'
-                        : 'Create with Assistant',
+                        : 'Create with Kin',
                     },
                   }}
                 />
