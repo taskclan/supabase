@@ -4,7 +4,7 @@ import { SupportEmailVerification } from '@/components/interfaces/SupportEmailVe
 import { buildStudioPageTitle } from '@/lib/page-title'
 import type { NextPageWithLayout } from '@/types'
 
-const PAGE_TITLE = buildStudioPageTitle({ section: 'Email Verification', brand: 'Supabase' })
+const PAGE_TITLE = buildStudioPageTitle({ section: 'Email Verification', brand: 'Taskclan Cloud' })
 
 const VerifyEmailPage: NextPageWithLayout = () => {
   return (

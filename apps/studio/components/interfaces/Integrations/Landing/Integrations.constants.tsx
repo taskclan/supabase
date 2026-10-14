@@ -125,8 +125,8 @@ export type IntegrationDefinition = {
 )
 
 const authorSupabase = {
-  name: 'Supabase',
-  websiteUrl: 'https://supabase.com',
+  name: 'Taskclan',
+  websiteUrl: 'https://taskclan.com',
 }
 
 const SUPABASE_INTEGRATIONS: Array<IntegrationDefinition> = [
@@ -602,7 +602,7 @@ const TEMPLATE_INTEGRATIONS: Array<IntegrationDefinition> = [
       { label: 'Creates a new database schema named `stripe`' },
       { label: 'Creates tables and views in the `stripe` schema for synced Stripe data' },
       { label: 'Deploys Edge Functions to handle incoming webhooks from Stripe' },
-      { label: 'Schedules automatic Stripe data syncs using Supabase Queues' },
+      { label: 'Schedules automatic Stripe data syncs using Queues' },
     ],
     installationCommand: async ({ ref: projectRef, track, stripe_api_key }) => {
       const startTime = Date.now()

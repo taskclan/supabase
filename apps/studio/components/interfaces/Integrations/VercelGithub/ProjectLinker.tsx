@@ -94,8 +94,8 @@ export const ProjectLinker = ({
 
   const noSupabaseProjects = numProjects === 0
   const noForeignProjects = foreignProjects.length === 0
-  const missingEntity = noSupabaseProjects ? 'Supabase' : mode
-  const oppositeMissingEntity = noSupabaseProjects ? mode : 'Supabase'
+  const missingEntity = noSupabaseProjects ? 'Taskclan' : mode
+  const oppositeMissingEntity = noSupabaseProjects ? mode : 'Taskclan'
 
   const connectDisabled =
     loadingForeignProjects ||
@@ -141,9 +141,9 @@ export const ProjectLinker = ({
           </div>
         ) : (
           <>
-            <section className="space-y-2" aria-label="Supabase project">
+            <section className="space-y-2" aria-label="Taskclan project">
               <p className="text-xs font-medium uppercase tracking-wider text-foreground-light">
-                Supabase project
+                Taskclan project
               </p>
               <SupabaseProjectSelector
                 open={openProjectsDropdown}

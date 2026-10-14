@@ -31,7 +31,7 @@ const SecretsPage: NextPageWithLayout = () => {
             {isCli && (
               <Admonition
                 type="default"
-                title="Local development with the Supabase CLI"
+                title="Local development with the CLI"
                 description={
                   <p>
                     Add custom secrets to{' '}
@@ -46,7 +46,7 @@ const SecretsPage: NextPageWithLayout = () => {
             {isSelfHosted && (
               <Admonition
                 type="default"
-                title="Self-hosted Supabase"
+                title="Self-hosted Postgres"
                 description={<p>Set custom secrets via environment variables.</p>}
                 actions={
                   <DocsButton

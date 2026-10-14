@@ -36,7 +36,7 @@ export const OverviewLearnMore = () => {
     {
       label: 'Docs',
       title: 'Auth docs',
-      description: 'Read more on Supabase auth, managing users and more.',
+      description: 'Read more on the Auth service, managing users and more.',
       image: isLight
         ? `${BASE_PATH}/img/auth-overview/auth-overview-docs-light.jpg`
         : `${BASE_PATH}/img/auth-overview/auth-overview-docs.jpg`,
@@ -63,7 +63,7 @@ export const OverviewLearnMore = () => {
             aiSnap.newChat({
               name: 'Auth Help',
               initialInput:
-                'Look at my logs related to Supabase Auth and help me debug the recent errors.',
+                'Look at my logs related to the Auth service and help me debug the recent errors.',
               suggestions: {
                 title: 'I can help you with authentication issues. Here are some common problems:',
                 prompts: [

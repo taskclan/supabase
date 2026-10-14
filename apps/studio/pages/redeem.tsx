@@ -6,7 +6,7 @@ import { withAuth } from '@/hooks/misc/withAuth'
 import { buildStudioPageTitle } from '@/lib/page-title'
 import type { NextPageWithLayout } from '@/types'
 
-const PAGE_TITLE = buildStudioPageTitle({ section: 'Redeem Credits', brand: 'Supabase' })
+const PAGE_TITLE = buildStudioPageTitle({ section: 'Redeem Credits', brand: 'Taskclan Cloud' })
 
 const RedeemCreditsPage: NextPageWithLayout = () => {
   const router = useRouter()

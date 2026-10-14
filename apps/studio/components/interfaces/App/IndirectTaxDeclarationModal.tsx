@@ -117,12 +117,12 @@ export const IndirectTaxDeclarationModal = () => {
               <RadioGroupStackedItem
                 value="yes"
                 label="Yes, I confirm"
-                description="We are and were registered for GST in Australia when we acquired services from Supabase, and the services were acquired in the course or furtherance of our business."
+                description="We are and were registered for GST in Australia when we acquired services from Taskclan Cloud, and the services were acquired in the course or furtherance of our business."
               />
               <RadioGroupStackedItem
                 value="no"
                 label="No, I do not confirm"
-                description="We are not or were not registered for GST in Australia when we acquired services from Supabase, or the services were acquired for a purpose unrelated to our business."
+                description="We are not or were not registered for GST in Australia when we acquired services from Taskclan Cloud, or the services were acquired for a purpose unrelated to our business."
               />
             </RadioGroupStacked>
           </DialogSection>

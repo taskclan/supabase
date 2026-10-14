@@ -109,7 +109,7 @@ const OrganizationLayoutContent = ({
     section: title,
     surface: isSettingsSurface ? 'Organization Settings' : undefined,
     org: selectedOrganization?.name,
-    brand: appTitle || 'Supabase',
+    brand: appTitle || 'Taskclan Cloud',
   })
 
   const vercelQuery = useVercelRedirectQuery(

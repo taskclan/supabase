@@ -29,7 +29,7 @@ const QueuesContent = () => {
   return (
     <Admonition
       type="default"
-      title="Queues can be managed via any Supabase client library or PostgREST endpoints"
+      title="Queues can be managed via any client library or PostgREST endpoints"
     >
       <p>
         You may choose to toggle the exposure of Queues through Data APIs via the queues settings

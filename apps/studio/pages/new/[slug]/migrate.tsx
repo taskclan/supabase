@@ -20,7 +20,7 @@ const MigrateWizard: NextPageWithLayout = () => {
   const { appTitle } = useCustomContent(['app:title'])
   const pageTitle = buildStudioPageTitle({
     section: 'Migrate an app',
-    brand: appTitle || 'Supabase',
+    brand: appTitle || 'Taskclan Cloud',
   })
 
   return (
@@ -28,7 +28,7 @@ const MigrateWizard: NextPageWithLayout = () => {
       {/* Wizard layouts set the visual header but not the browser tab title. */}
       <Head>
         <title>{pageTitle}</title>
-        <meta name="description" content="Supabase Studio" />
+        <meta name="description" content="Taskclan Cloud" />
       </Head>
       <TaskclanMigrateForm />
     </>

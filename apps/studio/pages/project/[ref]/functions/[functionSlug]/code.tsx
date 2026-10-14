@@ -167,7 +167,7 @@ const CodePage = () => {
             <div className="text-sm text-foreground-light border-t border-border-muted pt-3 mt-2">
               <p className="font-medium mb-2">To resolve this issue:</p>
               <ol className="text-left space-y-1">
-                <li>1. Update to the latest Supabase CLI version</li>
+                <li>1. Update to the latest CLI version</li>
                 <li>
                   2. Redeploy your function using:{' '}
                   <code className="text-xs bg-muted px-1 py-0.5 rounded">

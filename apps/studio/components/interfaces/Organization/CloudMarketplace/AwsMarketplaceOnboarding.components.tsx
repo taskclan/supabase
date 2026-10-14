@@ -94,7 +94,7 @@ export function getContractIneligibilityDescription(
 ) {
   switch (reason) {
     case 'AWS_ACTIVATE_CREDITS_DEAL':
-      return 'This private offer grants you credits on the Supabase platform'
+      return 'This private offer grants you credits on Taskclan Cloud'
     case 'AGREEMENT_BASED_OFFER':
       return 'This private offer updated an existing AWS Marketplace subscription'
     case 'NO_CONTRACT_FOUND':
@@ -120,7 +120,7 @@ export function ContractIneligibilityNotice({
         <Admonition
           type="success"
           title="No action required"
-          description="Your Supabase organization credit balance will be updated after AWS finishes processing the offer. This can take 1 or 2 days."
+          description="Your organization credit balance will be updated after AWS finishes processing the offer. This can take 1 or 2 days."
         />
       )
     case 'AGREEMENT_BASED_OFFER':
@@ -128,7 +128,7 @@ export function ContractIneligibilityNotice({
         <Admonition
           type="success"
           title="No action required"
-          description="Your existing Supabase organization remains linked to AWS Marketplace and your projects will continue to run as usual."
+          description="Your existing organization remains linked to AWS Marketplace and your projects will continue to run as usual."
         />
       )
     case 'NO_CONTRACT_FOUND':
@@ -137,7 +137,7 @@ export function ContractIneligibilityNotice({
         <Admonition
           type="warning"
           title="Still syncing"
-          description="Thanks for purchasing Supabase through AWS Marketplace. It can take a few minutes before the subscription is ready to link. Try again shortly."
+          description="Thanks for purchasing Taskclan Cloud through AWS Marketplace. It can take a few minutes before the subscription is ready to link. Try again shortly."
         />
       )
     case 'CONTRACT_INACTIVE':
@@ -145,7 +145,7 @@ export function ContractIneligibilityNotice({
         <Admonition
           type="warning"
           title="No active subscription"
-          description="There is currently no active subscription to the Supabase product associated with your AWS account."
+          description="There is currently no active subscription to the Taskclan Cloud product associated with your AWS account."
         />
       )
     case 'CONTRACT_TERMINATED_EARLY':

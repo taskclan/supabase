@@ -55,7 +55,7 @@ type RunAs = GitState['type']
 const RUN_AS: Record<RunAs, { label: string; hint: string }> = {
   static: {
     label: 'Static site',
-    hint: 'Prebuilt files served from the edge, with no server running. It can still use a database the page talks to directly, like Supabase for a waitlist.',
+    hint: 'Prebuilt files served from the edge, with no server running. It can still use a database the page talks to directly, like Postgres for a waitlist.',
   },
   service: {
     label: 'Web service',

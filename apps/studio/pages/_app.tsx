@@ -193,9 +193,9 @@ function CustomApp({ Component, pageProps }: AppPropsWithLayout) {
                   <TimezoneProvider>
                     <TimestampInfoTimezoneBridge>
                       <Head>
-                        <title>{appTitle ?? 'Supabase'}</title>
+                        <title>{appTitle ?? 'Taskclan Cloud'}</title>
                         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-                        <meta property="og:image" content={`${BASE_PATH}/img/supabase-og.png`} />
+                        <meta property="og:image" content={`${BASE_PATH}/img/taskclan-og.png`} />
                         <meta name="googlebot" content="notranslate" />
                         {/* [Alaister]: This has to be an inline style tag here and not a separate component due to next/font */}
                         <style

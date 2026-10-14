@@ -49,9 +49,9 @@ const DUCKLAKE_MODE_OPTIONS = [
   {
     value: DUCKLAKE_MODE_SUPABASE,
     icon: Database,
-    label: 'Use Supabase',
+    label: 'Use Taskclan Cloud',
     description:
-      'Create or use a DuckLake backed by your Supabase projects. Catalog and storage are managed for you.',
+      'Create or use a DuckLake backed by your projects. Catalog and storage are managed for you.',
   },
   {
     value: DUCKLAKE_MODE_CUSTOM,
@@ -569,7 +569,7 @@ const DuckLakeCustomFields = ({
             <FormItemLayout
               layout="horizontal"
               label="S3 URL style"
-              description="Choose `path` for MinIO/Supabase-style endpoints or `vhost` for AWS-style virtual host addressing"
+              description="Choose `path` for MinIO/Taskclan Cloud-style endpoints or `vhost` for AWS-style virtual host addressing"
             >
               <FormControl>
                 <Select value={field.value ?? 'path'} onValueChange={field.onChange}>

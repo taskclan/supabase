@@ -78,7 +78,7 @@ export const MarketplaceDetailRail = ({ integration, isInstalled }: MarketplaceD
     <aside className="sticky top-16 flex flex-col gap-4 self-start text-sm">
       <RailGroup>
         <RailRow label="Type" value={typeLabel} />
-        <RailRow label="Built by" value={integration.author?.name || 'Supabase'} />
+        <RailRow label="Built by" value={integration.author?.name || 'Taskclan'} />
         {isInstalled && <RailRow label="Status" value="Installed" />}
       </RailGroup>
 
