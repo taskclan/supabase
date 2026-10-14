@@ -4,7 +4,6 @@ import { useRouter } from 'next/router'
 import { SubmitHandler, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import {
-  AiIconAnimation,
   Button,
   Dialog,
   DialogContent,
@@ -23,6 +22,7 @@ import { FormItemLayout } from 'ui-patterns/form/FormItemLayout/FormItemLayout'
 import * as z from 'zod'
 
 import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 import { useCheckOpenAIKeyQuery } from '@/data/ai/check-api-key-query'
 import { useSqlTitleGenerateMutation } from '@/data/ai/sql-title-mutation'
 import { getContentById, getSqlSnippetById } from '@/data/content/content-id-query'
@@ -198,9 +198,9 @@ const RenameQueryForm = ({ snippet, onCancel, onComplete }: RenameQueryFormProps
             >
               <div className="flex items-center gap-1">
                 <div className="scale-75">
-                  <AiIconAnimation loading={isTitleGenerationLoading} />
+                  <KinAvatar loading={isTitleGenerationLoading} />
                 </div>
-                <span>Rename with Taskclan AI</span>
+                <span>Rename with Kin</span>
               </div>
             </ButtonTooltip>
           </div>

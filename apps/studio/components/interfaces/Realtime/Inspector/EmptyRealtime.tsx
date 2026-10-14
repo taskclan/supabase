@@ -1,9 +1,10 @@
 import Link from 'next/link'
-import { AiIconAnimation, Button, Card, cn } from 'ui'
+import { Button, Card, cn } from 'ui'
 
 import { AnimatedCursors } from './AnimatedCursors'
 import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 import { DocsButton } from '@/components/ui/DocsButton'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 import { DOCS_URL } from '@/lib/constants'
 import { useAiAssistantStateSnapshot } from '@/state/ai-assistant-state'
 import { useSidebarManagerSnapshot } from '@/state/sidebar-manager-state'
@@ -32,7 +33,7 @@ export const EmptyRealtime = ({ projectRef }: { projectRef: string }) => {
           <p className="text-foreground-light mb-6">
             Send your first realtime message from your database, application code or edge function
           </p>
-          <Button icon={<AiIconAnimation />} onClick={handleCreateTriggerWithAssistant}>
+          <Button icon={<KinAvatar />} onClick={handleCreateTriggerWithAssistant}>
             Set up realtime for me
           </Button>
         </div>

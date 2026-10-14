@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 
 import { CHAT_TEMPLATES, codeSnippetPrompts } from './AIAssistant.prompts'
 import { ActionCard } from '@/components/layouts/Tabs/ActionCard'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 import type { SqlSnippet } from '@/state/ai-assistant-state'
 
 interface AIOnboardingProps {
@@ -44,8 +45,12 @@ export const AIOnboarding = ({
   return (
     <div className="@container flex min-h-0 flex-1 flex-col overflow-y-auto px-6 py-8">
       <div className="m-auto w-full max-w-2xl">
-        <div className="mb-6 text-center">
-          <h2 className="heading-section">Chat with your project</h2>
+        <div className="mb-6 flex flex-col items-center text-center">
+          <KinAvatar size={56} className="mb-4" />
+          <h2 className="heading-section">Hi, I'm Kin</h2>
+          <p className="mt-1 text-sm text-foreground-light">
+            Your Taskclan teammate — ask about your data, write SQL, or explore your project.
+          </p>
         </div>
 
         {children}
@@ -67,7 +72,7 @@ export const AIOnboarding = ({
                 }}
               >
                 <ActionCard
-                  icon={<template.icon className="h-4 w-4 text-foreground" strokeWidth={1.5} />}
+                  icon={<template.icon className="h-4 w-4 text-background" strokeWidth={1.5} />}
                   title={template.title}
                   bgColor="bg-brand-400"
                 />

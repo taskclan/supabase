@@ -25,7 +25,7 @@ export function LastSignInWrapper({
       {isLastUsed && (
         <Badge
           variant="success"
-          className="absolute -right-4 -top-3 shadow-sm z-10 bg-brand-400 text-foreground pointer-events-none"
+          className="absolute -right-4 -top-3 shadow-sm z-10 bg-brand-400 text-background pointer-events-none"
         >
           Last used
         </Badge>

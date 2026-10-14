@@ -4,7 +4,7 @@ import { BookOpen } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { AiIconAnimation, Button, Card, CardContent, CardHeader, CardTitle } from 'ui'
+import { Button, Card, CardContent, CardHeader, CardTitle } from 'ui'
 import { Image } from 'ui-patterns/Image'
 import {
   PageSection,
@@ -15,6 +15,7 @@ import {
 } from 'ui-patterns/PageSection'
 
 import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 import { BASE_PATH, DOCS_URL } from '@/lib/constants'
 import { useAiAssistantStateSnapshot } from '@/state/ai-assistant-state'
 import { useSidebarManagerSnapshot } from '@/state/sidebar-manager-state'
@@ -49,15 +50,15 @@ export const OverviewLearnMore = () => {
       ],
     },
     {
-      label: 'Assistant',
+      label: 'Kin',
       title: 'Explain auth errors',
-      description: 'Our Assistant can help you debug and fix authentication errors.',
+      description: 'Kin can help you debug and fix authentication errors.',
       image: isLight
         ? `${BASE_PATH}/img/auth-overview/auth-overview-assistant-light.jpg`
         : `${BASE_PATH}/img/auth-overview/auth-overview-assistant.jpg`,
       actions: [
         {
-          label: 'Ask Assistant',
+          label: 'Ask Kin',
           onClick: () => {
             openSidebar(SIDEBAR_KEYS.AI_ASSISTANT)
             aiSnap.newChat({
@@ -87,7 +88,7 @@ export const OverviewLearnMore = () => {
               },
             })
           },
-          icon: <AiIconAnimation size={14} />,
+          icon: <KinAvatar size={14} />,
         },
       ],
     },

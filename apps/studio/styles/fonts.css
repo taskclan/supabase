@@ -4,9 +4,12 @@
  * The Next.js build uses next/font (fonts/index.ts + the inline :root style in
  * pages/_app.tsx). This file is the TanStack equivalent, and the CSS var names
  * MUST match what the theme/Tailwind consume:
- *   --font-sans            -> body (Inter)          [theme.css: --font-sans]
- *   --font-heading         -> headings (Manrope)    [globals.css @theme inline]
- *   --font-source-code-pro -> mono (Source Code Pro)
+ *   --font-sans            -> body (Geist)          [theme.css: --font-sans]
+ *   --font-heading         -> headings (Geist)      [globals.css @theme inline]
+ *   --font-source-code-pro -> mono (Geist Mono)
+ * Geist itself is loaded app-wide via the Google Fonts @import at the top of
+ * globals.css; the Inter / Manrope / Source Code Pro @font-face blocks below are
+ * legacy and no longer referenced by the vars.
  * If a var is renamed on the Next side (fonts/index.ts / theme.css), rename it
  * here too — otherwise the TanStack build silently falls through to the theme
  * fallback chain.
@@ -78,7 +81,7 @@
 }
 
 :root {
-  --font-sans: 'Inter', system-ui, 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --font-heading: 'Manrope', system-ui, 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --font-source-code-pro: 'Source Code Pro', 'Office Code Pro', Menlo, monospace;
+  --font-sans: 'Geist', system-ui, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-heading: 'Geist', system-ui, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-source-code-pro: 'Geist Mono', 'Source Code Pro', 'Office Code Pro', Menlo, monospace;
 }

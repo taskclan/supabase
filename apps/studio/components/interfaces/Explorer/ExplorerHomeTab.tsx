@@ -47,14 +47,14 @@ export const ExplorerHomeTab = () => {
           <section className="mt-6">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <ActionCard
-                icon={<SquareCode className="h-4 w-4 text-foreground" strokeWidth={1.5} />}
+                icon={<SquareCode className="h-4 w-4 text-white" strokeWidth={1.5} />}
                 title="Run SQL"
                 description="Write and run an ad-hoc query"
                 bgColor="bg-blue-500"
                 onClick={() => createQuery()}
               />
               <ActionCard
-                icon={<NotebookText className="h-4 w-4 text-foreground" strokeWidth={1.5} />}
+                icon={<NotebookText className="h-4 w-4 text-white" strokeWidth={1.5} />}
                 title="Create a notebook"
                 description="Combine notes, queries, and results"
                 bgColor="bg-blue-500"
@@ -70,7 +70,7 @@ export const ExplorerHomeTab = () => {
               {NOTEBOOK_TEMPLATES.map((template) => (
                 <ActionCard
                   key={template.title}
-                  icon={<NotebookText className="h-4 w-4 text-foreground" strokeWidth={1.5} />}
+                  icon={<NotebookText className="h-4 w-4 text-white" strokeWidth={1.5} />}
                   title={template.title}
                   description={template.description}
                   bgColor="bg-blue-500"
@@ -82,7 +82,7 @@ export const ExplorerHomeTab = () => {
               {CHAT_TEMPLATES.map((template) => (
                 <ActionCard
                   key={template.title}
-                  icon={<template.icon className="h-4 w-4 text-foreground" strokeWidth={1.5} />}
+                  icon={<template.icon className="h-4 w-4 text-white" strokeWidth={1.5} />}
                   title={template.title}
                   bgColor="bg-blue-500"
                   onClick={() =>

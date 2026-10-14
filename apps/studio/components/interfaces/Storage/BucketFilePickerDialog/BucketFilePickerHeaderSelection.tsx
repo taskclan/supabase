@@ -11,11 +11,12 @@ export const BucketFilePickerHeaderSelection = () => {
       <Button
         icon={<X size={16} strokeWidth={2} />}
         variant="text"
+        className="text-background hover:text-background"
         onClick={() => clearSelectedItems()}
         aria-label="Clear selected items"
       />
       <div className="ml-1 flex items-center space-x-3">
-        <p className="mb-0 text-sm text-foreground">
+        <p className="mb-0 text-sm text-background">
           <span style={{ fontVariantNumeric: 'tabular-nums' }}>{selectedItems.length}</span> items
           selected
         </p>

@@ -2,7 +2,7 @@ import { Activity, BookOpen, ChevronRight, Mail, Wrench } from 'lucide-react'
 import { useRouter } from 'next/router'
 import type { ReactNode } from 'react'
 import SVG from 'react-inlinesvg'
-import { AiIconAnimation } from 'ui'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 
 import type { HelpOptionId } from './HelpPanel.constants'
 import { HELP_OPTION_IDS } from './HelpPanel.constants'
@@ -72,8 +72,8 @@ export const HelpOptionsList = ({
 
   const options: Record<HelpOptionId, HelpOption> = {
     assistant: {
-      media: <AiIconAnimation allowHoverEffect size={14} />,
-      title: 'Taskclan Assistant',
+      media: <KinAvatar allowHoverEffect size={14} />,
+      title: 'Kin',
       description: 'Get guided help with your project directly in Studio.',
       onClick: onAssistantClick,
     },

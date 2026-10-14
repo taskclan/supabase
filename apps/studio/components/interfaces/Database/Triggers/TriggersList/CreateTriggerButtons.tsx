@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react'
-import { AiIconAnimation } from 'ui'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 
 import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
@@ -52,7 +52,7 @@ export const CreateTriggerButtons = ({
         <ButtonTooltip
           disabled={!hasTables || !canCreateTriggers}
           className="px-1 pointer-events-auto"
-          icon={<AiIconAnimation size={16} />}
+          icon={<KinAvatar size={16} />}
           onClick={() => {
             openSidebar(SIDEBAR_KEYS.AI_ASSISTANT)
             aiSnap.newChat({
@@ -83,7 +83,7 @@ export const CreateTriggerButtons = ({
               side: 'bottom',
               text: !canCreateTriggers
                 ? 'You need additional permissions to create triggers'
-                : 'Create with Assistant',
+                : 'Create with Kin',
             },
           }}
         />

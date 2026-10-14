@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import {
-  AiIconAnimation,
   Button,
   Dialog,
   DialogContent,
@@ -13,6 +12,8 @@ import {
   Input,
   Label,
 } from 'ui'
+
+import { KinAvatar } from '@/components/ui/KinAvatar'
 
 import { generateSnippetTitle } from '@/components/interfaces/SQLEditor/SQLEditor.constants'
 import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
@@ -95,7 +96,7 @@ export const SaveSnippetDialog = ({ open, sql, onOpenChange, onSave }: SaveSnipp
             >
               <div className="flex items-center gap-1">
                 <div className="scale-75">
-                  <AiIconAnimation loading={isGenerating} />
+                  <KinAvatar loading={isGenerating} />
                 </div>
                 <span>Generate with AI</span>
               </div>

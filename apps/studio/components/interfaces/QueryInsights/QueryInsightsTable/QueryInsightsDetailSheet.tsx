@@ -1,6 +1,5 @@
 import { Loader2 } from 'lucide-react'
 import {
-  AiIconAnimation,
   Button,
   Sheet,
   SheetContent,
@@ -19,6 +18,7 @@ import type { ClassifiedQuery } from '../QueryInsightsHealth/QueryInsightsHealth
 import { ExplainVisualizer } from '@/components/interfaces/ExplainVisualizer/ExplainVisualizer'
 import type { QueryPlanRow } from '@/components/interfaces/ExplainVisualizer/ExplainVisualizer.types'
 import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 import { useAiAssistantStateSnapshot } from '@/state/ai-assistant-state'
 import { useSidebarManagerSnapshot } from '@/state/sidebar-manager-state'
 
@@ -119,7 +119,7 @@ export const QueryInsightsDetailSheet = ({
                   <p className="text-xs text-foreground-lighter">EXPLAIN ANALYZE output</p>
                   <Button
                     size="tiny"
-                    icon={<AiIconAnimation size={14} />}
+                    icon={<KinAvatar size={14} />}
                     onClick={() => {
                       const rows = explainResults[activeSheetRow.query]
                       const { query, prompt } = buildExplainOptimizationPrompt(

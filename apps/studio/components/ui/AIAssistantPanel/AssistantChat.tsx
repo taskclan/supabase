@@ -446,7 +446,7 @@ export const AssistantChat = ({
   } else if (isSupportChat) {
     placeholder = 'Describe your support issue...'
   } else {
-    placeholder = 'Ask about your data, troubleshoot an issue, or explore your project...'
+    placeholder = 'Ask Kin about your data, troubleshoot an issue, or explore your project...'
   }
 
   const composer = (
@@ -479,7 +479,7 @@ export const AssistantChat = ({
           <Admonition
             showIcon={false}
             type="default"
-            title="Assistant has been temporarily disabled"
+            title="Kin has been temporarily disabled"
             description="We're currently looking into getting it back online"
           />
         )}
@@ -487,11 +487,11 @@ export const AssistantChat = ({
         {isSuccess && !isApiKeySet && (
           <Admonition
             type="default"
-            title="OpenAI API key not set"
+            title="Kin isn't configured"
             description={
               <Markdown
                 content={
-                  'Add your `OPENAI_API_KEY` to your environment variables to use the AI Assistant.'
+                  'Set `TASKCLAN_INTELLIGENCE_API_KEY` in your environment to connect Kin to Taskclan Intelligence.'
                 }
               />
             }

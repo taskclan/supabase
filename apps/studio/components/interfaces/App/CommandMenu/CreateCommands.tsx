@@ -39,8 +39,8 @@ import {
   useCreateCommandsConfig,
 } from './CreateCommands.utils'
 import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 
-const AiIconAnimation = dynamic(() => import('ui').then((mod) => mod.AiIconAnimation))
 const Badge = dynamic(() => import('ui').then((mod) => mod.Badge))
 const EdgeFunctions = dynamic(() => import('icons').then((mod) => mod.EdgeFunctions))
 const AnalyticsBucket = dynamic(() => import('icons').then((mod) => mod.AnalyticsBucket))
@@ -255,11 +255,7 @@ export function useCreateCommands(options?: CommandOptions) {
                 setIsOpen(false)
               },
               icon: () => (
-                <AiIconAnimation
-                  allowHoverEffect={false}
-                  size={20}
-                  className="text-foreground-light"
-                />
+                <KinAvatar allowHoverEffect={false} size={20} />
               ),
             },
             {

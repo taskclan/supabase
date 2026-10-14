@@ -6,7 +6,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import type { JSX } from 'react'
 import type { StreamdownProps } from 'streamdown'
 import {
-  AiIconAnimation,
   Button,
   Card,
   CardContent,
@@ -16,6 +15,8 @@ import {
   cn,
   Skeleton,
 } from 'ui'
+
+import { KinAvatar } from '@/components/ui/KinAvatar'
 
 import {
   ASSISTANT_HANDOFF_QUERY_PARAM,
@@ -150,11 +151,11 @@ export function SupportAssistantSuccessCardContent({
         <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border bg-background">
-              <AiIconAnimation size={14} />
+              <KinAvatar size={14} />
             </div>
             <div className="min-w-0 space-y-1">
               <CardTitle>While you wait</CardTitle>
-              <CardDescription>Continue with the Assistant in your project</CardDescription>
+              <CardDescription>Continue with Kin in your project</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -170,7 +171,7 @@ export function SupportAssistantSuccessCardContent({
                 )
               }
             >
-              Open Assistant in project
+              Open Kin in project
             </Link>
           </Button>
         </CardContent>
@@ -182,7 +183,7 @@ export function SupportAssistantSuccessCardContent({
     <Card
       role="button"
       tabIndex={0}
-      aria-label="Open assistant response"
+      aria-label="Open Kin response"
       onClick={handleOpenAssistant}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -198,11 +199,11 @@ export function SupportAssistantSuccessCardContent({
       <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border bg-background">
-            <AiIconAnimation size={14} />
+            <KinAvatar size={14} />
           </div>
           <div className="min-w-0 space-y-1">
             <CardTitle>While you wait</CardTitle>
-            <CardDescription>Assistant may be able to help</CardDescription>
+            <CardDescription>Kin may be able to help</CardDescription>
           </div>
         </div>
         <ArrowUpRight

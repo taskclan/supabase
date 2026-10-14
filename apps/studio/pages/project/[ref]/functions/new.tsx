@@ -7,7 +7,6 @@ import { useEffect, useId, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import {
-  AiIconAnimation,
   Button,
   cn,
   Command,
@@ -39,6 +38,7 @@ import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/L
 import { DiscardChangesConfirmationDialog } from '@/components/ui-patterns/Dialogs/DiscardChangesConfirmationDialog'
 import { FileExplorerAndEditor } from '@/components/ui/FileExplorerAndEditor'
 import { FileData } from '@/components/ui/FileExplorerAndEditor/FileExplorerAndEditor.types'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 import { useEdgeFunctionDeployMutation } from '@/data/edge-functions/edge-functions-deploy-mutation'
 import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
@@ -345,7 +345,7 @@ const NewFunctionPage = () => {
               </Command>
             </PopoverContent>
           </Popover>
-          <Button size="tiny" onClick={handleChat} icon={<AiIconAnimation size={16} />}>
+          <Button size="tiny" onClick={handleChat} icon={<KinAvatar size={16} />}>
             Chat
           </Button>
         </>
