@@ -36,12 +36,12 @@ export const AlphaNotice = ({
       <div className="absolute -inset-16 z-0 opacity-50">
         <img
           src={`${BASE_PATH}/img/reports/bg-grafana-dark.svg`}
-          alt="Supabase Grafana"
+          alt="Grafana dashboard"
           className="w-full h-full object-cover object-right hidden dark:block"
         />
         <img
           src={`${BASE_PATH}/img/reports/bg-grafana-light.svg`}
-          alt="Supabase Grafana"
+          alt="Grafana dashboard"
           className="w-full h-full object-cover object-right dark:hidden"
         />
         <div className="absolute inset-0 bg-linear-to-r from-background-alternative to-transparent" />

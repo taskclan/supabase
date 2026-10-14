@@ -62,10 +62,10 @@ function useSupabaseOAuthReturn() {
     const status = u.searchParams.get('supabase_oauth')
     if (!status) return
     if (status === 'connected') {
-      toast.success('Supabase connected — your database is provisioning and will be ready shortly.')
+      toast.success('Database connected — provisioning now and will be ready shortly.')
     } else {
       const reason = u.searchParams.get('reason') || 'something went wrong'
-      toast.error(`Could not connect Supabase: ${reason}`)
+      toast.error(`Could not connect your database: ${reason}`)
     }
     u.searchParams.delete('supabase_oauth')
     u.searchParams.delete('reason')
@@ -89,7 +89,7 @@ export const TaskclanNoDatabase = () => {
           <h2 className="text-base text-foreground">Database is being set up</h2>
           <p className="mt-2 text-sm text-foreground-light">
             The connection is stored as this app&apos;s <code>DATABASE_URL</code> and takes effect
-            on the next deploy. A freshly provisioned Supabase project needs a minute or two to come
+            on the next deploy. A freshly provisioned database needs a minute or two to come
             up.
           </p>
           <div className="mt-6 flex items-center justify-center gap-2">

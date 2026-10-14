@@ -610,8 +610,8 @@ export const GitHubIntegrationConnectionForm = ({
                           render={({ field }) => (
                             <FormItemLayout
                               layout="flex-row-reverse"
-                              label="Supabase changes only"
-                              description="Only create branches when Supabase files change"
+                              label="Database changes only"
+                              description="Only create branches when database files change"
                             >
                               <FormControl>
                                 <Switch
@@ -706,7 +706,7 @@ export const GitHubIntegrationConnectionForm = ({
         <div className="space-y-3">
           <p className="text-sm text-foreground-light">
             This will disconnect your current repository and create a new connection with the
-            selected repository. All existing Supabase branches that are connected to the old
+            selected repository. All existing branches that are connected to the old
             repository will no longer be synced.
           </p>
         </div>

@@ -192,7 +192,7 @@ export const ProjectLayout = forwardRef<HTMLDivElement, PropsWithChildren<Projec
     const combinedRef = mergeRefs(ref, setMainScrollContainer)
 
     const { appTitle } = useCustomContent(['app:title'])
-    const brandTitle = appTitle || 'Supabase'
+    const brandTitle = appTitle || 'Taskclan Cloud'
 
     const isMobile = useIsMobile()
 

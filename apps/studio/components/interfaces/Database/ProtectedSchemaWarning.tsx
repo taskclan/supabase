@@ -18,7 +18,7 @@ export const ProtectedSchemaDialog = ({ onClose }: { onClose: () => void }) => {
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Schemas managed by Supabase</DialogTitle>
+        <DialogTitle>Schemas managed by Taskclan Cloud</DialogTitle>
       </DialogHeader>
       <DialogSectionSeparator />
       <DialogSection className="space-y-2 prose">

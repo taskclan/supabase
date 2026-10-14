@@ -115,7 +115,7 @@ export const General = () => {
           {isCli && (
             <Admonition
               type="default"
-              title="Local development with the Supabase CLI"
+              title="Local development with the CLI"
               description={
                 <p>
                   Project settings are configured in{' '}

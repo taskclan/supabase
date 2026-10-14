@@ -95,8 +95,8 @@ export function TaskclanProvisionDatabase({ onProvisioned }: { onProvisioned?: (
         out.push({
           value: `supabase:${p.id}`,
           provider: 'supabase',
-          title: `Supabase · ${p.label}`,
-          blurb: p.blurb ?? 'Dedicated Supabase project',
+          title: `Managed Postgres · ${p.label}`,
+          blurb: p.blurb ?? 'Dedicated Postgres database',
           price: price(p.priceCredits),
         })
       }
@@ -118,8 +118,8 @@ export function TaskclanProvisionDatabase({ onProvisioned }: { onProvisioned?: (
       out.push({
         value: OWN_SUPABASE,
         provider: OWN_SUPABASE,
-        title: 'Your own Supabase (one-click)',
-        blurb: 'Authorize your Supabase account — a dedicated project is created in your org',
+        title: 'Your own managed database (one-click)',
+        blurb: 'Authorize your provider account — a dedicated database is created in your org',
         price: '$3/mo service fee',
       })
     }
@@ -159,7 +159,7 @@ export function TaskclanProvisionDatabase({ onProvisioned }: { onProvisioned?: (
         })
         const body = await res.json().catch(() => ({}))
         if (!res.ok || !body.url) {
-          setError(body.error || 'Could not start the Supabase connection.')
+          setError(body.error || 'Could not start the database connection.')
           setBusy(false)
           return
         }
@@ -258,7 +258,7 @@ export function TaskclanProvisionDatabase({ onProvisioned }: { onProvisioned?: (
               ) : (
                 <p className="text-xs text-foreground-lighter">
                   A dedicated project is created and its connection string is stored as this
-                  app&apos;s DATABASE_URL. A Supabase project takes ~1–2 minutes to come up. The
+                  app&apos;s DATABASE_URL. A dedicated database takes ~1–2 minutes to come up. The
                   first month is charged now; you can detach it later.
                 </p>
               )}
@@ -294,7 +294,7 @@ export function TaskclanProvisionDatabase({ onProvisioned }: { onProvisioned?: (
             onClick={submit}
           >
             {choice === OWN_SUPABASE
-              ? 'Connect Supabase'
+              ? 'Connect database'
               : isByo
                 ? 'Connect database'
                 : 'Provision database'}

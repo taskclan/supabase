@@ -73,7 +73,7 @@ export const HelpOptionsList = ({
   const options: Record<HelpOptionId, HelpOption> = {
     assistant: {
       media: <AiIconAnimation allowHoverEffect size={14} />,
-      title: isPlatform ? 'Supabase Assistant' : 'Taskclan Assistant',
+      title: 'Taskclan Assistant',
       description: 'Get guided help with your project directly in Studio.',
       onClick: onAssistantClick,
     },
@@ -97,7 +97,7 @@ export const HelpOptionsList = ({
     },
     status: {
       media: <Activity strokeWidth={1.5} size={14} />,
-      title: 'Supabase status',
+      title: 'Taskclan status',
       description: 'Check incidents, maintenance, and uptime updates.',
       href: STATUS_URL,
     },

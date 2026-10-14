@@ -196,7 +196,7 @@ export const FeedbackWidget = ({ onClose, onSwitchToIssueOptions }: FeedbackWidg
     <>
       <div className="p-4">
         <TextArea
-          placeholder="My idea for improving Supabase is..."
+          placeholder="My idea for improving Taskclan Cloud is..."
           rows={6}
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}

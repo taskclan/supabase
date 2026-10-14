@@ -305,7 +305,7 @@ export const WithStatements = ({
         <div className="w-[33%] flex flex-col gap-y-1 text-sm">
           <p>Inspect your database for potential issues</p>
           {/*
-            Was "The Supabase CLI comes with a range of tools...", linking to
+            Was "The CLI comes with a range of tools...", linking to
             Supabase's observability docs. There is no Supabase CLI in Taskclan
             Cloud, and the Taskclan CLI signs you in and wires git remotes — it
             does not inspect Postgres. Advisors is the thing that actually does

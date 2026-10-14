@@ -56,7 +56,7 @@ export const AnalyticsSettings = () => {
         <PageSectionSummary>
           <PageSectionTitle>Analytics and Marketing</PageSectionTitle>
           <PageSectionDescription>
-            Control whether telemetry and marketing data is sent from Supabase services.
+            Control whether telemetry and marketing data is sent from Taskclan services.
           </PageSectionDescription>
         </PageSectionSummary>
       </PageSectionMeta>
@@ -70,8 +70,8 @@ export const AnalyticsSettings = () => {
                 render={({ field }) => (
                   <FormItemLayout
                     layout="flex-row-reverse"
-                    label="Send telemetry data from Supabase services"
-                    description="By opting in to sharing telemetry data, Supabase can analyze usage patterns to enhance user experience and use it for marketing and advertising purposes"
+                    label="Send telemetry data from Taskclan services"
+                    description="By opting in to sharing telemetry data, Taskclan can analyze usage patterns to enhance user experience and use it for marketing and advertising purposes"
                     id="telemetry"
                   >
                     <FormControl>

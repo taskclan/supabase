@@ -42,7 +42,7 @@ const Authentication = ({ selectedLang, showApiKey }: AuthenticationProps) => {
         title="Authentication"
         content={
           <>
-            <p>Supabase works through a mixture of JWT and Key auth.</p>
+            <p>Taskclan Cloud works through a mixture of JWT and Key auth.</p>
             <p>
               If no <code>Authorization</code> header is included, the API will assume that you are
               making a request with an anonymous user.

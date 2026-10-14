@@ -291,8 +291,8 @@ export const TaskclanProjectCreationForm = () => {
       for (const p of dbInfo?.supabasePlans ?? [])
         out.push({
           value: `supabase:${p.id}`,
-          title: `Supabase · ${p.label}`,
-          blurb: p.blurb ?? 'Dedicated Supabase project',
+          title: `Managed Postgres · ${p.label}`,
+          blurb: p.blurb ?? 'Dedicated Postgres database',
           price: price(p.priceCredits),
         })
     }
@@ -312,8 +312,8 @@ export const TaskclanProjectCreationForm = () => {
     if (dbInfo?.supabaseOAuth) {
       out.push({
         value: OWN_SUPABASE,
-        title: 'Your own Supabase (one-click)',
-        blurb: 'Authorize your Supabase account — a dedicated project is created in your org',
+        title: 'Your own managed database (one-click)',
+        blurb: 'Authorize your provider account — a dedicated database is created in your org',
         price: '$3/mo service fee',
       })
     }
@@ -432,7 +432,7 @@ export const TaskclanProjectCreationForm = () => {
         // hand the browser to Supabase. The engine callback provisions in the
         // customer's org, attaches to this app, and returns to the new project —
         // so this path redirects to Supabase, not to /project/{ref}.
-        toast.info('Redirecting to Supabase to authorize…')
+        toast.info('Redirecting to authorize your database…')
         const res = await taskclanFetch(`/api/taskclan/${ref}/provision-supabase-oauth`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
@@ -445,7 +445,7 @@ export const TaskclanProjectCreationForm = () => {
         const body = await res.json().catch(() => ({}))
         if (!res.ok || !body.url) {
           toast.error(
-            `Project created, but the Supabase connection could not be started: ${body.error || res.status}. Try again from the project's Database page.`
+            `Project created, but the database connection could not be started: ${body.error || res.status}. Try again from the project's Database page.`
           )
           router.push(`/project/${ref}`)
           return
@@ -575,7 +575,7 @@ export const TaskclanProjectCreationForm = () => {
               <RadioGroupStackedItem
                 value="static"
                 label="Static site"
-                description="Prebuilt static files served from the edge. Can still use a database, like a waitlist in Supabase."
+                description="Prebuilt static files served from the edge. Can still use a database, like a waitlist in Postgres."
               />
             </RadioGroupStacked>
           </div>
@@ -783,7 +783,7 @@ export const TaskclanProjectCreationForm = () => {
             <RadioGroupStackedItem
               value="add"
               label="Add a database"
-              description="A managed database (Supabase/Neon), your own Supabase, or your own connection string."
+              description="A managed Postgres database, your own managed database, or your own connection string."
               disabled={dbOptions.length === 0}
             />
           </RadioGroupStacked>
@@ -831,8 +831,8 @@ export const TaskclanProjectCreationForm = () => {
               ) : isOauth ? (
                 <Admonition
                   type="default"
-                  title="You'll be redirected to Supabase"
-                  description="Authorize your Supabase account — a dedicated project is created in your own org and connected to this app. $3/mo service fee, billed to the org wallet."
+                  title="You'll be redirected to authorize"
+                  description="Authorize your database provider — a dedicated database is created in your own org and connected to this app. $3/mo service fee, billed to the org wallet."
                 />
               ) : (
                 <Admonition

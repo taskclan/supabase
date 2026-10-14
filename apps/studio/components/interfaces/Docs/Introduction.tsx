@@ -38,9 +38,9 @@ export default function Introduction({ selectedLang }: Props) {
             <InlineLink href={`/project/${projectRef}/settings/api-keys`}>API settings</InlineLink>.
           </p>
           <p>
-            You can initialize a new Supabase client using the <code>createClient()</code> method.
-            The Supabase client is your entrypoint to the rest of the Supabase functionality and is
-            the easiest way to interact with everything we offer within the Supabase ecosystem.
+            You can initialize a new client using the <code>createClient()</code> method.
+            The client is your entrypoint to the rest of the functionality and is
+            the easiest way to interact with everything we offer within the Taskclan Cloud ecosystem.
           </p>
         </>
       }
