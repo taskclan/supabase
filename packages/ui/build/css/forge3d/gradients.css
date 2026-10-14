@@ -8,10 +8,10 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']):not([data-theme='taskclan-light']) {
-    --gradient-hero: linear-gradient(135deg, #140a26, #3a1f73, #7115ba);
+    --gradient-hero: linear-gradient(135deg, #0e0a18, #241544, #4e2c93);
   }
 }
 :root[data-theme='dark'],
 :root[data-theme='taskclan-dark'] {
-  --gradient-hero: linear-gradient(135deg, #140a26, #3a1f73, #7115ba);
+  --gradient-hero: linear-gradient(135deg, #0e0a18, #241544, #4e2c93);
 }

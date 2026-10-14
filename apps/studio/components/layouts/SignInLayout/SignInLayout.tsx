@@ -197,7 +197,16 @@ export const SignInLayout = ({
 
   return (
     <>
-      <div className="relative flex flex-col bg-alternative min-h-screen">
+      <div
+        className="relative flex flex-col min-h-screen overflow-hidden"
+        style={{ background: 'var(--gradient-hero)' }}
+      >
+        {/* taskclan.com hero backdrop: cream->lilac canvas + a soft violet glow (theme-adaptive). */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -top-40 right-[-8%] h-[640px] w-[640px] rounded-full"
+          style={{ background: 'var(--color-primary)', opacity: 0.18, filter: 'blur(150px)' }}
+        />
         <div
           className={cn(
             'absolute top-0 w-full px-8 mx-auto sm:px-6 lg:px-8',
