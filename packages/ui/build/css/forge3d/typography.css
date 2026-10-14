@@ -11,10 +11,11 @@
    rules. Turbopack fails the build rather than ignoring it. */
 
 :root {
-  --font-body: 'Figtree', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: 'Figtree', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display-weight: 700;
-  --font-display-tracking: -0.022em;
+  --font-body: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-display-weight: 800;
+  --font-display-tracking: -0.03em;
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semi-bold: 600;

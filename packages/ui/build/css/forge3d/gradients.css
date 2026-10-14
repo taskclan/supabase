@@ -1,17 +1,17 @@
-/* Forge3D (Sitterly) gradients. The hero darkens its two lead stops in dark
-   mode; same selector adaptation as colors.css. */
+/* Forge3D (Sitterly) gradients. Hero is the taskclan.com cream->lilac canvas in
+   light; dark keeps a deep-violet sweep. Same selector adaptation as colors.css. */
 :root {
-  --gradient-hero: linear-gradient(135deg, #130240, #4A2BA0, #6A43D7);
-  --gradient-card: linear-gradient(135deg, #6A43D7, #8B6BE0, #BBA8EF);
-  --gradient-button: linear-gradient(135deg, #6A43D7, #5533B8);
+  --gradient-hero: linear-gradient(180deg, #faf8f3 0%, #f7f3f2 54%, #ebe2fb 100%);
+  --gradient-card: linear-gradient(135deg, #7115ba, #9d5ce6, #dcc9fb);
+  --gradient-button: linear-gradient(135deg, #7115ba, #550c8f);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']):not([data-theme='taskclan-light']) {
-    --gradient-hero: linear-gradient(135deg, #1A1030, #3A2280, #6A43D7);
+    --gradient-hero: linear-gradient(135deg, #140a26, #3a1f73, #7115ba);
   }
 }
 :root[data-theme='dark'],
 :root[data-theme='taskclan-dark'] {
-  --gradient-hero: linear-gradient(135deg, #1A1030, #3A2280, #6A43D7);
+  --gradient-hero: linear-gradient(135deg, #140a26, #3a1f73, #7115ba);
 }

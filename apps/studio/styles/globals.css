@@ -1,6 +1,6 @@
-/* Figtree — the Sitterly face. First line: every @import must precede all
+/* Geist — the taskclan.com face. First line: every @import must precede all
    rules, and the token files below carry rules. */
-@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap');
 @import 'config/tailwind.config.css';
 @import './../../../packages/ui/build/css/themes/classic-dark.css';
 @import './../../../packages/ui/build/css/themes/taskclan-dark.css';

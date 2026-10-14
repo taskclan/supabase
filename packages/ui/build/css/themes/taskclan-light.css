@@ -1,17 +1,15 @@
 /*
- * Taskclan Cloud — light.
+ * Taskclan Cloud — light (taskclan.com cream).
  *
  * The twin of taskclan-dark.css, derived from upstream's own light.css so the
- * elevation and contrast machinery stays theirs. Two measured changes: the hue
- * moves 159 -> 285, and --foreground-lightness goes 0.1 -> 0.19 because
- * Sitterly's ink is #130240, a very dark violet rather than near-black.
+ * elevation and contrast machinery stays theirs. Retuned to the marketing site:
+ * the brand hue is violet #7115ba (273deg), the canvas drops to a cream ground
+ * (#f4f3ee ~ L 0.96, down from near-white 0.995), and the ink is near-black
+ * #0d0d0c (foreground-lightness 0.08) rather than Sitterly's dark violet.
  *
- * --surface stays at 0.995: Sitterly's #FDFDFF measures L 0.995 exactly, which
- * is already what upstream uses. The two systems agree on the light ground.
- *
- * The brand ramp runs the other direction from dark — on a near-white surface
- * the pale steps sit behind content and the dark ones carry text, so 200 is
- * Sitterly's --color-primary-faint and link/600 take --color-primary-dark.
+ * The brand ramp runs the other direction from dark — on a cream surface the
+ * pale steps sit behind content and the dark ones carry text, so 200 is the
+ * faint lilac wash and link/600 take the deep violet.
  */
 /* Also claims plain `light` — see taskclan-dark.css for why. */
 [data-theme='light'],
@@ -19,19 +17,18 @@
 [data-theme='taskclan-light'],
 .taskclan-light {
   --helpers-os-appearance: Light;
-  --hue: 285;   /* Sitterly greys measure H 285; 159 is Supabase green */
+  --hue: 285;   /* neutral greys carry a faint violet cast; brand hue is 273 */
   --surface-hue: 34;
   --chroma: 0;
   /*
-   * Soft-gray canvas (not pure white) so elevated surfaces have headroom to
-   * brighten toward white. --elevation-step is positive here: higher surfaces
-   * get lighter, matching dark mode's direction. Tuned literal (previously
-   * derived from 1 - surface); retune alongside --surface.
+   * Cream canvas (taskclan.com --paper #f4f3ee) so elevated surfaces have
+   * headroom to brighten toward white. --elevation-step is positive here:
+   * higher surfaces get lighter, matching dark mode's direction.
    */
-  --surface: 0.995;  /* Sitterly #FDFDFF measures L 0.995 — unchanged */
+  --surface: 0.96;  /* taskclan.com paper #f4f3ee measures L ~0.96 */
   --elevation-step: 0.024;
   --contrast: 0.53;
-  --foreground-lightness: 0.19;  /* Sitterly #130240 measures L 0.190 */
+  --foreground-lightness: 0.08;  /* taskclan.com ink #0d0d0c measures L ~0.08 */
   --muted-foreground-level: 0.65;
   --tertiary-foreground-level: 0.5;
   /*
@@ -52,17 +49,18 @@
   --code-token-string: #c46a0a;
   --code-token-string-expression: #c46a0a;
 
-  /* Stepped numeric scales (per-theme literals; mapped in theme.css) */
+  /* Stepped numeric scales (per-theme literals; mapped in theme.css).
+     Brand ramp retuned to taskclan.com violet #7115ba (H 273, S 80, L 41). */
   --secondary-default: 247.8deg 100% 70%;
   --secondary-400: 248.3deg 54.5% 25.9%;
   --secondary-200: 248deg 53.6% 11%;
-  --brand-link: 255.9deg 57.6% 39.8%;
-  --brand-default: 255.8deg 64.9% 55.3%;
-  --brand-600: 255.9deg 57.6% 39.8%;
-  --brand-500: 255.8deg 64.9% 55.3%;
-  --brand-400: 256.4deg 65.4% 64.9%;
-  --brand-300: 259.3deg 67.8% 82.9%;
-  --brand-200: 258.0deg 71.4% 97.3%;
+  --brand-link: 273deg 80% 42%;
+  --brand-default: 273deg 78% 46%;
+  --brand-600: 273deg 80% 40%;
+  --brand-500: 273deg 78% 46%;
+  --brand-400: 272deg 70% 60%;
+  --brand-300: 272deg 68% 80%;
+  --brand-200: 276deg 70% 96%;
   /* --warning-default: 30.3deg 80.3% 47.8%; */
   --warning-600: 30.3deg 80.3% 47.8%;
   --warning-500: 36.3deg 85.7% 67.1%;

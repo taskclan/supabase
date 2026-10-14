@@ -1,32 +1,37 @@
 /* Forge3D (Sitterly) colours.
 
+   Retuned to the taskclan.com marketing palette: cream paper (#f4f3ee /
+   #ebe8df), violet brand (#7115ba) and near-black ink (#0d0d0c), so the cloud
+   console reads as the same product as the marketing site. Dark keeps its
+   near-black grounds and only moves the brand onto the same violet.
+
    Adapted from the design project: each dark selector also matches
    `taskclan-dark`, and the system-dark guard also excludes `taskclan-light`.
    Studio's theme attribute carries 'taskclan-dark' / 'taskclan-light', so
    without this the dark palette never fires and every token stays light while
    the page around it goes black. */
 :root {
-  --color-primary: #6A43D7;
-  --color-primary-light: #8B6BE0;
-  --color-primary-dark: #4A2BA0;
-  --color-primary-faint: #F6F3FD;
+  --color-primary: #7115ba;
+  --color-primary-light: #9d5ce6;
+  --color-primary-dark: #550c8f;
+  --color-primary-faint: #f2e9fb;
   --color-accent: #FBCE3E;
   --color-accent-dark: #D9A820;
   --color-support: #3EFBE4;
-  --color-background: #FDFDFF;
-  --color-surface: #FFFFFF;
-  --color-surface-elevated: #F6F3FD;
-  --color-background-secondary: #F8F8FA;
-  --color-text-primary: #130240;
-  --color-text-secondary: #635D71;
-  --color-text-muted: #9A94A8;
+  --color-background: #f4f3ee;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-background-secondary: #ebe8df;
+  --color-text-primary: #0d0d0c;
+  --color-text-secondary: #6f6d68;
+  --color-text-muted: #9a978f;
   --color-text-on-primary: #FFFFFF;
-  --color-text-on-accent: #130240;
-  --color-input-background: #F5F5F7;
-  --color-input-border: #E8E8E8;
-  --color-input-border-focused: #6A43D7;
-  --color-input-text: #130240;
-  --color-placeholder: #9A94A8;
+  --color-text-on-accent: #0d0d0c;
+  --color-input-background: #faf9f5;
+  --color-input-border: #dcd9d0;
+  --color-input-border-focused: #7115ba;
+  --color-input-text: #0d0d0c;
+  --color-placeholder: #9a978f;
   --color-error: #EF4444;
   --color-error-light: #FEE2E2;
   --color-success: #10B981;
@@ -35,20 +40,20 @@
   --color-warning-light: #FEF3C7;
   --color-info: #3B82F6;
   --color-info-light: #DBEAFE;
-  --color-border: #E8E8E8;
-  --color-divider: #EEEEEE;
-  --color-border-active: #C9B6F1;
+  --color-border: #ddd9cf;
+  --color-divider: #e7e4db;
+  --color-border-active: #c9b6f1;
   --color-google: #4285F4;
-  --color-overlay: rgba(19, 2, 64, 0.5);
+  --color-overlay: rgba(13, 13, 12, 0.5);
 }
 
 /* System preference, unless an explicit light theme opted out. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']):not([data-theme='taskclan-light']) {
-  --color-primary: #8B6BE0;
-  --color-primary-light: #9B7DE5;
-  --color-primary-dark: #6A43D7;
-  --color-primary-faint: rgba(139, 107, 224, 0.16);
+  --color-primary: #a981f2;
+  --color-primary-light: #c0a6f5;
+  --color-primary-dark: #7115ba;
+  --color-primary-faint: rgba(169, 129, 242, 0.16);
   --color-accent: #FBCE3E;
   --color-accent-dark: #D9A820;
   --color-support: #3EFBE4;
@@ -63,7 +68,7 @@
   --color-text-on-accent: #130240;
   --color-input-background: #16161C;
   --color-input-border: #26262F;
-  --color-input-border-focused: #8B6BE0;
+  --color-input-border-focused: #a981f2;
   --color-input-text: #F4F4F7;
   --color-placeholder: #6F6F7A;
   --color-error: #EF4444;
@@ -85,10 +90,10 @@
 /* Explicit dark, either naming. */
 :root[data-theme='dark'],
 :root[data-theme='taskclan-dark'] {
-  --color-primary: #8B6BE0;
-  --color-primary-light: #9B7DE5;
-  --color-primary-dark: #6A43D7;
-  --color-primary-faint: rgba(139, 107, 224, 0.16);
+  --color-primary: #a981f2;
+  --color-primary-light: #c0a6f5;
+  --color-primary-dark: #7115ba;
+  --color-primary-faint: rgba(169, 129, 242, 0.16);
   --color-accent: #FBCE3E;
   --color-accent-dark: #D9A820;
   --color-support: #3EFBE4;
@@ -103,7 +108,7 @@
   --color-text-on-accent: #130240;
   --color-input-background: #16161C;
   --color-input-border: #26262F;
-  --color-input-border-focused: #8B6BE0;
+  --color-input-border-focused: #a981f2;
   --color-input-text: #F4F4F7;
   --color-placeholder: #6F6F7A;
   --color-error: #EF4444;
@@ -125,27 +130,27 @@
    query above, and a bare :root would not. */
 :root[data-theme='light'],
 :root[data-theme='taskclan-light'] {
-  --color-primary: #6A43D7;
-  --color-primary-light: #8B6BE0;
-  --color-primary-dark: #4A2BA0;
-  --color-primary-faint: #F6F3FD;
+  --color-primary: #7115ba;
+  --color-primary-light: #9d5ce6;
+  --color-primary-dark: #550c8f;
+  --color-primary-faint: #f2e9fb;
   --color-accent: #FBCE3E;
   --color-accent-dark: #D9A820;
   --color-support: #3EFBE4;
-  --color-background: #FDFDFF;
-  --color-surface: #FFFFFF;
-  --color-surface-elevated: #F6F3FD;
-  --color-background-secondary: #F8F8FA;
-  --color-text-primary: #130240;
-  --color-text-secondary: #635D71;
-  --color-text-muted: #9A94A8;
+  --color-background: #f4f3ee;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-background-secondary: #ebe8df;
+  --color-text-primary: #0d0d0c;
+  --color-text-secondary: #6f6d68;
+  --color-text-muted: #9a978f;
   --color-text-on-primary: #FFFFFF;
-  --color-text-on-accent: #130240;
-  --color-input-background: #F5F5F7;
-  --color-input-border: #E8E8E8;
-  --color-input-border-focused: #6A43D7;
-  --color-input-text: #130240;
-  --color-placeholder: #9A94A8;
+  --color-text-on-accent: #0d0d0c;
+  --color-input-background: #faf9f5;
+  --color-input-border: #dcd9d0;
+  --color-input-border-focused: #7115ba;
+  --color-input-text: #0d0d0c;
+  --color-placeholder: #9a978f;
   --color-error: #EF4444;
   --color-error-light: #FEE2E2;
   --color-success: #10B981;
@@ -154,9 +159,9 @@
   --color-warning-light: #FEF3C7;
   --color-info: #3B82F6;
   --color-info-light: #DBEAFE;
-  --color-border: #E8E8E8;
-  --color-divider: #EEEEEE;
-  --color-border-active: #C9B6F1;
+  --color-border: #ddd9cf;
+  --color-divider: #e7e4db;
+  --color-border-active: #c9b6f1;
   --color-google: #4285F4;
-  --color-overlay: rgba(19, 2, 64, 0.5);
+  --color-overlay: rgba(13, 13, 12, 0.5);
 }
