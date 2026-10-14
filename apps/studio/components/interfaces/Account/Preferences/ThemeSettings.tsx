@@ -77,7 +77,7 @@ export const ThemeSettings = () => {
         <PageSectionSummary>
           <PageSectionTitle>Appearance</PageSectionTitle>
           <PageSectionDescription>
-            Choose how Supabase looks and behaves in the dashboard.
+            Choose how Taskclan Cloud looks and behaves in the dashboard.
           </PageSectionDescription>
         </PageSectionSummary>
       </PageSectionMeta>
@@ -89,7 +89,7 @@ export const ThemeSettings = () => {
                 Theme mode
               </Label>
               <p className="text-sm text-foreground-light">
-                Choose how Supabase looks to you. Select a single theme, or sync with your system.
+                Choose how Taskclan Cloud looks to you. Select a single theme, or sync with your system.
               </p>
             </div>
 
