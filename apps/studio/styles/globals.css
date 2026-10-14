@@ -61,7 +61,7 @@
   --animate-sway: sway 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-marketplace-featured-progress: marketplace-featured-progress linear forwards;
 
-  /* font sizing and weights optimized for Inter */
+  /* font sizing scale; the base text weight is Geist's regular (400) */
   --text-sm: 0.8125rem;
   --text-base: 0.9375rem;
   --text-lg: 1rem;
@@ -74,7 +74,7 @@
   --text-7xl: 4.375rem;
   --text-8xl: 5.875rem;
   --text-9xl: 7.875rem;
-  --font-weight-normal: 450;
+  --font-weight-normal: 400;
 }
 
 @keyframes shimmer {
@@ -210,7 +210,7 @@ body,
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
-  font-weight: 450;
+  font-weight: 400;
 }
 
 * {
