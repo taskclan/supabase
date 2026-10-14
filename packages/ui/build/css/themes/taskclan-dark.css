@@ -77,13 +77,13 @@
    * The 200-500 steps are dark fills that sit *behind* content, so they run
    * far darker than the mid-tone, following upstream's direction.
    */
-  --brand-link: 256.4deg 65.4% 64.9%;   /* primary-light — links lift off the page */
-  --brand-default: 255.8deg 64.9% 55.3%; /* --color-primary */
-  --brand-600: 256.4deg 65.4% 64.9%;    /* --color-primary-light */
-  --brand-500: 255.9deg 57.6% 25.0%;
-  --brand-400: 256.0deg 60.0% 15.0%;
-  --brand-300: 256.0deg 62.0% 11.0%;
-  --brand-200: 258.0deg 60.0% 6.0%;
+  --brand-link: 263deg 83% 80%;   /* lighter violet — links lift off the page */
+  --brand-default: 261deg 81% 73%; /* --color-primary #a981f2 */
+  --brand-600: 263deg 83% 80%;    /* --color-primary-light */
+  --brand-500: 263deg 55% 30%;
+  --brand-400: 263deg 58% 19%;
+  --brand-300: 263deg 60% 13%;
+  --brand-200: 265deg 58% 8%;
 
   /* Status colours are Sitterly's, which are the standard Tailwind-ish set.
      Held identical to the engine's tokens so a red in the console and a red in

@@ -31,7 +31,7 @@ const buttonVariants = cva(
         primary: `
           bg-brand-400 dark:bg-brand-500
           hover:bg-brand/80 dark:hover:bg-brand/50
-          text-foreground
+          text-white
           border-brand-500/75 dark:border-brand/30
           hover:border-brand-600 dark:hover:border-brand
           data-[state=open]:bg-brand-400/80 dark:data-[state=open]:bg-brand-500/80

@@ -2,11 +2,11 @@
    leans on the surface steps and uses its own softer set. Same selector
    adaptation as colors.css. */
 :root {
-  --shadow-card: 0px 2px 12px rgba(19, 2, 64, 0.06);
-  --shadow-card-hover: 0px 4px 12px rgba(19, 2, 64, 0.08);
-  --shadow-elevated: 0px 8px 24px rgba(19, 2, 64, 0.10);
-  --shadow-button: 0px 2px 8px rgba(106, 67, 215, 0.15);
-  --shadow-button-hero: 0px 8px 20px rgba(106, 67, 215, 0.25);
+  --shadow-card: 0 2px 12px rgba(60, 40, 90, 0.08);
+  --shadow-card-hover: 0 8px 24px rgba(60, 40, 90, 0.12);
+  --shadow-elevated: 0 24px 60px rgba(44, 32, 60, 0.14);
+  --shadow-button: 0 6px 16px rgba(113, 21, 186, 0.18);
+  --shadow-button-hero: 0 14px 34px rgba(113, 21, 186, 0.26);
 }
 
 @media (prefers-color-scheme: dark) {
