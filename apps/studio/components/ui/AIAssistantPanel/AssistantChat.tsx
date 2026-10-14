@@ -487,11 +487,11 @@ export const AssistantChat = ({
         {isSuccess && !isApiKeySet && (
           <Admonition
             type="default"
-            title="OpenAI API key not set"
+            title="Kin isn't configured"
             description={
               <Markdown
                 content={
-                  'Add your `OPENAI_API_KEY` to your environment variables to use Kin.'
+                  'Set `TASKCLAN_INTELLIGENCE_API_KEY` in your environment to connect Kin to Taskclan Intelligence.'
                 }
               />
             }
