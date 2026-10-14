@@ -23,7 +23,7 @@ import { buildStudioPageTitle } from '@/lib/page-title'
 import { useProfile } from '@/lib/profile'
 import type { NextPageWithLayout } from '@/types'
 
-const PAGE_TITLE = buildStudioPageTitle({ section: 'Authorize CLI', brand: 'Supabase' })
+const PAGE_TITLE = buildStudioPageTitle({ section: 'Authorize CLI', brand: 'Taskclan Cloud' })
 
 const CliLogo = () => (
   <LogoBox className="bg-black">
@@ -225,7 +225,7 @@ export const CliLoginScreen = ({
             type="warning"
             description={
               <>
-                Supabase could not create the CLI sign-in session.
+                Taskclan Cloud could not create the CLI sign-in session.
                 {status.message && (
                   <span className="mt-1 block text-foreground-lighter">
                     Error: {status.message}

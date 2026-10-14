@@ -14,7 +14,7 @@ function ClaimProject() {
   return (
     <>
       <Head>
-        <title>{`Claim project | ${appTitle ?? 'Supabase'}`}</title>
+        <title>{`Claim project | ${appTitle ?? 'Taskclan Cloud'}`}</title>
       </Head>
       <main className="flex flex-col w-full min-h-screen overflow-y-auto">
         <ClaimProjectPage dehydratedState={undefined} />

@@ -35,14 +35,14 @@ export const UserManagement = ({ selectedLang, showApiKey }: UserManagementProps
         title="User Management"
         content={
           <>
-            <p>Supabase makes it easy to manage your users.</p>
+            <p>Taskclan Cloud makes it easy to manage your users.</p>
             <p>
-              Supabase assigns each user a unique ID. You can reference this ID anywhere in your
+              Taskclan Cloud assigns each user a unique ID. You can reference this ID anywhere in your
               database. For example, you might create a <code>profiles</code> table that references
               the user using a <code>user_id</code> field.
             </p>
             <p>
-              Supabase already has built in the routes to sign up, sign in, and sign out for
+              Taskclan Cloud already has built in the routes to sign up, sign in, and sign out for
               managing users in your apps and websites.
             </p>
           </>

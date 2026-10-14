@@ -205,7 +205,7 @@ const skillsInstallStep: StepDefinition = {
   title: 'Install Agent Skills',
   optional: true,
   description:
-    'Agent Skills give AI coding tools ready-made instructions, scripts, and resources for working with Supabase more accurately and efficiently.',
+    'Agent Skills give AI coding tools ready-made instructions, scripts, and resources for working with Taskclan Cloud more accurately and efficiently.',
   content: 'steps/skills-install',
 }
 
@@ -229,7 +229,7 @@ const serverConnectPrompt = `Set up the @supabase/server SDK in this project.
 Install it:
 npm install @supabase/server
 
-It reads these environment variables (copy the real values from the Supabase dashboard's Connect dialog — never commit the secret key):
+It reads these environment variables (copy the real values from the Taskclan Cloud dashboard's Connect dialog — never commit the secret key):
 - SUPABASE_URL
 - SUPABASE_PUBLISHABLE_KEY
 - SUPABASE_SECRET_KEY

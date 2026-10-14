@@ -55,7 +55,7 @@ export const PauseDisabledState = () => {
               <InlineLink
                 href={`${DOCS_URL}/guides/platform/migrating-within-supabase/dashboard-restore`}
               >
-                Restore the backup to a new Supabase project
+                Restore the backup to a new project
               </InlineLink>
             </li>
             <li className="flex items-center gap-x-2">

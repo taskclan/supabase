@@ -259,7 +259,7 @@ export function RotateKeyDialog({
                           <br />
                           Recommendation: Change all of your Edge Functions to no longer verify JWT
                           and implement the verification logic in the function's code yourself by
-                          using the Supabase client library or any other library for working with
+                          using the client library or any other library for working with
                           JWT.
                         </p>
                       ),

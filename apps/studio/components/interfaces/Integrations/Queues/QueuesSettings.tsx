@@ -218,7 +218,7 @@ export const QueuesSettings = () => {
                             <p className="max-w-2xl">
                               When enabled, you will be able to use the following functions from the{' '}
                               <code className="text-code-inline">{QUEUES_SCHEMA}</code> schema to
-                              manage your queues via any Supabase client library or PostgREST
+                              manage your queues via any client library or PostgREST
                               endpoints:
                             </p>
                             <p className="mt-2">
@@ -298,7 +298,7 @@ export const QueuesSettings = () => {
                           <p className="text-foreground-light">
                             Database functions will be created in the{' '}
                             <code className="text-code-inline">{QUEUES_SCHEMA}</code> schema upon
-                            enabling. Call these functions via any Supabase client library or
+                            enabling. Call these functions via any client library or
                             PostgREST endpoint to manage your queues. Permissions on individual
                             queues can also be further managed through privileges and row level
                             security (RLS).

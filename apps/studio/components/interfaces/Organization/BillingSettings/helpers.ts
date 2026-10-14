@@ -77,7 +77,7 @@ export const billingMetricUnit = (pricingMetric: PricingMetric) => {
 export const generateUpgradeReasons = (originalPlan?: string | null, upgradedPlan?: string) => {
   const reasons = [
     'Current plan limits are not enough for me',
-    'I want better customer support from Supabase',
+    'I want better customer support from Taskclan Cloud',
     'I am migrating from a previous project',
   ]
 

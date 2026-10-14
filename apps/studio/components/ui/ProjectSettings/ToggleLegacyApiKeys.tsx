@@ -66,17 +66,17 @@ export const ToggleLegacyApiKeysPanel = () => {
         title: 'Check your OAuth apps before continuing',
         description: (
           <>
-            Disabling legacy API keys can break apps that integrate with Supabase. Before
+            Disabling legacy API keys can break apps that integrate with Taskclan Cloud. Before
             continuing, check your organization's {oauthAppsLink} to ensure none of them depend on
             the legacy API keys.
           </>
         ),
       }
     : {
-        title: 'Apps using Supabase may break',
+        title: 'Apps using Taskclan Cloud may break',
         description: (
           <>
-            Your project uses apps that integrate with Supabase. Disabling the legacy API keys is a
+            Your project uses apps that integrate with Taskclan Cloud. Disabling the legacy API keys is a
             brand new feature and the apps you're using may not have added support for this yet. It
             can cause them to stop functioning. Check your {oauthAppsLink} before continuing.
           </>

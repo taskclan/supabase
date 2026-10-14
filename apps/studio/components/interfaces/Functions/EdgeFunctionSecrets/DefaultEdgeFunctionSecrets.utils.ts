@@ -10,7 +10,7 @@ export interface DefaultEdgeFunctionSecret {
 export const DEFAULT_EDGE_FUNCTION_SECRETS: DefaultEdgeFunctionSecret[] = [
   {
     name: 'SUPABASE_URL',
-    description: 'The API gateway for your Supabase project.',
+    description: 'The API gateway for your project.',
     isRuntime: false,
   },
   {

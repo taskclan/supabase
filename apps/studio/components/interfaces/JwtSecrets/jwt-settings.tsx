@@ -183,7 +183,7 @@ export const JWTSettings = () => {
                       <em className="text-foreground not-italic">
                         {legacyKey.status === 'in_use' ? 'sign and verify' : 'only verify'}
                       </em>{' '}
-                      JSON Web Tokens by Supabase products.
+                      JSON Web Tokens by Taskclan products.
                     </p>
 
                     {legacyAPIKeysStatus && legacyAPIKeysStatus.enabled && (
@@ -205,7 +205,7 @@ export const JWTSettings = () => {
                   <Admonition
                     type="note"
                     title="Your project has revoked the legacy JWT secret"
-                    description="No new JSON Web Tokens are issued nor verified with it by Supabase products."
+                    description="No new JSON Web Tokens are issued nor verified with it by Taskclan products."
                   />
                 )}
                 <FormLayout
@@ -257,7 +257,7 @@ export const JWTSettings = () => {
 
               {isJwtSecretUpdateFailed && (
                 <Admonition type="warning" title="Failed to update JWT secret">
-                  Please try again. If the failures persist, please contact Supabase support with
+                  Please try again. If the failures persist, please contact Support with
                   the following details: <br />
                   Change tracking ID: {data?.changeTrackingId} <br />
                   Error message: {jwtSecretUpdateErrorMessage}

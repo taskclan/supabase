@@ -49,7 +49,7 @@ const Introduction = ({ selectedLang }: IntroductionProps) => {
       <DocSection
         title={
           <>
-            GraphQL <span className="lowercase font-normal">vs</span> Supabase
+            GraphQL <span className="lowercase font-normal">vs</span> Taskclan Cloud
           </>
         }
         content={
@@ -60,11 +60,11 @@ const Introduction = ({ selectedLang }: IntroductionProps) => {
             </p>
             <p>
               The syntax is very similar. This example shows how you might achieve the same thing
-              with Apollo GraphQL and Supabase.
+              with Apollo GraphQL and Taskclan Cloud.
             </p>
             <h4 className="text-foreground-light mt-8 font-medium">Still want GraphQL?</h4>
             <p>
-              If you still want to use GraphQL, you can. Supabase provides you with a full Postgres
+              If you still want to use GraphQL, you can. Taskclan Cloud provides you with a full Postgres
               database, so as long as your middleware can connect to the database then you can still
               use the tools you love. You can find the database connection details{' '}
               <InlineLink href={`/project/${projectRef}/database/settings`}>
@@ -121,7 +121,7 @@ const { loading, error, data } = useQuery(gql\`
     },
   }),
   withSupabase: () => ({
-    title: 'With Supabase',
+    title: 'With Taskclan Cloud',
     bash: {
       language: 'js',
       code: `

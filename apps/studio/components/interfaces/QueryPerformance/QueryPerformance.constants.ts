@@ -60,12 +60,12 @@ export const QUERY_PERFORMANCE_ROLE_DESCRIPTION = [
   {
     name: 'dashboard_user',
     description:
-      'The Supabase Dashboard doesn\'t connect as this role. Dashboard queries execute as postgres and include a "-- source: dashboard" comment.',
+      'The Taskclan Cloud dashboard doesn\'t connect as this role. Dashboard queries execute as postgres and include a "-- source: dashboard" comment.',
   },
   {
     name: 'supabase_admin',
     description:
-      'An internal role Supabase uses for administrative tasks, such as running upgrades and automations.',
+      'An internal role Taskclan Cloud uses for administrative tasks, such as running upgrades and automations.',
   },
   {
     name: 'pgbouncer',

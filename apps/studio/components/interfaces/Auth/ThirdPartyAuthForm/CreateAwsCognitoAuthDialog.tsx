@@ -134,7 +134,7 @@ export const CreateAwsCognitoAuthIntegrationDialog = ({
             <Separator /> */}
               <p className="text-sm text-foreground-light">
                 This will enable a JWT token from Amazon Cognito project to access data from this
-                Supabase project.
+                project.
               </p>
               <FormField
                 key="awsCognitoUserPoolId"

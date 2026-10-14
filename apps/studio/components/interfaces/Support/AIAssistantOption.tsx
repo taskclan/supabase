@@ -55,7 +55,7 @@ export const AIAssistantOption = ({
           <div className="flex items-center p-6">
             <div className="flex flex-col gap-3 z-2 shrink-0 w-full">
               <div>
-                <h5 className="text-sm font-medium text-foreground">Try Supabase Assistant</h5>
+                <h5 className="text-sm font-medium text-foreground">Try Taskclan Assistant</h5>
                 <p className="text-sm text-foreground-lighter">
                   Ask our AI assistant to help you with your support issue.
                 </p>

@@ -93,7 +93,7 @@ const BuildingState = () => {
                 <ChecklistItem
                   description={
                     <p className="text-sm text-foreground-light">
-                      Browse the Supabase{' '}
+                      Browse the{' '}
                       <Link
                         href={`${DOCS_URL}`}
                         className="mb-0 text-brand transition-colors hover:text-brand-600"

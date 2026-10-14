@@ -551,7 +551,7 @@ export const SchemaGraph = () => {
                 title="No tables in schema"
                 description={
                   isSchemaLocked
-                    ? `The “${selectedSchema}” schema is managed by Supabase and is read-only through
+                    ? `The “${selectedSchema}” schema is managed by Taskclan Cloud and is read-only through
                     the dashboard.`
                     : !canUpdateTables
                       ? 'You need additional permissions to create tables'

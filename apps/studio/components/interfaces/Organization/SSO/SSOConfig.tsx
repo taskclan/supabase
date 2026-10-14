@@ -248,7 +248,7 @@ export const SSOConfig = () => {
             plan="Team"
             source="organizationSso"
             primaryText="Organization Single Sign-on (SSO) is available from Team plan and above"
-            secondaryText="SSO as a login option provides additional account security for your team by enforcing the use of an identity provider when logging into Supabase. Upgrade to Team or above to set up SSO for your organization."
+            secondaryText="SSO as a login option provides additional account security for your team by enforcing the use of an identity provider when logging into Taskclan Cloud. Upgrade to Team or above to set up SSO for your organization."
             featureProposition="enable Single Sign-on (SSO)"
           />
         ) : isSuccess || isSSOProviderNotFound ? (
@@ -295,7 +295,7 @@ export const SSOConfig = () => {
                             <FormItemLayout
                               layout="flex-row-reverse"
                               label="Enable SP-initiated login"
-                              description="Allow users to start the login flow from the Supabase dashboard by entering their email address. Requires configuring email domains below."
+                              description="Allow users to start the login flow from the Taskclan Cloud dashboard by entering their email address. Requires configuring email domains below."
                             >
                               <FormControl>
                                 <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -320,7 +320,7 @@ export const SSOConfig = () => {
                               <div>
                                 <strong>IdP-initiated (Identity Provider):</strong> Users click an
                                 app tile or bookmark in your identity provider dashboard and are
-                                directly authenticated into Supabase. Works automatically without
+                                directly authenticated into Taskclan Cloud. Works automatically without
                                 domain configuration.
                               </div>
                               <p className="text-foreground-lighter">

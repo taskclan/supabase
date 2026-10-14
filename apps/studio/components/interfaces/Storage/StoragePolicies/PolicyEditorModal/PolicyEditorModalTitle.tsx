@@ -57,7 +57,7 @@ export const PolicyEditorModalTitle = ({
       <div className="flex items-center gap-x-2 pr-6">
         {showAssistantPreview && view === POLICY_MODAL_VIEWS.EDITOR && (
           <Button icon={<FlaskConical />} onClick={onToggleFeaturePreviewModal}>
-            Try Supabase Assistant
+            Try Taskclan Assistant
           </Button>
         )}
         <DocsButton className="mt-[-4px]" href={`${DOCS_URL}/learn/auth-deep-dive/auth-policies`} />

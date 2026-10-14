@@ -76,7 +76,7 @@ const UpgradeSurveyModal = ({
         <DialogHeader>
           <DialogTitle>We're excited for your upgrade</DialogTitle>
           <DialogDescription>
-            What reasons motivated your decision to upgrade? Your feedback helps us improve Supabase
+            What reasons motivated your decision to upgrade? Your feedback helps us improve Taskclan Cloud
             as much as we can.
           </DialogDescription>
         </DialogHeader>

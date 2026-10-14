@@ -269,7 +269,7 @@ export const QueueSettings = ({}: QueueSettingsProps) => {
               title="Queue permissions are only relevant if exposure through PostgREST has been enabled"
               description={
                 <>
-                  You may opt to manage your queues via any Supabase client libraries or PostgREST
+                  You may opt to manage your queues via any client libraries or PostgREST
                   endpoints by enabling this in the{' '}
                   <Link
                     href={`/project/${project?.ref}/integrations/queues/settings`}

@@ -128,7 +128,7 @@ export const CreateWorkOSIntegrationDialog = ({
             <Separator /> */}
 
               <p className="text-sm text-foreground-light">
-                Enables a JWT from WorkOS to access data from this Supabase project.
+                Enables a JWT from WorkOS to access data from this project.
               </p>
               <FormField
                 key="issuerURL"

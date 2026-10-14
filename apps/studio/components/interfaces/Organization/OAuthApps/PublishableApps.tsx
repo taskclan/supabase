@@ -95,7 +95,7 @@ export const PublishableApps = () => {
         <PageSectionSummary>
           <PageSectionTitle>Published apps</PageSectionTitle>
           <PageSectionDescription>
-            Build integrations that extend Supabase's functionality
+            Build integrations that extend Taskclan's functionality
           </PageSectionDescription>
         </PageSectionSummary>
         <PageSectionAside>

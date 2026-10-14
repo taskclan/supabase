@@ -37,7 +37,7 @@ export const DataApiEnableSwitchForm = ({
                 <FormItemLayout
                   layout="flex-row-reverse"
                   label="Enable Data API"
-                  description="When enabled you will be able to use any Supabase client library and PostgREST endpoints with any schema configured in the Settings tab."
+                  description="When enabled you will be able to use any client library and PostgREST endpoints with any schema configured in the Settings tab."
                 >
                   <FormControl>
                     <Switch

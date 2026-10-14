@@ -82,7 +82,7 @@ export function getOrganizationInviteContent({
   if (status === 'ready') {
     return {
       title: `Join ${data?.organization_name ?? 'an organization'}`,
-      description: 'You have been invited to join this Supabase organization',
+      description: 'You have been invited to join this organization',
     }
   }
 

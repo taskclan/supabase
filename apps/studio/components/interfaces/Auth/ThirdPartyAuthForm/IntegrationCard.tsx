@@ -23,7 +23,7 @@ export const getIntegrationTypeDescription = (type: INTEGRATION_TYPES) => {
     case 'firebase':
       return (
         <>
-          Allow users to use Supabase with Firebase project. You'll need to setup RLS policies for
+          Allow users to use Taskclan Cloud with Firebase project. You'll need to setup RLS policies for
           all tables that you want to access with a Firebase JWT token. Additionally, you'll need to
           add custom code to set the <code>authenticated</code> role to all your present and future
           users. You can read more in the{' '}
@@ -40,7 +40,7 @@ export const getIntegrationTypeDescription = (type: INTEGRATION_TYPES) => {
     case 'auth0':
       return (
         <>
-          Allow users to use Supabase with Auth0 project. Additional setup may be required. You can
+          Allow users to use Taskclan Cloud with Auth0 project. Additional setup may be required. You can
           read more in the{' '}
           <a
             className="hover:decoration-brand underline hover:text-foreground transition"
@@ -54,7 +54,7 @@ export const getIntegrationTypeDescription = (type: INTEGRATION_TYPES) => {
     case 'awsCognito':
       return (
         <>
-          Allow users to use Supabase with an Amazon Cognito. Additional setup may be required. You
+          Allow users to use Taskclan Cloud with an Amazon Cognito. Additional setup may be required. You
           can read more in the{' '}
           <a
             className="hover:decoration-brand underline hover:text-foreground transition"
@@ -69,7 +69,7 @@ export const getIntegrationTypeDescription = (type: INTEGRATION_TYPES) => {
     case 'clerk':
       return (
         <>
-          Allow users to use Supabase with Clerk. Additional setup may be required. You can read
+          Allow users to use Taskclan Cloud with Clerk. Additional setup may be required. You can read
           more in the{' '}
           <a
             className="hover:decoration-brand underline hover:text-foreground transition"
@@ -84,7 +84,7 @@ export const getIntegrationTypeDescription = (type: INTEGRATION_TYPES) => {
     case 'workos':
       return (
         <>
-          Allow users to use Supabase with WorkOS. Additional setup may be required. You can read
+          Allow users to use Taskclan Cloud with WorkOS. Additional setup may be required. You can read
           more in the{' '}
           <a
             className="hover:decoration-brand underline hover:text-foreground transition"

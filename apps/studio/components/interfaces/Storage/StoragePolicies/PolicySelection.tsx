@@ -66,7 +66,7 @@ export const PolicySelection = ({
       {showAssistantPreview && onToggleFeaturePreviewModal !== undefined && (
         <Alert>
           <FlaskConical />
-          <AlertTitle>Try the new Supabase Assistant for RLS policies</AlertTitle>
+          <AlertTitle>Try the new Taskclan Assistant for RLS policies</AlertTitle>
           <AlertDescription>
             Create RLS policies for your tables with the help of AI
           </AlertDescription>

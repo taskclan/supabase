@@ -141,9 +141,9 @@ export const ProjectLinker = ({
           </div>
         ) : (
           <>
-            <section className="space-y-2" aria-label="Supabase project">
+            <section className="space-y-2" aria-label="project">
               <p className="text-xs font-medium uppercase tracking-wider text-foreground-light">
-                Supabase project
+                Project
               </p>
               <SupabaseProjectSelector
                 open={openProjectsDropdown}

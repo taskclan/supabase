@@ -181,7 +181,7 @@ function CustomApp({ Component, pageProps }: AppPropsWithLayout) {
                   <TimezoneProvider>
                     <TimestampInfoTimezoneBridge>
                       <Head>
-                        <title>{appTitle ?? 'Supabase'}</title>
+                        <title>{appTitle ?? 'Taskclan Cloud'}</title>
                         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
                         <meta property="og:image" content={`${BASE_PATH}/img/supabase-og.png`} />
                         <meta name="googlebot" content="notranslate" />
@@ -202,7 +202,7 @@ function CustomApp({ Component, pageProps }: AppPropsWithLayout) {
                       </Head>
                       <MetaFaviconsPagesRouter
                         includeManifest
-                        applicationName="Supabase Studio"
+                        applicationName="Taskclan Cloud"
                         route={isNonProdEnv ? '/favicon/staging' : '/favicon'}
                       />
                       <TooltipProvider>

@@ -100,7 +100,7 @@ export const ProjectClaimConfirm = ({
             <div className="w-8 h-8">
               <Image
                 src={`${BASE_PATH}/img/taskclan-mark.svg`}
-                alt="Supabase Logo"
+                alt="Taskclan logo"
                 className="w-full h-full"
                 width={100}
                 height={100}
@@ -120,7 +120,7 @@ export const ProjectClaimConfirm = ({
                 <CheckCircle2 className="text-brand h-5 w-5" />
               </span>
               <span>
-                The project will be transferred to your Supabase organization{' '}
+                The project will be transferred to your organization{' '}
                 <span className="text-foreground">{selectedOrganization.name}.</span>{' '}
                 <a
                   href="#"

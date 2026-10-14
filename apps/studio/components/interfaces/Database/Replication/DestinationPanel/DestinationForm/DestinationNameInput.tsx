@@ -17,7 +17,7 @@ export const DestinationNameInput = ({ form }: DestinationNameInputProps) => {
         <FormItemLayout
           label="Name"
           layout="horizontal"
-          description="Used to identify this pipeline in Supabase."
+          description="Used to identify this pipeline in Taskclan Cloud."
         >
           <FormControl>
             <Input

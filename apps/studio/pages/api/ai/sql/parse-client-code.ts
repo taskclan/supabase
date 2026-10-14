@@ -67,7 +67,7 @@ export async function handlePost(req: NextApiRequest, res: NextApiResponse) {
       if (error.message.includes('context_length') || error.message.includes('too long')) {
         return res.status(400).json({
           error:
-            'The provided code snippet is too large for Supabase Assistant to ingest. Try splitting it into smaller queries.',
+            'The provided code snippet is too large for Taskclan Assistant to ingest. Try splitting it into smaller queries.',
         })
       }
     } else {

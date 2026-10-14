@@ -19,7 +19,7 @@ const RETURN_TO_CLIENT_STEP = `Go back to ${UNKNOWN_CLIENT_LABEL} and choose "I'
 const CLOSE_TAB_FOOTER = 'You can close this tab.'
 
 const UNVERIFIED_KEY_FOOTER =
-  "Supabase doesn't verify keys. You can view or replace this one in Edge Functions secrets."
+  "Taskclan Cloud doesn't verify keys. You can view or replace this one in Edge Functions secrets."
 
 export function getSecretsCopy(state: SecretsOutcomeState): InterstitialTerminalCopy {
   switch (state.status) {
@@ -77,7 +77,7 @@ export function getSecretsCopy(state: SecretsOutcomeState): InterstitialTerminal
     case 'paused':
       return {
         title: 'Storing keys is paused',
-        subtitle: 'Supabase has turned this off for now. Nothing was stored.',
+        subtitle: 'Taskclan Cloud has turned this off for now. Nothing was stored.',
         calloutTitle: 'Next step',
         calloutBody: 'Try again later, or set the key in Edge Functions secrets instead.',
         footer: CLOSE_TAB_FOOTER,

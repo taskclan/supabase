@@ -283,7 +283,7 @@ export const Usage = () => {
                 <span className="font-medium text-foreground">
                   {selectedProject?.name || selectedProjectRef}
                 </span>{' '}
-                project. Supabase uses{' '}
+                project. Taskclan Cloud uses{' '}
                 <Link
                   href="/docs/guides/platform/billing-on-supabase#organization-based-billing"
                   target="_blank"

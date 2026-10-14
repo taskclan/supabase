@@ -4,7 +4,7 @@ import { OrganizationInvite } from '@/components/interfaces/OrganizationInvite/O
 import { buildStudioPageTitle } from '@/lib/page-title'
 import type { NextPageWithLayout } from '@/types'
 
-const PAGE_TITLE = buildStudioPageTitle({ section: 'Join Organization', brand: 'Supabase' })
+const PAGE_TITLE = buildStudioPageTitle({ section: 'Join Organization', brand: 'Taskclan Cloud' })
 
 const JoinOrganizationPage: NextPageWithLayout = () => {
   return (

@@ -36,7 +36,7 @@ export const OverviewLearnMore = () => {
     {
       label: 'Docs',
       title: 'Auth docs',
-      description: 'Read more on Supabase auth, managing users and more.',
+      description: 'Read more on auth, managing users and more.',
       image: isLight
         ? `${BASE_PATH}/img/auth-overview/auth-overview-docs-light.jpg`
         : `${BASE_PATH}/img/auth-overview/auth-overview-docs.jpg`,

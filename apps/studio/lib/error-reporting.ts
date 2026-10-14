@@ -23,7 +23,7 @@ const WHITELIST_ERRORS = [
   'db_pass must be longer than or equal to 4 characters',
   'There are overdue invoices in the organization(s)',
   'name should not contain a . string',
-  'Project creation in the Supabase dashboard is disabled for this Vercel-managed organization.',
+  'Project creation in the Taskclan Cloud dashboard is disabled for this Vercel-managed organization.',
   'Your account, which is handled by the Fly Supabase extension, cannot access this endpoint.',
   'already exists in your organization.',
 ]

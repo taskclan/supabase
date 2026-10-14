@@ -12,7 +12,7 @@ export const ObservabilityOverviewFooter = () => {
         >
           View our troubleshooting guides
         </Link>{' '}
-        for solutions to common Supabase issues.{' '}
+        for solutions to common Taskclan Cloud issues.{' '}
       </p>
     </div>
   )

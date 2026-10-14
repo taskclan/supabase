@@ -65,11 +65,11 @@ const supabase = createClient(SUPABASE_URL, process.env.SUPABASE_KEY);`,
     key: 'user-management',
     category: API_DOCS_CATEGORIES.USER_MANAGEMENT,
     title: `Introduction`,
-    description: `Supabase makes it easy to manage your users.
+    description: `Taskclan Cloud makes it easy to manage your users.
 
-  Supabase assigns each user a unique ID. You can reference this ID anywhere in your database. For example, you might create a \`profiles\` table references the user using a \`user_id\` field.
+  Taskclan Cloud assigns each user a unique ID. You can reference this ID anywhere in your database. For example, you might create a \`profiles\` table references the user using a \`user_id\` field.
 
-  Supabase already has built in the routes to sign up, login, and log out for managing users in your apps and websites.`,
+  Taskclan Cloud already has built in the routes to sign up, login, and log out for managing users in your apps and websites.`,
     js: undefined,
     bash: undefined,
   },
@@ -345,7 +345,7 @@ You can use Supabase Storage to store images, videos, documents, and any other f
     category: API_DOCS_CATEGORIES.EDGE_FUNCTIONS,
     title: 'Introduction',
     description: `
-Edge Functions are server-side TypeScript functions, distributed globally at the edge—close to your users. They can be used for listening to webhooks or integrating your Supabase project with third-parties like Stripe. Edge Functions are developed using Deno, which offers a few benefits to you as a developer:
+Edge Functions are server-side TypeScript functions, distributed globally at the edge—close to your users. They can be used for listening to webhooks or integrating your project with third-parties like Stripe. Edge Functions are developed using Deno, which offers a few benefits to you as a developer:
 `,
     js: undefined,
     bash: undefined,
@@ -355,7 +355,7 @@ Edge Functions are server-side TypeScript functions, distributed globally at the
     category: API_DOCS_CATEGORIES.EDGE_FUNCTIONS,
     title: 'Pre-requisites',
     description: `
-Follow the steps to prepare your Supabase project on your local machine.
+Follow the steps to prepare your project on your local machine.
 
 - Install the Supabase [CLI](${DOCS_URL}/guides/cli).
 - [Login to the CLI](${DOCS_URL}/reference/cli/usage#supabase-login) using the command: \`supabase login\`..
@@ -419,10 +419,10 @@ You can generate types from your database either through the [Supabase CLI](${DO
     category: API_DOCS_CATEGORIES.ENTITIES,
     title: 'GraphQL vs PostgREST',
     description: `
-If you have a GraphQL background, you might be wondering if you can fetch your data in a single round-trip. The answer is yes! The syntax is very similar. This example shows how you might achieve the same thing with Apollo GraphQL and Supabase.
+If you have a GraphQL background, you might be wondering if you can fetch your data in a single round-trip. The answer is yes! The syntax is very similar. This example shows how you might achieve the same thing with Apollo GraphQL and Taskclan Cloud.
 
 Still want GraphQL?
-If you still want to use GraphQL, you can. Supabase provides you with a full Postgres database, so as long as your middleware can connect to the database then you can still use the tools you love. You can find the database connection details [in the settings](/project/[ref]/database/settings).
+If you still want to use GraphQL, you can. Taskclan Cloud provides you with a full Postgres database, so as long as your middleware can connect to the database then you can still use the tools you love. You can find the database connection details [in the settings](/project/[ref]/database/settings).
 `,
     js: (_apikey?: string, _endpoint?: string) => `
 // With Apollo GraphQL
@@ -490,7 +490,7 @@ The API endpoint supports POST (and in some cases GET) to execute the function.
     category: API_DOCS_CATEGORIES.REALTIME,
     title: 'Introduction',
     description: `
-Supabase provides a globally distributed cluster of Realtime servers that enable the following functionality:
+Taskclan Cloud provides a globally distributed cluster of Realtime servers that enable the following functionality:
 
 - [Broadcast](${DOCS_URL}/guides/realtime/broadcast): Send ephemeral messages from client to clients with low latency.
 - [Presence](${DOCS_URL}/guides/realtime/presence): Track and synchronize shared state between clients.
@@ -536,7 +536,7 @@ supabase
     description: `
 Unsubscribes and removes Realtime channel from Realtime client.
 
-Removing a channel is a great way to maintain the performance of your project's Realtime service as well as your database if you're listening to Postgres changes. Supabase will automatically handle cleanup 30 seconds after a client is disconnected, but unused channels may cause degradation as more clients are simultaneously subscribed.
+Removing a channel is a great way to maintain the performance of your project's Realtime service as well as your database if you're listening to Postgres changes. Taskclan Cloud will automatically handle cleanup 30 seconds after a client is disconnected, but unused channels may cause degradation as more clients are simultaneously subscribed.
 `,
     js: () => `supabase.removeChannel(myChannel)`,
     bash: () => `# Realtime streams are only supported by our client libraries`,
@@ -548,7 +548,7 @@ Removing a channel is a great way to maintain the performance of your project's 
     description: `
 Unsubscribes and removes all Realtime channels from Realtime client.
 
-Removing a channel is a great way to maintain the performance of your project's Realtime service as well as your database if you're listening to Postgres changes. Supabase will automatically handle cleanup 30 seconds after a client is disconnected, but unused channels may cause degradation as more clients are simultaneously subscribed.
+Removing a channel is a great way to maintain the performance of your project's Realtime service as well as your database if you're listening to Postgres changes. Taskclan Cloud will automatically handle cleanup 30 seconds after a client is disconnected, but unused channels may cause degradation as more clients are simultaneously subscribed.
 `,
     js: () => `supabase.removeChannels()`,
     bash: () => `# Realtime streams are only supported by our client libraries`,
@@ -718,7 +718,7 @@ let { data: ${resourceId}, error } = await supabase
     key: 'filter-rows',
     category: API_DOCS_CATEGORIES.ENTITIES,
     title: 'Filtering',
-    description: `Supabase provides a wide range of filters`,
+    description: `Taskclan Cloud provides a wide range of filters`,
     docsUrl: `${DOCS_URL}/reference/javascript/using-filters`,
     code: ({
       resourceId,
@@ -953,7 +953,7 @@ const { error } = await supabase
     category: API_DOCS_CATEGORIES.ENTITIES,
     title: 'Subscribe to changes',
     description: `
-Supabase provides realtime functionality and broadcasts database changes to authorized users depending on Row Level Security (RLS) policies.
+Taskclan Cloud provides realtime functionality and broadcasts database changes to authorized users depending on Row Level Security (RLS) policies.
 `,
     docsUrl: `${DOCS_URL}/reference/javascript/subscribe`,
     code: ({ resourceId }: { resourceId: string }) => {

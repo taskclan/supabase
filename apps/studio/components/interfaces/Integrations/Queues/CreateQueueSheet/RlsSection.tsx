@@ -48,7 +48,7 @@ export function RlsSection({
         >
           <Markdown
             className="[&>p]:leading-normal!"
-            content={`You may opt to manage your queues via any Supabase client libraries or PostgREST
+            content={`You may opt to manage your queues via any client libraries or PostgREST
                       endpoints by enabling this in the [queues settings](/project/${projectRef}/integrations/queues/settings).`}
           />
         </Admonition>

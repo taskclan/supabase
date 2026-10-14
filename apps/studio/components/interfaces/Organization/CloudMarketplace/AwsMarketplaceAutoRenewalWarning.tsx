@@ -19,7 +19,7 @@ const AwsMarketplaceAutoRenewalWarning = ({
         </AlertTitle>
         <AlertDescription className="flex flex-col gap-3 wrap-break-word">
           <div>
-            As a result, your Supabase organization will be downgraded to the Free Plan on{' '}
+            As a result, your organization will be downgraded to the Free Plan on{' '}
             {dayjs(awsContractEndDate).format('MMMM DD')}. If you have more than 2 projects running,
             all your projects will be paused. To ensure uninterrupted service, enable “Auto Renewal”
             in your {''}

@@ -115,6 +115,6 @@ export const FREE_PLAN_GAPS: GapFeature[] = [
 
 export const PRO_PLAN_GAPS: GapFeature[] = [
   { label: 'SOC2 & ISO 27001', type: 'missing' },
-  { label: 'SSO for Supabase Dashboard', type: 'missing' },
+  { label: 'SSO for Taskclan Cloud dashboard', type: 'missing' },
   { label: 'Priority email support & SLAs', type: 'missing' },
 ]

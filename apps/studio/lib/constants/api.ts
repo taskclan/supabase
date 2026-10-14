@@ -14,7 +14,7 @@ export const DEFAULT_PROJECT = {
   id: 1,
   ref: 'default',
   name: !!process.env.CURRENT_CLI_VERSION
-    ? 'Supabase Studio (CLI)'
+    ? 'Taskclan Cloud (CLI)'
     : process.env.DEFAULT_PROJECT_NAME || 'Default Project',
   organization_id: 1,
   cloud_provider: 'localhost',

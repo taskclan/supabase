@@ -466,7 +466,7 @@ export const getReportAttributesV2: (
           provider: 'infra-monitoring',
           label: 'Reserved',
           tooltip:
-            'Administrative connections used by various Supabase services for internal operations and maintenance tasks',
+            'Administrative connections used by various Taskclan services for internal operations and maintenance tasks',
         },
         {
           attribute: 'client_connections_supabase_auth_admin',

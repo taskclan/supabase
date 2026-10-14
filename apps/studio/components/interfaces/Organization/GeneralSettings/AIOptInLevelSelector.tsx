@@ -82,14 +82,14 @@ export const AIOptInLevelSelector = ({
       description={
         <div className="flex flex-col gap-y-4 my-4 max-w-xl">
           <p>
-            Supabase AI can provide more relevant answers if you choose to share different levels of
+            Taskclan AI can provide more relevant answers if you choose to share different levels of
             data. This feature is powered by third-party AI providers. This is an organization-wide
             setting, so please select the level of data you are comfortable sharing.
           </p>
           <p>
-            For organizations with HIPAA compliance enabled in their Supabase configuration, any
+            For organizations with HIPAA compliance enabled in their Taskclan Cloud configuration, any
             consented information will only be shared with third-party AI providers with whom
-            Supabase has established a Business Associate Agreement (BAA).
+            Taskclan Cloud has established a Business Associate Agreement (BAA).
           </p>
           <OptInToOpenAIToggle />
         </div>

@@ -194,7 +194,7 @@ export const DiskSpaceBar = ({ form }: DiskSpaceBarProps) => {
                 >
                   <h3 className="text-sm font-medium text-foreground">Autoscaling</h3>
                   <p>
-                    Supabase expands your disk storage automatically when the database reaches 90%
+                    Taskclan Cloud expands your disk storage automatically when the database reaches 90%
                     of the disk size. However, disk modifications, including auto-scaling, are
                     limited to 4 within a rolling 24-hour window.
                   </p>

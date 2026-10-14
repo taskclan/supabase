@@ -20,7 +20,7 @@ export const CATEGORY_OPTIONS: {
   {
     value: SupportCategories.DASHBOARD_BUG,
     label: 'Dashboard bug',
-    description: 'Issues with the Supabase dashboard',
+    description: 'Issues with the Taskclan Cloud dashboard',
     query: undefined,
   },
   {
@@ -38,7 +38,7 @@ export const CATEGORY_OPTIONS: {
   {
     value: SupportCategories.ABUSE,
     label: 'Abuse report',
-    description: 'Report abuse of a Supabase project or Supabase brand',
+    description: 'Report abuse of a project or the Taskclan brand',
     query: undefined,
   },
   {

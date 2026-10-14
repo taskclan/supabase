@@ -46,7 +46,7 @@ export const BuiltBySection = forwardRef<ElementRef<'div'>, BuiltBySectionProps>
             >
               <Book size={16} />
               {docsUrl.includes('supabase.com/docs')
-                ? 'Supabase Docs'
+                ? 'Documentation'
                 : docsUrl.includes('github.com')
                   ? 'GitHub Docs'
                   : 'Documentation'}

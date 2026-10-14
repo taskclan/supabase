@@ -36,7 +36,7 @@ import type { NextPageWithLayout, Organization } from '@/types'
 
 const PAGE_TITLE = buildStudioPageTitle({
   section: 'Connect Vercel Project',
-  brand: 'Supabase',
+  brand: 'Taskclan Cloud',
 })
 
 const VercelChooseProjectPage: NextPageWithLayout = () => {
