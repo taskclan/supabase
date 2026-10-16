@@ -15,7 +15,9 @@ name: Deploy console
 on:
   workflow_dispatch:
   push:
-    branches: [taskclan/sitterly-theme]
+    # master is the deploy branch: merging here ships the console to Cloudflare.
+    # (Was taskclan/sitterly-theme; the console now deploys from master.)
+    branches: [master]
     paths:
       - 'apps/studio/**'
       - 'packages/**'
