@@ -8,18 +8,24 @@ import { getDatabaseFunctions } from '@/data/database-functions/database-functio
 import { getDatabasePolicies } from '@/data/database-policies/database-policies-query'
 import { executeSql } from '@/data/sql/execute-sql-mutation'
 import { executeQuery } from '@/lib/api/self-hosted/query'
+import type { Caller } from '@/lib/taskclan/callerContext'
 
 export const getFallbackTools = ({
   projectRef,
   connectionString,
   cookie,
   authorization,
+  caller,
   includeSchemaMetadata,
 }: {
   projectRef: string
   connectionString: string
   cookie?: string
   authorization?: string
+  // Who the request acts as. The schema query below runs in-process, so unlike
+  // the HTTP pg-meta routes nothing resolves the caller for it: without it the
+  // query loses `ref` too and falls back to the shared database.
+  caller: Caller | undefined
   includeSchemaMetadata: boolean
 }) => {
   const headers = {
@@ -45,7 +51,10 @@ export const getFallbackTools = ({
                 },
                 undefined,
                 headers,
-                IS_PLATFORM ? undefined : executeQuery
+                IS_PLATFORM
+                  ? undefined
+                  : (opts: { query: string; headers?: HeadersInit }) =>
+                      executeQuery({ ...opts, ref: projectRef, caller, readOnly: true })
               )
             : { result: [] }
 

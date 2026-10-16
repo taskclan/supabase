@@ -31,6 +31,7 @@ import { executeQuery } from '@/lib/api/self-hosted/query'
 import { getURL } from '@/lib/helpers'
 import { trustedUserEmail } from '@/lib/server/configcat'
 import { assistantProvider } from '@/lib/ai/taskclan-provider'
+import { callerFromRequest } from '@/lib/taskclan/callerContext'
 
 export const maxDuration = 120
 
@@ -179,6 +180,13 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, claims?: Jw
     return res.status(500).json({ error: modelError.message })
   }
 
+  // Who this request acts as. The browser sends the signed-in user's JWT; the
+  // in-process per-app queries below (the schema context fetch, the fallback
+  // schema tool) resolve the app's own database against this caller. Without it
+  // a per-app query throws rather than silently reading the shared database.
+  const callerResult = callerFromRequest(req)
+  const caller = callerResult.ok ? callerResult.caller : undefined
+
   try {
     const abortController = new AbortController()
     req.on('close', () => abortController.abort())
@@ -191,6 +199,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, claims?: Jw
       projectRef,
       connectionString: connectionString ?? '',
       authorization,
+      caller,
       aiOptInLevel,
       accessToken,
       baseUrl: getURL(),
@@ -218,7 +227,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, claims?: Jw
         IS_PLATFORM
           ? undefined
           : (opts: { query: string; headers?: HeadersInit }) =>
-              executeQuery({ ...opts, ref: projectRef, readOnly: true })
+              executeQuery({ ...opts, ref: projectRef, caller, readOnly: true })
       )
 
       return schemas?.length > 0

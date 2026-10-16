@@ -11,11 +11,13 @@ import { getSchemaTools } from './schema-tools'
 import { getStudioTools } from './studio-tools'
 import { getSupportLifecycleTools } from './support-tools'
 import { AiOptInLevel } from '@/hooks/misc/useOrgOptedIntoAi'
+import type { Caller } from '@/lib/taskclan/callerContext'
 
 export const getTools = async ({
   projectRef,
   connectionString,
   authorization,
+  caller,
   aiOptInLevel,
   accessToken,
   baseUrl,
@@ -26,6 +28,10 @@ export const getTools = async ({
   projectRef: string
   connectionString: string
   authorization?: string
+  // Who the request acts as. Required (though it may be undefined) so a new
+  // caller of getTools cannot forget it: the self-hosted fallback tools run
+  // in-process per-app queries that resolve the app's database against it.
+  caller: Caller | undefined
   aiOptInLevel: AiOptInLevel
   accessToken?: string
   baseUrl?: string
@@ -49,6 +55,7 @@ export const getTools = async ({
         projectRef,
         connectionString,
         authorization,
+        caller,
         includeSchemaMetadata: aiOptInLevel !== 'disabled',
       }),
     }

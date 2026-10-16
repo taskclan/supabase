@@ -15,6 +15,7 @@ import { getTools } from '@/lib/ai/tools'
 import { apiWrapper } from '@/lib/api/apiWrapper'
 import { trustedUserEmail } from '@/lib/server/configcat'
 import { assistantProvider } from '@/lib/ai/taskclan-provider'
+import { callerFromRequest } from '@/lib/taskclan/callerContext'
 
 const policySchema = z.object({
   sql: z.string().describe('The generated Postgres CREATE POLICY statement.'),
@@ -93,6 +94,12 @@ export async function handlePost(req: NextApiRequest, res: NextApiResponse, clai
 
   const explorerEnabled = await isExplorerEnabled(trustedUserEmail(claims?.email))
 
+  // Who this request acts as, for the self-hosted schema tools that run
+  // in-process per-app queries (see getFallbackTools). Without it those queries
+  // throw rather than silently reading the shared database.
+  const callerResult = callerFromRequest(req)
+  const caller = callerResult.ok ? callerResult.caller : undefined
+
   try {
     const { modelParams, error: modelError } = await getModel({
       provider: assistantProvider(),
@@ -117,6 +124,7 @@ export async function handlePost(req: NextApiRequest, res: NextApiResponse, clai
         projectRef,
         connectionString,
         authorization,
+        caller,
         aiOptInLevel,
         accessToken,
         isExplorerEnabled: explorerEnabled,
