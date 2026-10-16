@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 
 import { safeReturnTo } from './TaskclanSignInForm'
 import { DEFAULT_FALLBACK_PATH } from '@/lib/gotrue'
-import { TASKCLAN_AUTH_REDIRECTS } from '@/redirects.shared'
 
 /**
  * Where signing in sends you.
@@ -25,14 +24,13 @@ describe('safeReturnTo', () => {
     expect(safeReturnTo('/project/abc123/editor')).toBe('/project/abc123/editor')
   })
 
-  it('never defaults to a path that redirects back to sign-in', () => {
-    // The loop this guards: `/` now redirects to the landing page, and the
-    // landing page is where people click "sign in" from. A default of '/'
-    // would therefore return somebody who just authenticated to the marketing
-    // page they started on, looking exactly like a failed login.
-    const rootGoesTo = TASKCLAN_AUTH_REDIRECTS.find((r) => r.source === '/')?.destination
-    expect(rootGoesTo).toBe('/landing')
+  it('never defaults to the landing page a sign-in came from', () => {
+    // The loop this guards: `/` IS the landing page now, and the landing page
+    // is where people click "sign in" from. A default returnTo of `/` would
+    // return somebody who just authenticated to the marketing page they started
+    // on, looking exactly like a failed login. `/landing` is the same trap — it
+    // redirects to `/`.
     expect(safeReturnTo(undefined)).not.toBe('/')
-    expect(safeReturnTo(undefined)).not.toBe(rootGoesTo)
+    expect(safeReturnTo(undefined)).not.toBe('/landing')
   })
 })

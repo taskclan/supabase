@@ -101,7 +101,7 @@ describe('TaskclanAuthGate', () => {
     expect(replace).not.toHaveBeenCalled()
   })
 
-  it.each(['/landing', '/sign-in', '/404', '/500'])(
+  it.each(['/', '/landing', '/sign-in', '/404', '/500'])(
     'renders %s to a signed-out visitor',
     (pathname) => {
       // The sign-in page especially: gating it is a redirect loop.

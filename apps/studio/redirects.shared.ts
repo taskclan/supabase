@@ -44,12 +44,12 @@ export const PLATFORM_REDIRECTS: StudioRedirect[] = [
  * links people have bookmarked, not a flow.
  */
 export const SELF_HOSTED_REDIRECTS: StudioRedirect[] = [
-  // The front door. Signed-out visitors get the page that says what this is;
-  // the CTAs on it go to /organizations, which the auth gate bounces to
-  // sign-in with a returnTo. Sending / straight to /organizations meant
-  // anyone typing the bare hostname landed inside a dashboard with no idea
-  // what the product was.
-  { source: '/', destination: '/landing', permanent: false },
+  // The front door. `/` is the landing page itself (pages/index.tsx), served
+  // directly so the bare hostname shows what this is instead of dropping someone
+  // into a dashboard. The old `/landing` URL redirects back to `/` so existing
+  // links keep working. The CTAs on the page go to /organizations, which the
+  // auth gate bounces to sign-in with a returnTo.
+  { source: '/landing', destination: '/', permanent: false },
   { source: '/register', destination: '/organizations', permanent: false },
   { source: '/signup', destination: '/organizations', permanent: false },
   { source: '/signin', destination: '/organizations', permanent: false },
@@ -67,17 +67,17 @@ export const SELF_HOSTED_REDIRECTS: StudioRedirect[] = [
  * somebody trying to log in to `/organizations` instead. Before there was a
  * sign-in page that was the best available answer. Now it is the wrong one.
  *
- * `/` still goes to the project list. A signed-out visitor is redirected to
- * sign-in by the auth gate, which knows whether there is a session; a redirect
- * rule does not.
+ * `/` is the landing page itself now (pages/index.tsx, marked public in the auth
+ * gate), not a redirect — the bare hostname shows what the product is, and the
+ * gate sends a signed-out visitor to sign-in only when they open something gated.
  */
 export const TASKCLAN_AUTH_REDIRECTS: StudioRedirect[] = [
-  // The front door. Signed-out visitors get the page that says what this is;
-  // the CTAs on it go to /organizations, which the auth gate bounces to
-  // sign-in with a returnTo. Sending / straight to /organizations meant
-  // anyone typing the bare hostname landed inside a dashboard with no idea
-  // what the product was.
-  { source: '/', destination: '/landing', permanent: false },
+  // The front door. `/` is the landing page itself (pages/index.tsx), served
+  // directly so the bare hostname shows what this is instead of dropping someone
+  // into a dashboard. The old `/landing` URL redirects back to `/` so existing
+  // links keep working. The CTAs on the page go to /organizations, which the
+  // auth gate bounces to sign-in with a returnTo.
+  { source: '/landing', destination: '/', permanent: false },
   { source: '/register', destination: '/sign-in', permanent: false },
   { source: '/signup', destination: '/sign-in', permanent: false },
   { source: '/signin', destination: '/sign-in', permanent: false },

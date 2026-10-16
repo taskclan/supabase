@@ -38,6 +38,10 @@ import { TASKCLAN_AUTH_ENABLED } from '@/lib/constants'
 // land back on /logout and sign the user straight out again. Visiting it
 // without a session is harmless: it signs out nothing and moves on.
 const PUBLIC_ROUTES = new Set([
+  // The front door. `/` is the landing page (pages/index.tsx); a signed-out
+  // visitor must see it, not be bounced to sign-in. `/landing` stays public too:
+  // it redirects to `/`, so keeping it listed is just harmless defense.
+  '/',
   '/landing',
   '/sign-in',
   '/logout',
