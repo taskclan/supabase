@@ -150,12 +150,11 @@ describe('matchRedirect query/hash preservation', () => {
       destination: '/org',
       permanent: false,
     })
-    expect(matchRedirect({ pathname: '/', search: {}, isPlatform: false })).toEqual({
-      // Not '/project/default'. That is Studio's convention for a single
-      // self-hosted project, and it matches nothing on Taskclan Cloud, where
-      // every app has a real ref — so it resolved to a project that could not
-      // exist. This assertion had been failing on that stale value.
-      destination: '/landing',
+    // `/` is the landing page itself now (pages/index.tsx), not a redirect, so
+    // nothing matches it here. The old `/landing` URL redirects back to `/`.
+    expect(matchRedirect({ pathname: '/', search: {}, isPlatform: false })).toBeNull()
+    expect(matchRedirect({ pathname: '/landing', search: {}, isPlatform: false })).toEqual({
+      destination: '/',
       permanent: false,
     })
   })
@@ -252,12 +251,15 @@ describe('TASKCLAN_AUTH_REDIRECTS', () => {
     }
   })
 
-  it('lands the root on the landing page, not inside the dashboard', () => {
-    // Whether a signed-out visitor goes to sign-in is the auth gate's call: it
-    // knows if there is a session, and a static redirect does not. What the
-    // redirect can decide is that the bare hostname shows the page explaining
-    // what this is, rather than dropping someone straight into a dashboard.
-    expect(destinationOf(TASKCLAN_AUTH_REDIRECTS, '/')).toBe('/landing')
-    expect(destinationOf(SELF_HOSTED_REDIRECTS, '/')).toBe('/landing')
+  it('serves the landing at the root, and sends /landing back to it', () => {
+    // `/` is the landing page itself now (pages/index.tsx), so no redirect
+    // matches it — the bare hostname shows what the product is directly. The old
+    // `/landing` URL redirects back to `/` so existing links keep working.
+    // (Whether a signed-out visitor is then bounced to sign-in is the auth
+    // gate's call: `/` is in its PUBLIC_ROUTES, so they see the page.)
+    expect(destinationOf(TASKCLAN_AUTH_REDIRECTS, '/')).toBeUndefined()
+    expect(destinationOf(SELF_HOSTED_REDIRECTS, '/')).toBeUndefined()
+    expect(destinationOf(TASKCLAN_AUTH_REDIRECTS, '/landing')).toBe('/')
+    expect(destinationOf(SELF_HOSTED_REDIRECTS, '/landing')).toBe('/')
   })
 })

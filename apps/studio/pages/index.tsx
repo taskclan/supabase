@@ -3,9 +3,10 @@
  *
  * The console had none: `/` redirected into the dashboard, so anyone arriving
  * at the bare hostname landed inside someone's project with no idea what the
- * product is. Since 2026-09-17 `/` serves this page, in the shape supabase.com
- * uses: a hero that states the offer, a product grid, the commands you would
- * actually run, and what it costs.
+ * product is. Now `/` serves this page directly — it IS the index route, not a
+ * redirect to `/landing` — in the shape supabase.com uses: a hero that states
+ * the offer, a product grid, the commands you would actually run, and what it
+ * costs. (The old `/landing` URL redirects here, so existing links still work.)
  *
  * Every call to action here points at /organizations rather than a project.
  * They used to point at `/project/default`, which is Studio's convention for a
