@@ -15,7 +15,10 @@ name: Deploy console
 on:
   workflow_dispatch:
   push:
-    branches: [taskclan/sitterly-theme]
+    # master is the deploy branch now (not this branch). Pointing the filter at
+    # master means a push to sitterly-theme no longer deploys — the console ships
+    # from master. Kept here only so this branch's copy agrees with master's.
+    branches: [master]
     paths:
       - 'apps/studio/**'
       - 'packages/**'
