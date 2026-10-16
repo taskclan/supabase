@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getTools } from './index'
+import { getFallbackTools } from './fallback-tools'
 import { getMcpTools } from './mcp-tools'
+import type { Caller } from '@/lib/taskclan/callerContext'
 
 vi.mock('common', () => ({ IS_PLATFORM: true }))
 
@@ -17,6 +19,7 @@ const BASE_PARAMS = {
   projectRef: 'abcdefghijklmnopqrst',
   connectionString: 'postgresql://localhost',
   authorization: 'Bearer token',
+  caller: { kind: 'user', token: 'jwt', org: null } as Caller,
   aiOptInLevel: 'schema_and_log_and_data' as const,
   accessToken: 'access-token',
   baseUrl: 'https://supabase.com/dashboard',
@@ -81,6 +84,11 @@ describe('ai/tools getTools', () => {
     expect(tools).toHaveProperty('studio_tool')
     expect(tools).toHaveProperty('fallback_tool')
     expect(tools).not.toHaveProperty('list_tables')
+    // The self-hosted fallback tools run in-process per-app queries, so getTools
+    // must hand them the caller to resolve the app's own database.
+    expect(getFallbackTools).toHaveBeenCalledWith(
+      expect.objectContaining({ caller: BASE_PARAMS.caller })
+    )
   })
 
   it('excludes notebook tools when isExplorerEnabled is not set', async () => {
