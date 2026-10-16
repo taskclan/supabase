@@ -25,24 +25,34 @@ describe('api/self-hosted/types', () => {
       expect(result.success).toBe(false)
     })
 
-    it('should reject error missing code', () => {
-      const invalidError = {
+    // `code` and `formattedError` are intentionally optional: some pg-meta
+    // deployments (the in-container sidecar) omit them, and requiring them made
+    // the parser throw a ZodError that masked the real DB message. The schema
+    // tolerates their absence and defaults them to ''. See databaseErrorSchema.
+    it('should accept error missing code and default it to an empty string', () => {
+      const partialError = {
         message: 'Database connection failed',
         formattedError: 'Error: Connection refused',
       }
 
-      const result = databaseErrorSchema.safeParse(invalidError)
-      expect(result.success).toBe(false)
+      const result = databaseErrorSchema.safeParse(partialError)
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.code).toBe('')
+      }
     })
 
-    it('should reject error missing formattedError', () => {
-      const invalidError = {
+    it('should accept error missing formattedError and default it to an empty string', () => {
+      const partialError = {
         message: 'Database connection failed',
         code: '08006',
       }
 
-      const result = databaseErrorSchema.safeParse(invalidError)
-      expect(result.success).toBe(false)
+      const result = databaseErrorSchema.safeParse(partialError)
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.formattedError).toBe('')
+      }
     })
 
     it('should reject non-string values', () => {
