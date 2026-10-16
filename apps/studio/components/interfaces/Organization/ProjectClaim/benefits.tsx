@@ -25,7 +25,7 @@ export const ProjectClaimBenefits = ({
     >
       <div className="space-y-8 text-sm flex flex-col items-center">
         <div className="space-y-4 mt-6">
-          <h3 className="">Why manage your database project on Supabase?</h3>
+          <h3 className="">Why manage your database project on Taskclan Cloud?</h3>
           <ul className="space-y-3">
             <li className="flex space-x-2">
               <CheckCircle2 className="text-brand w-5 h-5" />

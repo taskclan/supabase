@@ -17,7 +17,6 @@ import type { OrgSubscription } from '@/data/subscriptions/types'
 import { useOrgUsageQuery } from '@/data/usage/org-usage-query'
 import { useIsFeatureEnabled } from '@/hooks/misc/useIsFeatureEnabled'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
-import { DOCS_URL } from '@/lib/constants'
 
 export interface ComputeProps {
   orgSlug: string
@@ -138,11 +137,11 @@ export const TotalUsage = ({
             ? [
                 {
                   name: 'How billing works',
-                  url: `${DOCS_URL}/guides/platform/billing-on-supabase`,
+                  url: 'https://taskclan.com/docs',
                 },
                 {
-                  name: 'Supabase Plans',
-                  url: 'https://supabase.com/pricing',
+                  name: 'Plans',
+                  url: 'https://taskclan.com/pricing',
                 },
               ]
             : [],
@@ -172,7 +171,7 @@ export const TotalUsage = ({
                   <span>
                     You have exceeded your{' '}
                     <span className="font-medium">{subscription?.plan.name}</span> Plan quota in
-                    this billing cycle. Upgrade your plan to continue using Supabase without
+                    this billing cycle. Upgrade your plan to continue using Taskclan Cloud without
                     restrictions.
                   </span>
                 ) : hasExceededAnyLimits &&
@@ -181,7 +180,7 @@ export const TotalUsage = ({
                   <span>
                     You have exceeded your{' '}
                     <span className="font-medium">{subscription?.plan.name}</span> Plan quota in
-                    this billing cycle. Disable your spend cap to continue using Supabase without
+                    this billing cycle. Disable your spend cap to continue using Taskclan Cloud without
                     restrictions.
                   </span>
                 ) : hasExceededAnyLimits && subscription?.usage_billing_enabled === true ? (

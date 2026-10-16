@@ -14,11 +14,14 @@ const {
   mockDismissDevToolbar,
   mockSetDevToolbarOpen,
   mockUseDevToolbar,
+  taskclan,
 } = vi.hoisted(() => ({
   mockRouter: {
     pathname: '/project/[ref]/editor',
     asPath: '/project/default/editor',
+    push: vi.fn(),
   },
+  taskclan: { authEnabled: false, email: undefined as string | undefined },
   mockSetTheme: vi.fn(),
   mockSetLastRoute: vi.fn(),
   mockToggleFeaturePreviewModal: vi.fn(),
@@ -81,6 +84,17 @@ vi.mock('./App/FeaturePreview/FeaturePreviewContext', () => ({
 }))
 
 vi.mock('@/lib/telemetry/track', () => ({ useTrack: () => vi.fn() }))
+
+vi.mock('@/lib/constants', async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  get TASKCLAN_AUTH_ENABLED() {
+    return taskclan.authEnabled
+  },
+}))
+
+vi.mock('@/lib/profile', () => ({
+  useProfile: () => ({ profile: taskclan.email ? { primary_email: taskclan.email } : undefined }),
+}))
 
 vi.mock('dev-tools', () => ({
   useDevToolbar: () => mockUseDevToolbar(),
@@ -258,5 +272,50 @@ describe('LocalDropdown', () => {
 
     expect(mockDismissDevToolbar).toHaveBeenCalled()
     expect(mockEnableToolbar).not.toHaveBeenCalled()
+  })
+})
+
+describe('signing out', () => {
+  beforeEach(() => {
+    taskclan.authEnabled = false
+    taskclan.email = undefined
+    mockRouter.push.mockClear()
+  })
+
+  it('offers a way out when there is a session to leave', async () => {
+    // The reason this exists: the console renders LocalDropdown, not
+    // UserDropdown, and UserDropdown owned the only Sign out in the app behind
+    // an IS_PLATFORM check. With Taskclan auth on, that left a real login with
+    // no visible way out of it.
+    taskclan.authEnabled = true
+    const user = userEvent.setup()
+
+    render(<LocalDropdown />)
+    await user.click(screen.getByRole('button', { name: /settings/i }))
+    await user.click(screen.getByRole('button', { name: /sign out/i }))
+
+    expect(mockRouter.push).toHaveBeenCalledWith('/logout')
+  })
+
+  it('names the account, so it is clear whose session is ending', async () => {
+    taskclan.authEnabled = true
+    taskclan.email = 'someone@example.com'
+    const user = userEvent.setup()
+
+    render(<LocalDropdown />)
+    await user.click(screen.getByRole('button', { name: /settings/i }))
+
+    expect(screen.getByText('someone@example.com')).toBeInTheDocument()
+  })
+
+  it('stays out of the way when there is no auth at all', async () => {
+    // Self-hosted has no session, so a Sign out would be a button that signs
+    // the user out of nothing.
+    const user = userEvent.setup()
+
+    render(<LocalDropdown />)
+    await user.click(screen.getByRole('button', { name: /settings/i }))
+
+    expect(screen.queryByRole('button', { name: /sign out/i })).not.toBeInTheDocument()
   })
 })

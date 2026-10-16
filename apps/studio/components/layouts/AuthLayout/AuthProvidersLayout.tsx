@@ -15,7 +15,7 @@ export const AuthProvidersLayout = ({ children }: PropsWithChildren<{}>) => {
 
   const navItems = [
     {
-      label: 'Supabase Auth',
+      label: 'Auth',
       href: `/project/${ref}/auth/providers`,
     },
     ...(authenticationThirdPartyAuth

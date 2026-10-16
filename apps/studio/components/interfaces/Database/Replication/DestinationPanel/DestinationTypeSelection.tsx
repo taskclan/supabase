@@ -114,7 +114,7 @@ export const DestinationTypeSelection = () => {
         {
           value: 'Analytics Bucket',
           label: 'Analytics Bucket',
-          description: 'Write Apache Iceberg tables to Supabase Storage for analytics workflows',
+          description: 'Write Apache Iceberg tables to Storage for analytics workflows',
           stage: 'Deprecated',
           enabled: isOptionVisible('Analytics Bucket', etlEnableIceberg),
         },

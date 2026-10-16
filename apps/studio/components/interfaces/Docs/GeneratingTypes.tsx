@@ -52,13 +52,13 @@ export function GeneratingTypes({ selectedLang }: Props) {
       content={
         <>
           <p>
-            Supabase APIs are generated from your database, which means that we can use database
+            The APIs are generated from your database, which means that we can use database
             introspection to generate type-safe API definitions.
           </p>
           <p>
             You can generate types from your database either through the{' '}
             <InlineLink href={`${DOCS_URL}/guides/database/api/generating-types`}>
-              Supabase CLI
+              CLI
             </InlineLink>
             , or by downloading the types file via the button on the right and importing it in your
             application within <code>src/index.ts</code>.

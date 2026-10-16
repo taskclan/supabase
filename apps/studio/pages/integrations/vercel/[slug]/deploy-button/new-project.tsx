@@ -24,7 +24,7 @@ import type { NextPageWithLayout } from '@/types'
 
 const PAGE_TITLE = buildStudioPageTitle({
   section: 'Create Vercel Project',
-  brand: 'Supabase',
+  brand: 'Taskclan Cloud',
 })
 
 const VercelIntegration: NextPageWithLayout = () => {
@@ -153,7 +153,7 @@ const VercelIntegration: NextPageWithLayout = () => {
             <Admonition
               type="success"
               title="Project connected"
-              description="Your Supabase project is connected to Vercel."
+              description="Your project is connected to Vercel."
             />
             <Button asChild variant="primary" block>
               <Link href={`/project/${newProjectRef}`}>Open project</Link>
@@ -211,7 +211,7 @@ export function VercelConnectionError({
         <Admonition
           type="danger"
           title="Unable to connect to Vercel"
-          description={`Your Supabase project was still created. Error: ${message}`}
+          description={`Your project was still created. Error: ${message}`}
         />
       </div>
       <div className="flex h-12 items-center justify-end gap-x-2 border-t border-default bg-surface-100 px-card">

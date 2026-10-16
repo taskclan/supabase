@@ -36,10 +36,15 @@ describe('OrganizationSettingsLayout helpers', () => {
       'Connections',
       'Compliance',
     ])
+    // 'API Keys' is this fork's own entry (Taskclan Cloud API keys, org-scoped)
+    // and is present because IS_PLATFORM is false in this build. On platform it
+    // is omitted, since upstream has no such concept.
     expect(sections.flatMap((section) => section.links.map((item) => item.label))).toEqual([
       'General',
       'Security',
       'SSO',
+      'API Keys',
+      'Releases',
       'OAuth Apps',
       'Webhooks',
       'Audit Logs',
@@ -65,12 +70,50 @@ describe('OrganizationSettingsLayout helpers', () => {
       'Connections',
       'Compliance',
     ])
+    // API Keys is not feature-flagged: it is a capability of this build, so it
+    // survives every flag being off. Only the upstream items disappear.
     expect(sections.flatMap((section) => section.links.map((item) => item.label))).toEqual([
       'General',
+      'API Keys',
+      'Releases',
       'OAuth Apps',
       'Webhooks',
       'Audit Logs',
     ])
+  })
+
+  it('points the Taskclan API keys entry at the org-scoped page', () => {
+    // Org-scoped because the engine scopes Cloud API keys by organisation: one
+    // key reaches every app in the org. A project-scoped href would be a
+    // different, narrower thing that does not exist.
+    const sections = generateOrganizationSettingsSections({
+      slug: 'my-org',
+      currentPath: '/org/my-org/general',
+      showSecuritySettings: false,
+      showSsoSettings: false,
+      showLegalDocuments: false,
+    })
+
+    const connections = sections.find((section) => section.heading === 'Connections')
+    const apiKeys = connections?.links.find((item) => item.label === 'API Keys')
+    expect(apiKeys?.href).toBe('/org/my-org/api-keys')
+  })
+
+  it('points the Releases entry at the org-scoped page', () => {
+    // Org-scoped on purpose: one push opens a release intent per app mapped to
+    // that repo, so the queue crosses projects and a per-project page would
+    // hide the app that is actually waiting.
+    const sections = generateOrganizationSettingsSections({
+      slug: 'my-org',
+      currentPath: '/org/my-org/general',
+      showSecuritySettings: false,
+      showSsoSettings: false,
+      showLegalDocuments: false,
+    })
+
+    const connections = sections.find((section) => section.heading === 'Connections')
+    const releases = connections?.links.find((item) => item.label === 'Releases')
+    expect(releases?.href).toBe('/org/my-org/releases')
   })
 
   it('normalizes hash paths for active state checks', () => {
@@ -141,5 +184,22 @@ describe('OrganizationSettingsLayout helpers', () => {
       sections.flatMap((section) => section.links).find((item) => item.label === 'Webhooks')
         ?.isActive
     ).toBe(true)
+  })
+})
+
+describe('before the organization is known', () => {
+  it('offers no links rather than ones that lead to /org//…', () => {
+    // The slug is empty on the first render, before the router is ready, and
+    // next/router warned once for every link built from it.
+    expect(generateOrganizationSettingsSections({ currentPath: '/org//general', slug: '' })).toEqual([])
+    expect(generateOrganizationSettingsSections({ currentPath: '/org//general', slug: undefined })).toEqual([])
+  })
+
+  it('never builds a link with an empty segment once it is', () => {
+    const hrefs = generateOrganizationSettingsSections({ currentPath: '/org/my-org/general', slug: 'my-org' })
+      .flatMap((section) => section.links)
+      .map((link) => link.href)
+    expect(hrefs.length).toBeGreaterThan(0)
+    for (const href of hrefs) expect(href).not.toContain('//')
   })
 })

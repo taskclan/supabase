@@ -427,7 +427,7 @@ revoke execute on function ${ident(schema)}.${ident(functionName)} from authenti
                         layout="horizontal"
                         className="px-5"
                         label="Postgres function"
-                        description="This function will be called by Supabase Auth each time the hook is triggered"
+                        description="This function will be called by the Auth service each time the hook is triggered"
                       >
                         <FormControl>
                           <FunctionSelector
@@ -491,7 +491,7 @@ revoke execute on function ${ident(schema)}.${ident(functionName)} from authenti
                       <FormItemLayout
                         layout="horizontal"
                         label="URL"
-                        description="Supabase Auth will send a HTTPS POST request to this URL each time the hook is triggered."
+                        description="The Auth service will send a HTTPS POST request to this URL each time the hook is triggered."
                       >
                         <FormControl>
                           <Input {...field} placeholder="https://www.example.com" />

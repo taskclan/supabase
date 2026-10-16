@@ -39,13 +39,13 @@ export const StripeSyncChangesCard = ({
   const isInstalledWithUpgrade = installed && isUpgrade
 
   const title = isInstalledWithUpgrade
-    ? 'This integration will upgrade your Supabase project:'
+    ? 'This integration will upgrade your project:'
     : uninstallDone || installError
-      ? 'This integration will modify your Supabase project:'
+      ? 'This integration will modify your project:'
       : isInProgress
-        ? 'This integration is modifying your Supabase project:'
+        ? 'This integration is modifying your project:'
         : installDone || installed || uninstallError
-          ? 'This integration has modified your Supabase project:'
+          ? 'This integration has modified your project:'
           : ''
 
   const dbLine = isInstalledWithUpgrade
@@ -91,17 +91,17 @@ export const StripeSyncChangesCard = ({
             : ''
 
   const scheduleLine = isInstalledWithUpgrade
-    ? 'Upgrades automatic Stripe data syncs using Supabase Queues'
+    ? 'Upgrades automatic Stripe data syncs using Queues'
     : uninstallDone || installError
-      ? 'Schedules automatic Stripe data syncs using Supabase Queues'
+      ? 'Schedules automatic Stripe data syncs using Queues'
       : installInProgress
         ? isUpgrade
-          ? 'Upgrading automatic Stripe data syncs using Supabase Queues'
-          : 'Scheduling automatic Stripe data syncs using Supabase Queues'
+          ? 'Upgrading automatic Stripe data syncs using Queues'
+          : 'Scheduling automatic Stripe data syncs using Queues'
         : installDone || installed || uninstallError
-          ? 'Scheduled automatic Stripe data syncs using Supabase Queues'
+          ? 'Scheduled automatic Stripe data syncs using Queues'
           : uninstallInProgress
-            ? 'Unscheduling automatic Stripe data syncs using Supabase Queues'
+            ? 'Unscheduling automatic Stripe data syncs using Queues'
             : ''
 
   return (

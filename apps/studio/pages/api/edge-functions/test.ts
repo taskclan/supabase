@@ -2,8 +2,10 @@ import { IS_PLATFORM } from 'common'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import { isValidEdgeFunctionURL } from '@/lib/api/edgeFunctions'
+import { assertSharedAdminAllowed } from '@/lib/api/sharedAdminGuard'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  assertSharedAdminAllowed()
   const { method } = req
 
   switch (method) {

@@ -11,13 +11,23 @@
  * holds the credential and resolves the app by ref.
  */
 import { useParams } from 'common'
-import { CheckCircle2, CircleSlash, ExternalLink, Loader2, RefreshCw, XCircle } from 'lucide-react'
+import {
+  CheckCircle2,
+  ChevronRight,
+  CircleSlash,
+  ExternalLink,
+  Loader2,
+  RefreshCw,
+  XCircle,
+} from 'lucide-react'
+import { useRouter } from 'next/router'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { toast } from 'sonner'
-import { Badge, Button, cn, Switch } from 'ui'
+import { Badge, Button, cn } from 'ui'
 import { Admonition } from 'ui-patterns/Admonition'
 import { ConfirmationModal } from 'ui-patterns/Dialogs/ConfirmationModal'
 
+import { TaskclanConnectRepository } from '@/components/interfaces/Deployments/TaskclanConnectRepository'
 import { DefaultLayout } from '@/components/layouts/DefaultLayout'
 import { PageLayout } from '@/components/layouts/PageLayout/PageLayout'
 import { ProjectLayoutWithAuth } from '@/components/layouts/ProjectLayout'
@@ -33,6 +43,7 @@ import {
   type CloudDeployment,
   type DeployState,
 } from '@/lib/taskclan/deployments'
+import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
 import type { NextPageWithLayout } from '@/types'
 
 /** While a build is running, follow it. Idle, stop asking. */
@@ -70,19 +81,22 @@ const STATE_STYLE: Record<DeployState, { label: string; className: string; icon:
 
 const DeploymentsPage: NextPageWithLayout = () => {
   const { ref } = useParams()
+  const router = useRouter()
   const [payload, setPayload] = useState<Payload | null>(null)
   const [loading, setLoading] = useState(true)
   const [deploying, setDeploying] = useState(false)
   const [confirm, setConfirm] = useState(false)
-  const [autoDeploy, setAutoDeploy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Whether the app builds from a repository; null until the panel below finds
+  // out. Without one, Deploy has nothing to build and can only be refused.
+  const [linked, setLinked] = useState<boolean | null>(null)
   // Survives re-renders so a poll started before a navigation cannot keep firing.
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const load = useCallback(async () => {
     if (!ref) return
     try {
-      const res = await fetch(`/api/taskclan/${ref}/deployments`)
+      const res = await taskclanFetch(`/api/taskclan/${ref}/deployments`)
       const body = (await res.json()) as Payload
       if (!res.ok) {
         setError(body.detail ?? body.error ?? `the Cloud API answered ${res.status}`)
@@ -121,7 +135,7 @@ const DeploymentsPage: NextPageWithLayout = () => {
     if (!ref) return
     setDeploying(true)
     try {
-      const res = await fetch(`/api/taskclan/${ref}/deployments`, { method: 'POST' })
+      const res = await taskclanFetch(`/api/taskclan/${ref}/deployments`, { method: 'POST' })
       const body = (await res.json()) as { error?: string; detail?: string }
       if (!res.ok) {
         toast.error(body.error ?? body.detail ?? `the deploy was refused (${res.status})`)
@@ -135,32 +149,6 @@ const DeploymentsPage: NextPageWithLayout = () => {
       setDeploying(false)
     }
   }, [ref, load])
-
-  const setMode = useCallback(
-    async (next: boolean) => {
-      if (!ref) return
-      const previous = autoDeploy
-      setAutoDeploy(next) // optimistic: the switch must feel like a switch
-      try {
-        const res = await fetch(`/api/taskclan/${ref}/deploy-mode`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ mode: next ? 'auto' : 'manual' }),
-        })
-        if (!res.ok) {
-          const body = (await res.json().catch(() => ({}))) as { error?: string }
-          setAutoDeploy(previous)
-          toast.error(body.error ?? 'could not change the deploy mode')
-          return
-        }
-        toast.success(next ? 'Merges to the default branch will deploy' : 'Deploys are manual')
-      } catch (e) {
-        setAutoDeploy(previous)
-        toast.error(e instanceof Error ? e.message : String(e))
-      }
-    },
-    [ref, autoDeploy]
-  )
 
   const liveUrl = payload?.site?.liveUrl ?? current?.url ?? null
 
@@ -181,7 +169,7 @@ const DeploymentsPage: NextPageWithLayout = () => {
           <Button
             variant="primary"
             loading={deploying}
-            disabled={action.disabled || deploying}
+            disabled={action.disabled || deploying || linked === false}
             onClick={() => setConfirm(true)}
           >
             {action.label}
@@ -222,33 +210,38 @@ const DeploymentsPage: NextPageWithLayout = () => {
               )}
             </div>
 
-            <div className="flex items-center gap-5">
-              {liveUrl && (
-                <a
-                  href={liveUrl.startsWith('http') ? liveUrl : `https://${liveUrl}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-1.5 text-sm text-foreground-light hover:text-foreground"
-                >
-                  Open app <ExternalLink size={13} />
-                </a>
-              )}
-              <label className="flex items-center gap-2 text-sm text-foreground-light">
-                <Switch checked={autoDeploy} onCheckedChange={(v) => void setMode(v)} />
-                Deploy on merge
-              </label>
-            </div>
+            {liveUrl && (
+              <a
+                href={liveUrl.startsWith('http') ? liveUrl : `https://${liveUrl}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 text-sm text-foreground-light hover:text-foreground"
+              >
+                Open app <ExternalLink size={13} />
+              </a>
+            )}
           </div>
+
+          {ref && (
+            <TaskclanConnectRepository
+              projectRef={ref}
+              onLinkedChange={setLinked}
+              onDeploy={() => void load()}
+            />
+          )}
 
           {loading && deployments.length === 0 ? (
             <p className="text-sm text-foreground-lighter">Loading deployments…</p>
           ) : deployments.length === 0 ? (
-            <div className="rounded-md border border-dashed border-default px-5 py-10 text-center">
-              <p className="text-sm text-foreground">This app has never been deployed.</p>
-              <p className="mt-1 text-sm text-foreground-lighter">
-                Deploy ships the app&apos;s linked repository and branch.
-              </p>
-            </div>
+            // With no repository the panel above already says what to do next.
+            linked === false ? null : (
+              <div className="rounded-md border border-dashed border-default px-5 py-10 text-center">
+                <p className="text-sm text-foreground">This app has never been deployed.</p>
+                <p className="mt-1 text-sm text-foreground-lighter">
+                  Deploy ships the app&apos;s linked repository and branch.
+                </p>
+              </div>
+            )
           ) : (
             <div className="overflow-x-auto rounded-md border border-default">
               <table className="w-full text-sm">
@@ -260,13 +253,27 @@ const DeploymentsPage: NextPageWithLayout = () => {
                     <th className="px-4 py-2.5 text-left font-normal">Target</th>
                     <th className="px-4 py-2.5 text-right font-normal tabular-nums">Duration</th>
                     <th className="px-4 py-2.5 text-right font-normal tabular-nums">When</th>
+                    <th className="w-8 px-4 py-2.5" aria-hidden />
                   </tr>
                 </thead>
                 <tbody>
                   {deployments.map((d) => {
                     const s = deployState(d.status)
                     return (
-                      <tr key={d.id} className="border-t border-default align-top">
+                      <tr
+                        key={d.id}
+                        onClick={() => ref && router.push(`/project/${ref}/deployments/${d.id}`)}
+                        role="link"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if ((e.key === 'Enter' || e.key === ' ') && ref) {
+                            e.preventDefault()
+                            void router.push(`/project/${ref}/deployments/${d.id}`)
+                          }
+                        }}
+                        title="View build detail"
+                        className="group cursor-pointer border-t border-default align-top transition-colors hover:bg-surface-100 focus-visible:bg-surface-100 focus-visible:outline-none"
+                      >
                         <td className="px-4 py-3">
                           <span className={cn('flex items-center gap-2', STATE_STYLE[s].className)}>
                             {STATE_STYLE[s].icon}
@@ -293,6 +300,12 @@ const DeploymentsPage: NextPageWithLayout = () => {
                         </td>
                         <td className="px-4 py-3 text-right tabular-nums text-foreground-light">
                           {formatAgo(d.createdAt)}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <ChevronRight
+                            size={16}
+                            className="text-foreground-lighter transition-transform group-hover:translate-x-0.5 group-hover:text-foreground-light"
+                          />
                         </td>
                       </tr>
                     )

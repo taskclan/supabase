@@ -12,7 +12,7 @@ export const McpSecretsWrongAccount = ({
 }) => (
   <InterstitialShell
     title="This account has no access"
-    subtitle="It was created by a different Supabase account."
+    subtitle="It was created by a different Taskclan Cloud account."
   >
     <InterstitialAccountRow displayName={signedInAs} />
 

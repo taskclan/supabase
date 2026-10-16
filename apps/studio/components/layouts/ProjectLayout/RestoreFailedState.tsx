@@ -156,7 +156,7 @@ export const RestoreFailedState = () => {
       <Dialog open={showCliBackup} onOpenChange={setShowCliBackup}>
         <DialogContent size="medium" onOpenAutoFocus={(e) => e.preventDefault()}>
           <DialogHeader>
-            <DialogTitle>Back up your database with the Supabase CLI</DialogTitle>
+            <DialogTitle>Back up your database with the CLI</DialogTitle>
           </DialogHeader>
 
           <DialogSectionSeparator />

@@ -14,10 +14,11 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Badge, cn } from 'ui'
 import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
-import { formatAgo, formatDuration } from '@/lib/taskclan/deployments'
-import type { Overview } from '@/lib/taskclan/overview'
 import { TaskclanActivity } from './TaskclanActivity'
 import { TaskclanInstanceCard } from './TaskclanInstanceCard'
+import { formatAgo, formatDuration } from '@/lib/taskclan/deployments'
+import { taskclanFetch } from '@/lib/taskclan/fetchTaskclan'
+import type { Overview } from '@/lib/taskclan/overview'
 
 const TONE: Record<Overview['status']['tone'], string> = {
   healthy: 'text-brand',
@@ -66,7 +67,7 @@ export const TaskclanOverview = () => {
     let live = true
     ;(async () => {
       try {
-        const res = await fetch(`/api/taskclan/${ref}/overview`)
+        const res = await taskclanFetch(`/api/taskclan/${ref}/overview`)
         const body = await res.json()
         if (!live) return
         if (!res.ok) setError(body.detail ?? body.error ?? `the Cloud API answered ${res.status}`)

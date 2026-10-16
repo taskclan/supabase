@@ -4,12 +4,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { parseAsString, useQueryState } from 'nuqs'
 import { useMemo } from 'react'
-import { AiIconAnimation, Button, Card, CardContent, CardHeader, CardTitle } from 'ui'
+import { Button, Card, CardContent, CardHeader, CardTitle } from 'ui'
 
 import { EDGE_FUNCTION_TEMPLATES } from './Functions.templates'
 import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 import { ScaffoldSectionTitle } from '@/components/layouts/Scaffold'
 import { DocsButton } from '@/components/ui/DocsButton'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 import { ResourceItem } from '@/components/ui/Resource/ResourceItem'
 import { ResourceList } from '@/components/ui/Resource/ResourceList'
 import { useDeploymentMode } from '@/hooks/misc/useDeploymentMode'
@@ -76,8 +77,8 @@ export const FunctionsEmptyState = () => {
               {/* AI Assistant Option */}
               <div className="p-8">
                 <div className="flex items-center gap-2">
-                  <AiIconAnimation size={20} />
-                  <h4 className="text-base text-foreground">AI Assistant</h4>
+                  <KinAvatar size={20} />
+                  <h4 className="text-base text-foreground">Kin</h4>
                 </div>
                 <p className="text-sm text-foreground-light mb-4 mt-1">
                   Let our AI assistant help you create functions. Perfect for kickstarting a
@@ -115,7 +116,7 @@ export const FunctionsEmptyState = () => {
                     })
                   }}
                 >
-                  Open Assistant
+                  Open Kin
                 </Button>
               </div>
             </>

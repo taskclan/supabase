@@ -197,7 +197,7 @@ configureMonacoLoader()
 // option isn't a React component and can't run the async CLI check _app does).
 const FAVICON_ROUTE = IS_NON_PROD_ENV ? '/favicon/staging' : '/favicon'
 const THEME_COLOR = '1E1E1E'
-const APPLICATION_NAME = 'Supabase Studio'
+const APPLICATION_NAME = 'Taskclan Cloud'
 
 const APPLE_TOUCH_ICON_SIZES = [
   '57x57',
@@ -225,7 +225,7 @@ function buildRootHead() {
   const meta: Array<Record<string, string>> = [
     { charSet: 'utf-8' },
     { name: 'viewport', content: 'initial-scale=1.0, width=device-width' },
-    { property: 'og:image', content: `${BASE_PATH}/img/supabase-og.png` },
+    { property: 'og:image', content: `${BASE_PATH}/img/taskclan-og.png` },
     { name: 'googlebot', content: 'notranslate' },
     { name: 'application-name', content: APPLICATION_NAME },
     { name: 'msapplication-TileColor', content: `#${THEME_COLOR}` },
@@ -247,7 +247,7 @@ function buildRootHead() {
       content: `${BASE_PATH}${FAVICON_ROUTE}/mstile-310x310.png`,
     },
     { name: 'theme-color', content: `#${THEME_COLOR}` },
-    { title: 'Supabase' },
+    { title: 'Taskclan Cloud' },
   ]
 
   const links: Array<Record<string, string>> = [

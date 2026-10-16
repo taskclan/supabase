@@ -1,10 +1,9 @@
-import { useFlag, useParams } from 'common'
+import { IS_PLATFORM, useFlag, useParams } from 'common'
 import { PropsWithChildren, useMemo } from 'react'
 
 import { useIsPlatformWebhooksEnabled } from '@/components/interfaces/App/FeaturePreview/FeaturePreviewContext'
 import type { SidebarSection } from '@/components/layouts/AccountLayout/AccountLayout.types'
 import { toSubMenuSections } from '@/components/layouts/AccountLayout/AccountLayout.utils'
-import { WithSidebar } from '@/components/layouts/AccountLayout/WithSidebar'
 import { ProductMenuShortcuts } from '@/components/ui/ProductMenu/ProductMenuShortcuts'
 import { convertSectionsToProductMenu } from '@/components/ui/ProductMenu/SubMenu.utils'
 import { useCurrentPath } from '@/hooks/misc/useCurrentPath'
@@ -108,6 +107,12 @@ export const generateOrganizationSettingsSections = ({
   showPrivateApps = false,
   showAuditLogDrains = false,
 }: OrganizationSettingsSectionsProps): SidebarSection[] => {
+  // Before the router is ready the slug is empty, and every link would come out
+  // as `/org//general`: next/router warned once per link on each settings page
+  // load. A link without its organization goes nowhere, so there are no links
+  // until the slug is known, a render later.
+  if (!slug) return []
+
   const isLinkActive = (key: string, href: string) =>
     key === 'webhooks'
       ? currentPath === href || currentPath.startsWith(`${href}/`)
@@ -143,6 +148,27 @@ export const generateOrganizationSettingsSections = ({
   ]
 
   const connectionsLinks = [
+    // Taskclan Cloud API keys. Only on this build: upstream has no such concept,
+    // and the engine scopes these keys by organisation, which is why they sit
+    // here rather than under a project. Distinct from the project-level "API
+    // Keys" screen, which is a Supabase project's anon/service_role pair.
+    ...(IS_PLATFORM
+      ? []
+      : [
+          {
+            key: 'api-keys',
+            label: 'API Keys',
+            href: `/org/${slug}/api-keys`,
+          },
+          // Releases an app on manual deploy mode is holding. Org-scoped
+          // because one push opens an intent per app mapped to that repo, so
+          // the queue crosses projects.
+          {
+            key: 'releases',
+            label: 'Releases',
+            href: `/org/${slug}/releases`,
+          },
+        ]),
     {
       key: 'apps',
       label: 'OAuth Apps',
@@ -262,21 +288,16 @@ export function OrganizationSettingsLayout({ children }: PropsWithChildren) {
     [sections]
   )
 
-  // Browser titles for org settings routes are set by OrganizationLayout.
+  // The desktop settings sidebar is drawn once by OrganizationLayout (the global
+  // org nav). This layout used to render its own WithSidebar sidebar too, which
+  // painted the same menu a second time side-by-side on every page that nests
+  // it. ProductMenuShortcuts (the mobile/command-menu entries) stays; the
+  // sidebar is dropped so there is a single nav. Browser titles are set by
+  // OrganizationLayout.
   return (
     <>
       <ProductMenuShortcuts menu={orgSettingsMenu} />
-      <WithSidebar
-        title="Organization Settings"
-        sections={sections}
-        header={
-          <div className="border-default flex min-h-(--header-height) items-center border-b px-6">
-            <h4 className="text-lg">Settings</h4>
-          </div>
-        }
-      >
-        {children}
-      </WithSidebar>
+      {children}
     </>
   )
 }

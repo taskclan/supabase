@@ -4,6 +4,7 @@ import { constructHeaders } from '@/lib/api/apiHelpers'
 import { apiWrapper } from '@/lib/api/apiWrapper'
 import { executeQuery } from '@/lib/api/self-hosted/query'
 import { PgMetaDatabaseError } from '@/lib/api/self-hosted/types'
+import { callerFromRequest } from '@/lib/taskclan/callerContext'
 
 export default (req: NextApiRequest, res: NextApiResponse) =>
   apiWrapper(req, res, handler, { withAuth: true })
@@ -30,7 +31,13 @@ const handlePost = async (req: NextApiRequest, res: NextApiResponse) => {
   // holding cloud_api_keys. Proven before this line existed: pg-meta logged
   // `"pg":"db"` (the compose default) for a forge3d query.
   const ref = typeof req.query.ref === 'string' ? req.query.ref : undefined
-  const { data, error } = await executeQuery({ query, headers, ref })
+  // The ref alone is no longer enough: it is resolved against the caller's own
+  // apps, which is what stops one tenant querying another's database.
+  const caller = callerFromRequest(req)
+  if (!caller.ok) {
+    return res.status(caller.status).json({ message: caller.reason, formattedError: caller.reason })
+  }
+  const { data, error } = await executeQuery({ query, headers, ref, caller: caller.caller })
 
   if (error) {
     if (error instanceof PgMetaDatabaseError) {

@@ -9,7 +9,7 @@ import {
   Storage,
   TableEditor,
 } from 'icons'
-import { Blocks, Lightbulb, List, Rocket, Settings, Telescope } from 'lucide-react'
+import { Blocks, Lightbulb, List, Rocket, ScrollText, Settings, Telescope } from 'lucide-react'
 
 import {
   useIsExplorerEnabled,
@@ -269,6 +269,17 @@ export const generateOtherRoutes = (
       disabled: false,
       icon: <Rocket size={ICON_SIZE} strokeWidth={ICON_STROKE_WIDTH} />,
       link: ref && `/project/${ref}/deployments`,
+    },
+    // Runtime logs — the container's own stdout/stderr. Studio's native "Logs"
+    // (Logflare) is hidden in self-hosted, so this takes the label a person
+    // debugging a crash actually looks for. Same reasoning as Deployments for
+    // not gating on isProjectActive: it is most needed when the app is down.
+    {
+      key: 'runtime-logs',
+      label: 'Logs',
+      disabled: false,
+      icon: <ScrollText size={ICON_SIZE} strokeWidth={ICON_STROKE_WIDTH} />,
+      link: ref && `/project/${ref}/runtime-logs`,
     },
   ]
 }

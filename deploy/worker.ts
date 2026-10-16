@@ -15,6 +15,8 @@
 import { Container, getContainer } from '@cloudflare/containers'
 import type { StopParams } from '@cloudflare/containers'
 
+import { engineTargetFor } from '../apps/studio/lib/taskclan/engineProxy'
+
 export class ConsoleContainer extends Container<Env> {
   defaultPort = 8080
   // Long enough that a working session never pays a cold start, short enough
@@ -58,7 +60,7 @@ export class ConsoleContainer extends Container<Env> {
   override onError(error: unknown) {
     console.error(
       '[console-container] error: %s',
-      error instanceof Error ? (error.stack ?? error.message) : String(error),
+      error instanceof Error ? (error.stack ?? error.message) : String(error)
     )
     return error
   }
@@ -100,6 +102,14 @@ const ACCESS_COOKIE = 'tc_access'
  */
 function isPublicPath(pathname: string): boolean {
   if (pathname === '/landing') return true
+  // Sign-in has to be reachable without the site password, or the console's own
+  // login sits behind a second, shared one and nobody can get to it.
+  if (pathname === '/sign-in') return true
+  // The device-approval page the CLI opens. It is gated by the console's own
+  // sign-in — approving requires knowing who is approving — so the shared site
+  // password in front of it adds nothing and breaks `taskclan login` for anyone
+  // who does not have it, which is everyone outside this repo.
+  if (pathname === '/cloud/device') return true
   if (pathname.startsWith('/_next/static/')) return true
   if (pathname === '/favicon.ico' || pathname.startsWith('/favicon/')) return true
   return false
@@ -141,12 +151,102 @@ function gate(env: Env, request: Request): Response | null {
   return new Response('Not authorised', { status: 401, headers: { 'cache-control': 'no-store' } })
 }
 
+/**
+ * Strip the site password before the request reaches the console.
+ *
+ * The gate accepts the token three ways, and one of them is
+ * `Authorization: Bearer <token>`. That header means something else to the app:
+ * it is where a signed-in person's own access token arrives, and the console
+ * forwards it to Taskclan Cloud as their identity. Passing the site password
+ * along in that slot would have the console offer it to Cloud as a user token,
+ * which Cloud rejects, turning a correctly authenticated request into a 401
+ * with a confusing cause.
+ *
+ * Nothing in this repo authenticates that way today (a browser goes through
+ * `?tc_access=` and gets a cookie), so this is closing the hole rather than
+ * fixing a break. It is also just correct: the Worker consumed that credential
+ * for its own gate, and the app has no business seeing the site password.
+ *
+ * Only removed when it actually is the token. A real user bearer passes
+ * through untouched, which is the whole point.
+ */
+function withoutSitePassword(request: Request, env: Env): Request {
+  const want = typeof env.TC_ACCESS_TOKEN === 'string' ? env.TC_ACCESS_TOKEN.trim() : ''
+  if (!want) return request
+
+  const auth = request.headers.get('authorization') || ''
+  const bearer = auth.slice(0, 7).toLowerCase() === 'bearer ' ? auth.slice(7).trim() : ''
+  if (bearer !== want) return request
+
+  const headers = new Headers(request.headers)
+  headers.delete('authorization')
+  return new Request(request, { headers })
+}
+
+/** The engine's own origin. Stays a separate hostname after the swap. */
+function engineOrigin(env: Env): string {
+  const configured = typeof env.TASKCLAN_CLOUD_URL === 'string' ? env.TASKCLAN_CLOUD_URL.trim() : ''
+  return configured || 'https://engine.taskclan.com'
+}
+
+/**
+ * Forward a request that belongs to the engine rather than the console.
+ *
+ * Streamed rather than buffered, in both directions. A `git push` sends a
+ * packfile that can be tens of megabytes and the client expects the server to
+ * start responding during the upload; buffering it in the Worker would blow the
+ * memory limit on large pushes and stall pack negotiation on every one.
+ *
+ * `redirect: 'manual'` because git follows its own redirects and has opinions
+ * about them. Resolving one here would hide it from the client and, for a
+ * cross-origin redirect, silently drop the Authorization header.
+ *
+ * The request is passed through unmodified, which is the point: git
+ * authenticates with `Authorization: Basic` out of the user's ~/.netrc, and the
+ * 401 challenge that prompts for it has to survive in both directions.
+ */
+async function forwardToEngine(request: Request, target: string): Promise<Response> {
+  // A fresh Headers copy rather than mutating the incoming request's own, which
+  // is immutable in some runtimes — deleting from it there would throw and turn
+  // every forwarded request into a 500.
+  const headers = new Headers(request.headers)
+  // The engine routes on Host for some paths, and this proxy exists precisely
+  // to reach the handler without that rewrite. `fetch` sets Host from the
+  // target URL; dropping the inherited one makes that explicit rather than
+  // relying on the runtime to override it.
+  headers.delete('host')
+
+  return fetch(
+    new Request(target, {
+      method: request.method,
+      headers,
+      // Streamed, not buffered. A `git push` packfile can be tens of megabytes
+      // and the client expects the server to respond during the upload.
+      body: request.body,
+      redirect: 'manual',
+      // Required whenever a stream is used as a body.
+      ...({ duplex: 'half' } as Record<string, unknown>),
+    })
+  )
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    // Engine-owned paths are matched BEFORE the private-site gate, and that is
+    // deliberate rather than an oversight. The gate is a shared password for
+    // humans browsing the console; git and CI hold a per-user credential and
+    // have never seen it. Gating them would mean the swap breaks every deploy
+    // with a 401 that no `taskclan login` can satisfy.
+    //
+    // It does not widen access: everything forwarded here is authenticated by
+    // the engine itself, which is the same check these requests pass today.
+    const target = engineTargetFor(request.url, engineOrigin(env))
+    if (target) return forwardToEngine(request, target)
+
     const denied = gate(env, request)
     if (denied) return denied
     // One instance: the console holds no per-request state worth sharding, and
     // a single warm container is cheaper and simpler than several cold ones.
-    return getContainer(env.CONSOLE, 'main').fetch(request)
+    return getContainer(env.CONSOLE, 'main').fetch(withoutSitePassword(request, env))
   },
 }

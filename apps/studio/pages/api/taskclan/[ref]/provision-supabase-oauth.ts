@@ -10,20 +10,10 @@
  */
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-import { taskclanConfig } from '@/lib/taskclan/client'
-import { findSiteByRef, type CloudSite } from '@/lib/taskclan/projects'
+import { cloudBaseUrl, siteForCaller } from '@/lib/taskclan/client'
+import { authHeadersFor, callerFromRequest } from '@/lib/taskclan/callerContext'
 
 const TIMEOUT_MS = 15000
-
-async function siteForRef(ref: string, cfg: { url: string; key: string }): Promise<CloudSite | null> {
-  const res = await fetch(`${cfg.url}/api/cloud/v1/sites`, {
-    headers: { authorization: `Bearer ${cfg.key}`, accept: 'application/json' },
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  })
-  if (!res.ok) return null
-  const body = (await res.json()) as { sites?: CloudSite[] }
-  return findSiteByRef(Array.isArray(body.sites) ? body.sites : [], ref) ?? null
-}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -37,11 +27,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const body = (req.body ?? {}) as { plan?: string; name?: string; returnUrl?: string }
   if (!body.returnUrl) return res.status(400).json({ error: 'returnUrl is required' })
 
-  const cfg = taskclanConfig()
-  if (!cfg.ok) return res.status(501).json({ error: 'not_configured', detail: cfg.reason })
+  const resolved = callerFromRequest(req)
+  if (!resolved.ok) return res.status(resolved.status).json({ error: resolved.reason })
+  const caller = resolved.caller
+
+  const cloud = cloudBaseUrl()
+  if (!cloud.ok) return res.status(501).json({ error: 'not_configured', detail: cloud.reason })
 
   try {
-    const site = await siteForRef(ref, cfg.config)
+    const lookup = await siteForCaller(ref, caller)
+    // Distinguish "no such app for this caller" from "could not reach Cloud":
+    // answering 404 for an outage tells someone their app has vanished.
+    if (!lookup.ok) return res.status(502).json({ error: lookup.detail })
+    const site = lookup.data
     if (!site) return res.status(404).json({ error: `no Taskclan app matches "${ref}"` })
 
     const q = new URLSearchParams({
@@ -52,9 +50,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (body.name) q.set('name', body.name)
 
     const r = await fetch(
-      `${cfg.config.url}/api/taskclan/integrations/oauth/supabase/authorize?${q.toString()}`,
+      `${cloud.url}/api/taskclan/integrations/oauth/supabase/authorize?${q.toString()}`,
       {
-        headers: { authorization: `Bearer ${cfg.config.key}`, accept: 'application/json' },
+        headers: authHeadersFor(caller),
         signal: AbortSignal.timeout(TIMEOUT_MS),
       }
     )

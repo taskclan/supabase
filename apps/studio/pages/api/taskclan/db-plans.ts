@@ -12,6 +12,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 import { listCloudSites, taskclanConfig } from '@/lib/taskclan/client'
+import { callerFromRequest } from '@/lib/taskclan/callerContext'
 
 const TIMEOUT_MS = 15000
 
@@ -24,7 +25,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const cfg = taskclanConfig()
   if (!cfg.ok) return res.status(501).json({ error: 'not_configured', detail: cfg.reason })
 
-  const sites = await listCloudSites()
+  const resolved = callerFromRequest(req)
+  if (!resolved.ok) return res.status(resolved.status).json({ error: resolved.reason })
+
+  const sites = await listCloudSites(resolved.caller)
   if (!sites.ok) {
     return res.status(502).json({ error: 'could not reach the Cloud API', detail: sites.detail })
   }

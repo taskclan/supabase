@@ -83,7 +83,7 @@ export const EdgeFunctionRenderer = ({
     <Confirm
       className="my-4"
       state={confirmState}
-      message="Assistant wants to deploy this Edge Function"
+      message="Kin wants to deploy this Edge Function"
       cancelLabel="Skip"
       confirmLabel="Deploy"
       confirmLabelLoading="Deploying..."

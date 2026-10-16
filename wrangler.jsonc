@@ -15,6 +15,55 @@
     "enabled": true
   },
 
+  // The workers.dev URL, pinned ON deliberately.
+  //
+  // Wrangler disables workers.dev by default as soon as a `routes` block exists
+  // and `workers_dev` does not. That is how this Worker went dark on
+  // 2026-09-17: adding the custom domain turned workers.dev off, the custom
+  // domain itself was then rejected, and the deploy left the Worker with no
+  // route at all. Stating it explicitly means the fallback URL survives
+  // whatever happens to the custom domain.
+  "workers_dev": true,
+
+  // THE SWITCH. This is what moves cloud.taskclan.com off the engine's console
+  // and onto this one.
+  //
+  // A Workers Custom Domain rather than a route pattern: Cloudflare creates and
+  // owns the DNS record and the certificate, so there is no separate DNS change
+  // to keep in sync afterwards.
+  //
+  // The first attempt (3e7946c7c4) was rejected, and the rejection was correct:
+  //
+  //   Hostname 'cloud.taskclan.com' already has externally managed DNS records
+  //   (A, CNAME, etc). Delete them first or try a different hostname. [100117]
+  //
+  // The hostname still carried the record pointing at the engine, and
+  // Cloudflare will not silently take one over. That record has since been
+  // deleted by hand; the hostname now has no A, AAAA or CNAME at all, which is
+  // what lets this bind.
+  //
+  // Preconditions, both established and verified live before this landed:
+  //
+  //   1. TASKCLAN_SHARED_KEY_FALLBACK is "false" (c77b6384f3), so the API fails
+  //      closed for a request carrying no user token rather than answering out
+  //      of one organisation's shared key.
+  //   2. TC_ACCESS_TOKEN is deleted. It was a single shared site password, and
+  //      with this hostname pointing here it would have 401'd every real
+  //      customer on the console UI.
+  //
+  // Reverting is NOT just deleting this block. A Workers Custom Domain owns the
+  // DNS record it creates, so removing it removes the record and leaves the
+  // hostname resolving to nothing. A rollback has to recreate a record pointing
+  // back at the engine and re-add cloud.taskclan.com to CLOUD_HOSTS in the
+  // engine's middleware — which is why that entry is being left in place until
+  // this has soaked.
+  "routes": [
+    {
+      "pattern": "cloud.taskclan.com",
+      "custom_domain": true
+    }
+  ],
+
   // Non-secret configuration for the container.
   //
   // The Worker spreads every string binding into the container's environment,
@@ -29,6 +78,29 @@
   //   TC_ACCESS_TOKEN         optional; enables the Worker's private-site gate
   "vars": {
     "TASKCLAN_CLOUD_URL": "https://engine.taskclan.com",
+    // Cutover step 1 of 3. With per-user auth live, a request that arrives with
+    // no user token must fail rather than quietly act as the shared Cloud API
+    // key — which would mean serving one organisation's apps to whoever asked.
+    //
+    // This has to go off BEFORE TC_ACCESS_TOKEN comes off, not after. The site
+    // password is currently the only thing in front of /api/taskclan/*; drop it
+    // while this fallback is still on and those routes answer anonymously out
+    // of the shared key. Ordering them the other way round is the difference
+    // between a closed door and an open one.
+    //
+    // Runtime rather than build-time on purpose: if this turns out to be wrong,
+    // recovery is editing this value, not waiting out a rebuild.
+    "TASKCLAN_SHARED_KEY_FALLBACK": "false",
+    // Which app /project/default means.
+    //
+    // Studio routes to that ref when it means "the one project", which is true
+    // of a self-hosted install and never true here, so the URL used to resolve
+    // to nothing and render "no Taskclan app matches default".
+    //
+    // A preference, not a grant: it only applies to a caller who can already
+    // see this app. Anyone else falls back to their own first app, so setting a
+    // Taskclan-owned app here cannot expose it to another organisation.
+    "TASKCLAN_DEFAULT_APP": "taskclan-engine",
     // The shared Supabase project every Taskclan app connects to via
     // supabase-js. The Connect panel's Framework/Mobile/Server tabs surface this
     // REST URL + the anon key (TASKCLAN_SUPABASE_ANON_KEY, a Worker secret). The

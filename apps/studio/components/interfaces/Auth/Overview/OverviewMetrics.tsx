@@ -4,7 +4,7 @@ import dayjs from 'dayjs'
 import { BarChart2, ChevronRight, ExternalLink, Telescope } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { AiIconAnimation, Button, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
+import { Button, Tooltip, TooltipContent, TooltipTrigger } from 'ui'
 import {
   Chart,
   ChartActions,
@@ -42,6 +42,7 @@ import {
 import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 import { AlertError } from '@/components/ui/AlertError'
 import { ErrorCodeTooltip } from '@/components/ui/ErrorCodeTooltip/ErrorCodeTooltip'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 import { Service } from '@/data/graphql/graphql'
 import { useAiAssistantStateSnapshot } from '@/state/ai-assistant-state'
 import { useSidebarManagerSnapshot } from '@/state/sidebar-manager-state'
@@ -195,8 +196,8 @@ export const OverviewMetrics = ({ metrics, isLoading, error }: OverviewMetricsPr
 
   const errorCodesActions = [
     {
-      label: 'Ask Assistant about Error Codes',
-      icon: <AiIconAnimation size={12} />,
+      label: 'Ask Kin about Error Codes',
+      icon: <KinAvatar size={12} />,
       onClick: () => {
         openSidebar(SIDEBAR_KEYS.AI_ASSISTANT)
         aiSnap.newChat({

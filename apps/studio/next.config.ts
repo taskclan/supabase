@@ -10,6 +10,7 @@ import {
   PLATFORM_REDIRECTS,
   SELF_HOSTED_REDIRECTS,
   SHARED_REDIRECTS,
+  TASKCLAN_AUTH_REDIRECTS,
 } from './redirects.shared'
 
 const withBundleAnalyzer = bundleAnalyzer({
@@ -73,8 +74,14 @@ const nextConfig = {
     // via `basePath: false`.
     const isPlatform = process.env.NEXT_PUBLIC_IS_PLATFORM === 'true'
     const maintenance = process.env.MAINTENANCE_MODE === 'true'
+    // Same condition as TASKCLAN_AUTH_ENABLED, spelled out because next.config
+    // cannot import from the app's module graph.
+    const taskclanAuth =
+      !!process.env.NEXT_PUBLIC_TASKCLAN_AUTH_URL &&
+      !!process.env.NEXT_PUBLIC_TASKCLAN_AUTH_ANON_KEY
+    const selfHosted = taskclanAuth ? TASKCLAN_AUTH_REDIRECTS : SELF_HOSTED_REDIRECTS
     return [
-      ...(isPlatform ? PLATFORM_REDIRECTS : SELF_HOSTED_REDIRECTS),
+      ...(isPlatform ? PLATFORM_REDIRECTS : selfHosted),
       ...SHARED_REDIRECTS,
       ...(process.env.NEXT_PUBLIC_BASE_PATH?.length
         ? [

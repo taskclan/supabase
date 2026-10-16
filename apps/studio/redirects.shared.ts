@@ -44,12 +44,45 @@ export const PLATFORM_REDIRECTS: StudioRedirect[] = [
  * links people have bookmarked, not a flow.
  */
 export const SELF_HOSTED_REDIRECTS: StudioRedirect[] = [
-  { source: '/', destination: '/organizations', permanent: false },
+  // The front door. Signed-out visitors get the page that says what this is;
+  // the CTAs on it go to /organizations, which the auth gate bounces to
+  // sign-in with a returnTo. Sending / straight to /organizations meant
+  // anyone typing the bare hostname landed inside a dashboard with no idea
+  // what the product was.
+  { source: '/', destination: '/landing', permanent: false },
   { source: '/register', destination: '/organizations', permanent: false },
   { source: '/signup', destination: '/organizations', permanent: false },
   { source: '/signin', destination: '/organizations', permanent: false },
   { source: '/login', destination: '/organizations', permanent: false },
   { source: '/log-in', destination: '/organizations', permanent: false },
+  { source: '/project/:ref/building', destination: '/project/:ref', permanent: false },
+]
+
+/**
+ * Once Taskclan Cloud signs people in, the auth aliases should lead to the
+ * sign-in page rather than into the console.
+ *
+ * `/sign-in` itself was never redirected, so the page has always been
+ * reachable; what these entries fix is the bookmarked spellings, which sent
+ * somebody trying to log in to `/organizations` instead. Before there was a
+ * sign-in page that was the best available answer. Now it is the wrong one.
+ *
+ * `/` still goes to the project list. A signed-out visitor is redirected to
+ * sign-in by the auth gate, which knows whether there is a session; a redirect
+ * rule does not.
+ */
+export const TASKCLAN_AUTH_REDIRECTS: StudioRedirect[] = [
+  // The front door. Signed-out visitors get the page that says what this is;
+  // the CTAs on it go to /organizations, which the auth gate bounces to
+  // sign-in with a returnTo. Sending / straight to /organizations meant
+  // anyone typing the bare hostname landed inside a dashboard with no idea
+  // what the product was.
+  { source: '/', destination: '/landing', permanent: false },
+  { source: '/register', destination: '/sign-in', permanent: false },
+  { source: '/signup', destination: '/sign-in', permanent: false },
+  { source: '/signin', destination: '/sign-in', permanent: false },
+  { source: '/login', destination: '/sign-in', permanent: false },
+  { source: '/log-in', destination: '/sign-in', permanent: false },
   { source: '/project/:ref/building', destination: '/project/:ref', permanent: false },
 ]
 

@@ -1,4 +1,4 @@
-import { AiIconAnimation } from 'ui'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 
 import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
@@ -116,12 +116,12 @@ export const ReviewWithAI = ({
       tooltip={{
         content: {
           side: 'bottom',
-          text: 'Ask Supabase Assistant to review the merge request',
+          text: 'Ask Kin to review the merge request',
         },
       }}
     >
-      <AiIconAnimation size={16} />
-      <span className="sr-only">Review with Assistant</span>
+      <KinAvatar size={16} />
+      <span className="sr-only">Review with Kin</span>
     </ButtonTooltip>
   )
 }

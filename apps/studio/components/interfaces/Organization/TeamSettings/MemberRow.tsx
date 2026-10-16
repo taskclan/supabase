@@ -15,6 +15,7 @@ import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { isInviteExpired } from '../Organization.utils'
 import { MemberActions } from './MemberActions'
+import { SHOWS_MFA_COLUMN } from './showMfaColumn'
 import { useTeamSettingsData } from './TeamSettingsDataContext'
 import PartnerIcon from '@/components/ui/PartnerIcon'
 import { ProfileImage } from '@/components/ui/ProfileImage'
@@ -113,21 +114,23 @@ export const MemberRow = memo(function MemberRow({ member }: MemberRowProps) {
         </div>
       </TableCell>
 
-      <TableCell>
-        <div className="flex items-center gap-x-1.5">
-          {member.mfa_enabled ? (
-            <>
-              <span className="text-foreground-lighter">Enabled</span>
-              <Check className="text-brand" strokeWidth={2} size={16} />
-            </>
-          ) : (
-            <>
-              <span className="text-foreground-lighter">Disabled</span>
-              <X className="text-foreground-muted" strokeWidth={1.5} size={16} />
-            </>
-          )}
-        </div>
-      </TableCell>
+      {SHOWS_MFA_COLUMN && (
+        <TableCell>
+          <div className="flex items-center gap-x-1.5">
+            {member.mfa_enabled ? (
+              <>
+                <span className="text-foreground-lighter">Enabled</span>
+                <Check className="text-brand" strokeWidth={2} size={16} />
+              </>
+            ) : (
+              <>
+                <span className="text-foreground-lighter">Disabled</span>
+                <X className="text-foreground-muted" strokeWidth={1.5} size={16} />
+              </>
+            )}
+          </div>
+        </TableCell>
+      )}
 
       <TableCell className="max-w-64">
         {isLoadingRoles ? (

@@ -210,7 +210,7 @@ export const MarketplaceIntegrationSettingsTab = () => {
         alert={{
           title: 'This cannot be undone',
           description:
-            'Make sure all components using this key have been updated. Deletion will cause them to receive HTTP 401 Unauthorized status codes on all Supabase APIs.',
+            'Make sure all components using this key have been updated. Deletion will cause them to receive HTTP 401 Unauthorized status codes on all APIs.',
         }}
       />
     </>

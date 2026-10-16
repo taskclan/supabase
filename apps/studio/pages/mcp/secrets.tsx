@@ -5,7 +5,7 @@ import { withAuth } from '@/hooks/misc/withAuth'
 import { buildStudioPageTitle } from '@/lib/page-title'
 import type { NextPageWithLayout } from '@/types'
 
-const PAGE_TITLE = buildStudioPageTitle({ section: 'Store an API key', brand: 'Supabase' })
+const PAGE_TITLE = buildStudioPageTitle({ section: 'Store an API key', brand: 'Taskclan Cloud' })
 
 const McpSecretsPage: NextPageWithLayout = () => {
   return (

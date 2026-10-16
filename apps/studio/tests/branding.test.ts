@@ -55,6 +55,14 @@ const cases: { file: string; banned: string[] }[] = [
     file: 'components/interfaces/Settings/Integrations/GithubIntegration/GitHubIntegrationConnectionForm.tsx',
     banned: ['Supabase project'],
   },
+  // The sign-in surface is the first thing a customer sees, and it was forked
+  // from a page whose every layout, heading and link names Supabase. A rebase
+  // that reintroduced any of that would show it to everybody before they are
+  // even signed in.
+  {
+    file: 'components/interfaces/SignIn/TaskclanSignInForm.tsx',
+    banned: ['Supabase Studio', 'Supabase project', 'supabase.com'],
+  },
 ]
 
 describe('Taskclan branding', () => {

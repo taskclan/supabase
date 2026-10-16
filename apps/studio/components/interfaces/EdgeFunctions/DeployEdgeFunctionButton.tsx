@@ -3,7 +3,6 @@ import { ChevronDown, Code, Terminal } from 'lucide-react'
 import { useRouter } from 'next/router'
 import { parseAsString, useQueryState } from 'nuqs'
 import {
-  AiIconAnimation,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -12,6 +11,7 @@ import {
 
 import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 import { useIsProjectActive } from '@/hooks/misc/useSelectedProject'
 import { useTrack } from '@/lib/telemetry/track'
 import { useAiAssistantStateSnapshot } from '@/state/ai-assistant-state'
@@ -103,10 +103,10 @@ export const DeployEdgeFunctionButton = () => {
             track('edge_function_ai_assistant_button_clicked', { origin: 'secondary_action' })
           }}
         >
-          <AiIconAnimation className="shrink-0" size={16} />
+          <KinAvatar className="shrink-0" size={16} />
           <div>
-            <span className="text-foreground">Via AI Assistant</span>
-            <p>Let the Assistant write and deploy for you</p>
+            <span className="text-foreground">Via Kin</span>
+            <p>Let Kin write and deploy for you</p>
           </div>
         </DropdownMenuItem>
       </DropdownMenuContent>

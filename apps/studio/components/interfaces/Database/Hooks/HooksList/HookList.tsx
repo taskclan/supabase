@@ -75,7 +75,7 @@ export const HookList = ({ schema, filterString }: HookListProps) => {
                     layout="fixed"
                     width="20"
                     height="20"
-                    title={isEdgeFunction ? 'Supabase Edge Function' : 'HTTP Request'}
+                    title={isEdgeFunction ? 'Edge Function' : 'HTTP Request'}
                   />
                 </div>
                 <p title={x.name} className="truncate">

@@ -1,5 +1,6 @@
-import { AiIconAnimation, cn, KeyboardShortcut } from 'ui'
+import { cn, KeyboardShortcut } from 'ui'
 
+import { KinAvatar } from '@/components/ui/KinAvatar'
 import { SIDEBAR_KEYS } from '@/components/layouts/ProjectLayout/LayoutSidebar/LayoutSidebarProvider'
 import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
 import { useTrack } from '@/lib/telemetry/track'
@@ -32,19 +33,15 @@ export const AssistantButton = () => {
           className: 'p-1 pl-2.5',
           text: (
             <div className="flex items-center gap-2.5">
-              <span>AI Assistant</span>
+              <span>Kin</span>
               {isAIAssistantHotkeyEnabled && <KeyboardShortcut keys={['Meta', 'I']} />}
             </div>
           ),
         },
       }}
     >
-      <AiIconAnimation
-        allowHoverEffect={false}
-        size={16}
-        className={cn(isOpen && 'text-background')}
-      />
-      <span className="sr-only">AI Assistant</span>
+      <KinAvatar size={20} className={cn(isOpen && 'ring-background/30')} />
+      <span className="sr-only">Kin</span>
     </ButtonTooltip>
   )
 }

@@ -17,6 +17,7 @@ import { Admonition } from 'ui-patterns/Admonition'
 import { GenericSkeletonLoader } from 'ui-patterns/ShimmeringLoader'
 
 import { MemberRow } from './MemberRow'
+import { SHOWS_MFA_COLUMN } from './showMfaColumn'
 import { TeamSettingsDataProvider } from './TeamSettingsDataContext'
 import { UpdateRolesPanel } from './UpdateRolesPanel/UpdateRolesPanel'
 import { AlertError } from '@/components/ui/AlertError'
@@ -141,7 +142,7 @@ export const MembersView = ({ searchString }: MembersViewProps) => {
                 <TableHeader>
                   <TableRow>
                     <TableHead key="header-user">Member</TableHead>
-                    <TableHead key="header-mfa">MFA</TableHead>
+                    {SHOWS_MFA_COLUMN && <TableHead key="header-mfa">MFA</TableHead>}
                     <TableHead key="header-role">Role</TableHead>
                     <TableHead key="header-action" />
                   </TableRow>

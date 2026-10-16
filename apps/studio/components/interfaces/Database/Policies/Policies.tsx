@@ -158,7 +158,7 @@ export const Policies = ({
         {!isSchemaExposedAPI && (
           <Admonition
             type="warning"
-            title="No data from any table in this schema will be selectable via Supabase APIs"
+            title="No data from any table in this schema will be selectable via the APIs"
           >
             This schema is not exposed via the Supabase APIs. You may configure this in your
             project’s{' '}

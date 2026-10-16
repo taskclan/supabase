@@ -5,6 +5,7 @@ import { databaseErrorSchema, PgMetaDatabaseError, WrappedResult } from './types
 import { pgMetaError } from './pgMetaError'
 import { assertSelfHosted, encryptString, getConnectionStringForRef } from './util'
 import { PG_META_URL } from '@/lib/constants/index'
+import type { Caller } from '@/lib/taskclan/callerContext'
 
 export type QueryOptions = {
   query: string
@@ -20,6 +21,8 @@ export type QueryOptions = {
    * the shared database instead of the app's own.
    */
   ref?: string
+  /** Who is asking. Required alongside `ref` for the app's own connection. */
+  caller?: Caller
 }
 
 /**
@@ -33,13 +36,14 @@ export async function executeQuery<T = unknown>({
   readOnly = false,
   headers,
   ref,
+  caller,
 }: QueryOptions): Promise<WrappedResult<T[]>> {
   assertSelfHosted()
 
   // `ref` names the app whose database this query is for. Without it the
   // process-wide connection is used, which is upstream's behaviour and correct
   // for a single-project install.
-  const connectionString = await getConnectionStringForRef({ readOnly, ref })
+  const connectionString = await getConnectionStringForRef({ readOnly, ref, caller })
   const connectionStringEncrypted = encryptString(connectionString)
 
   const requestBody: { query: string; parameters?: unknown[] } = { query }

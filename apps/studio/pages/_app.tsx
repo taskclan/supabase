@@ -45,15 +45,17 @@ import { FeaturePreviewModal } from '@/components/interfaces/App/FeaturePreview/
 import { IndirectTaxDeclarationModal } from '@/components/interfaces/App/IndirectTaxDeclarationModal'
 import { MonacoThemeProvider } from '@/components/interfaces/App/MonacoThemeProvider'
 import { RouteValidationWrapper } from '@/components/interfaces/App/RouteValidationWrapper'
+import { TaskclanAuthGate } from '@/components/interfaces/App/TaskclanAuthGate'
 import { MainScrollContainerProvider } from '@/components/layouts/MainScrollContainerContext'
 import { BannerStackProvider } from '@/components/ui/BannerStack/BannerStackProvider'
 import { GlobalErrorBoundaryState } from '@/components/ui/ErrorBoundary/GlobalErrorBoundaryState'
 import { GlobalShortcuts } from '@/components/ui/GlobalShortcuts/GlobalShortcuts'
 import { getCLIReleaseVersion } from '@/data/misc/cli-release-version-query'
 import { useRootQueryClient } from '@/data/query-client'
-import { inter, manrope, sourceCodePro } from '@/fonts'
+import { geistSans, geistMono } from '@/fonts'
 import { useCustomContent } from '@/hooks/custom-content/useCustomContent'
 import { useSelectedOrganizationQuery } from '@/hooks/misc/useSelectedOrganization'
+import { useSyncTaskclanOrg } from '@/hooks/misc/useSyncTaskclanOrg'
 import { AuthProvider } from '@/lib/auth'
 import { configureMonacoLoader } from '@/lib/configure-monaco-loader'
 import {
@@ -145,6 +147,10 @@ function CustomApp({ Component, pageProps }: AppPropsWithLayout) {
   const { appTitle } = useCustomContent(['app:title'])
   const [isCLI, setIsCLI] = useState(false)
 
+  // Studio switches organisation by navigating to /org/{slug}. Copy that choice
+  // somewhere taskclanFetch can read it, since it has no access to the router.
+  useSyncTaskclanOrg()
+
   const getLayout = Component.getLayout ?? ((page) => page)
 
   const errorBoundaryHandler = (error: Error, _info: ErrorInfo) => {
@@ -187,14 +193,14 @@ function CustomApp({ Component, pageProps }: AppPropsWithLayout) {
                   <TimezoneProvider>
                     <TimestampInfoTimezoneBridge>
                       <Head>
-                        <title>{appTitle ?? 'Supabase'}</title>
+                        <title>{appTitle ?? 'Taskclan Cloud'}</title>
                         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-                        <meta property="og:image" content={`${BASE_PATH}/img/supabase-og.png`} />
+                        <meta property="og:image" content={`${BASE_PATH}/img/taskclan-og.png`} />
                         <meta name="googlebot" content="notranslate" />
                         {/* [Alaister]: This has to be an inline style tag here and not a separate component due to next/font */}
                         <style
                           dangerouslySetInnerHTML={{
-                            __html: `:root{--font-sans:${inter.style.fontFamily};--font-heading:${manrope.style.fontFamily};--font-source-code-pro:${sourceCodePro.style.fontFamily};}`,
+                            __html: `:root{--font-sans:${geistSans.style.fontFamily};--font-heading:${geistSans.style.fontFamily};--font-source-code-pro:${geistMono.style.fontFamily};}`,
                           }}
                         />
                         {/* Speed up initial API loading times by pre-connecting to the API domain */}
@@ -212,31 +218,33 @@ function CustomApp({ Component, pageProps }: AppPropsWithLayout) {
                         route={isNonProdEnv ? '/favicon/staging' : '/favicon'}
                       />
                       <TooltipProvider>
-                        <RouteValidationWrapper>
-                          <ThemeProvider>
-                            <DevToolbarProvider apiUrl={API_URL}>
-                              <AiAssistantStateContextProvider>
-                                <CommandProvider>
-                                  <BannerStackProvider>
-                                    <FeaturePreviewContextProvider>
-                                      <MainScrollContainerProvider>
-                                        {getLayout(<Component {...pageProps} />)}
-                                      </MainScrollContainerProvider>
-                                      <GlobalShortcuts />
-                                      <StudioCommandMenu />
-                                      <FeaturePreviewModal />
-                                      <IndirectTaxDeclarationModal />
-                                    </FeaturePreviewContextProvider>
-                                  </BannerStackProvider>
-                                  <Toaster />
-                                  <MonacoThemeProvider />
-                                </CommandProvider>
-                              </AiAssistantStateContextProvider>
-                              <DevToolbar extraTabs={devToolbarExtraTabs} />
-                              <DevToolbarTrigger />
-                            </DevToolbarProvider>
-                          </ThemeProvider>
-                        </RouteValidationWrapper>
+                        <TaskclanAuthGate>
+                          <RouteValidationWrapper>
+                            <ThemeProvider>
+                              <DevToolbarProvider apiUrl={API_URL}>
+                                <AiAssistantStateContextProvider>
+                                  <CommandProvider>
+                                    <BannerStackProvider>
+                                      <FeaturePreviewContextProvider>
+                                        <MainScrollContainerProvider>
+                                          {getLayout(<Component {...pageProps} />)}
+                                        </MainScrollContainerProvider>
+                                        <GlobalShortcuts />
+                                        <StudioCommandMenu />
+                                        <FeaturePreviewModal />
+                                        <IndirectTaxDeclarationModal />
+                                      </FeaturePreviewContextProvider>
+                                    </BannerStackProvider>
+                                    <Toaster />
+                                    <MonacoThemeProvider />
+                                  </CommandProvider>
+                                </AiAssistantStateContextProvider>
+                                <DevToolbar extraTabs={devToolbarExtraTabs} />
+                                <DevToolbarTrigger />
+                              </DevToolbarProvider>
+                            </ThemeProvider>
+                          </RouteValidationWrapper>
+                        </TaskclanAuthGate>
                       </TooltipProvider>
                       <Telemetry />
                       <ToastErrorTracker />

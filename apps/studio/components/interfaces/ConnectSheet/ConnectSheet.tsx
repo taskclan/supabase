@@ -180,7 +180,7 @@ export const ConnectSheet = () => {
       >
         <SheetHeader className={cn('text-left border-b shrink-0 py-6 px-8')}>
           <SheetTitle>Connect to your project</SheetTitle>
-          <SheetDescription>Choose how you want to use Supabase</SheetDescription>
+          <SheetDescription>Choose how you want to use Taskclan Cloud</SheetDescription>
         </SheetHeader>
 
         <div className="flex min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden divide-y">

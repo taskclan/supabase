@@ -4,7 +4,6 @@ import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { PropsWithChildren, useEffect, useState } from 'react'
-import { tweets } from 'shared-data'
 import { cn } from 'ui'
 
 import {
@@ -23,13 +22,6 @@ import { BASE_PATH, DOCS_URL } from '@/lib/constants'
 import { getProviderDisplay } from '@/lib/external-identity-providers'
 import { auth, buildPathWithParams, getReturnToPath } from '@/lib/gotrue'
 
-type Quote = {
-  text: string
-  url: string
-  handle: string
-  img_url: string
-}
-
 type SignInLayoutProps = {
   heading: string
   subheading: string
@@ -45,9 +37,9 @@ type SignInLayoutProps = {
 
 const TermsText = () => (
   <>
-    By continuing, you agree to Supabase’s{' '}
-    <InlineLink href="https://supabase.com/terms">Terms of Service</InlineLink> and{' '}
-    <InlineLink href="https://supabase.com/privacy">Privacy Policy</InlineLink>, and to receive
+    By continuing, you agree to Taskclan’s{' '}
+    <InlineLink href="https://www.taskclan.com/terms">Terms of Service</InlineLink> and{' '}
+    <InlineLink href="https://www.taskclan.com/privacy">Privacy Policy</InlineLink>, and to receive
     periodic emails with updates.
   </>
 )
@@ -67,20 +59,14 @@ export const SignInLayout = ({
 
   const { destination, focusProvider } = useInboundBranding(inboundFlow)
   const { dashboardAuthLogoLinkUrl } = useCustomContent(['dashboard_auth:logo_link_url'])
-  const marketingSiteUrl = dashboardAuthLogoLinkUrl ?? 'https://supabase.com'
+  const marketingSiteUrl = dashboardAuthLogoLinkUrl ?? 'https://www.taskclan.com'
 
   // Addresses hydration issue with `resolvedTheme` as its undefined during SSR and the first (hydrating) client render
   const [mounted, setMounted] = useState(false)
-  const [quote, setQuote] = useState<Quote | null>(null)
 
   const verb = inboundFlow === 'sign-up' ? 'Sign up' : 'Sign in'
 
-  const {
-    dashboardAuthShowTestimonial: showTestimonial,
-    brandingLargeLogo: largeLogo,
-    dashboardAuthShowTos: showTos,
-  } = useIsFeatureEnabled([
-    'dashboard_auth:show_testimonial',
+  const { brandingLargeLogo: largeLogo, dashboardAuthShowTos: showTos } = useIsFeatureEnabled([
     'branding:large_logo',
     'dashboard_auth:show_tos',
   ])
@@ -125,25 +111,6 @@ export const SignInLayout = ({
 
   useEffect(() => {
     setMounted(true)
-
-    // Weighted random selection
-    // Calculate total weight (default weight is fallbackWeight for tweets without weight specified)
-    const fallbackWeight = 1
-    const totalWeight = tweets.reduce((sum, tweet) => sum + (tweet.weight ?? fallbackWeight), 0)
-
-    // Generate random number between 0 and totalWeight
-    const random = Math.random() * totalWeight
-
-    // Find the selected tweet based on cumulative weights
-    let accumulatedWeight = 0
-    for (const tweet of tweets) {
-      const weight = tweet.weight ?? fallbackWeight
-      accumulatedWeight += weight
-      if (random <= accumulatedWeight) {
-        setQuote(tweet)
-        break
-      }
-    }
   }, [])
 
   // Focused provider: render a dedicated single-provider interstitial (same card layout as the
@@ -170,10 +137,10 @@ export const SignInLayout = ({
             right={<SupabaseLogo />}
           />
         }
-        title={destination ? `Continue to ${destination.displayName}` : `${verb} to Supabase`}
+        title={destination ? `Continue to ${destination.displayName}` : `${verb} to Taskclan Cloud`}
         description={
           destination
-            ? `${verb} to Supabase using your ${focusProvider.displayName} account`
+            ? `${verb} to Taskclan Cloud using your ${focusProvider.displayName} account`
             : `Use your ${focusProvider.displayName} account to continue`
         }
         footer={
@@ -197,7 +164,16 @@ export const SignInLayout = ({
 
   return (
     <>
-      <div className="relative flex flex-col bg-alternative min-h-screen">
+      <div
+        className="relative flex flex-col min-h-screen overflow-hidden"
+        style={{ background: 'var(--gradient-hero)' }}
+      >
+        {/* taskclan.com hero backdrop: cream->lilac canvas + a soft violet glow (theme-adaptive). */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -top-40 right-[-8%] h-[640px] w-[640px] rounded-full"
+          style={{ background: 'var(--color-primary)', opacity: 0.18, filter: 'blur(150px)' }}
+        />
         <div
           className={cn(
             'absolute top-0 w-full px-8 mx-auto sm:px-6 lg:px-8',
@@ -214,7 +190,7 @@ export const SignInLayout = ({
                         ? `${BASE_PATH}/img/taskclan-wordmark.svg`
                         : `${BASE_PATH}/img/taskclan-wordmark.svg`
                     }
-                    alt="Supabase Logo"
+                    alt="Taskclan Cloud"
                     className={largeLogo ? 'h-[48px]' : 'h-[24px]'}
                   />
                 </Link>
@@ -263,34 +239,22 @@ export const SignInLayout = ({
           </main>
 
           <aside className="flex-col items-center justify-center flex-1 shrink hidden basis-1/4 xl:flex">
-            {quote !== null && showTestimonial && (
-              <div className="relative flex flex-col gap-6">
-                <div className="absolute select-none -top-12 -left-11">
-                  <span className="text-[160px] leading-none text-foreground-muted/30">{'“'}</span>
-                </div>
-
-                <blockquote className="z-10 max-w-lg text-3xl">{quote.text}</blockquote>
-
-                <a
-                  href={quote.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-4"
-                >
-                  <img
-                    src={`https://supabase.com${quote.img_url}`}
-                    alt={quote.handle}
-                    className="w-12 h-12 rounded-full"
-                  />
-
-                  <div className="flex flex-col">
-                    <cite className="not-italic font-medium text-foreground-light whitespace-nowrap">
-                      @{quote.handle}
-                    </cite>
-                  </div>
-                </a>
-              </div>
-            )}
+            <div className="relative flex max-w-md flex-col gap-4 px-8">
+              <h2
+                className="text-4xl text-foreground"
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontWeight: 800,
+                  letterSpacing: '-0.03em',
+                  lineHeight: 1.05,
+                }}
+              >
+                Ship a repository to a URL.
+              </h2>
+              <p className="text-base text-foreground-light">
+                Apps, agents and models on one deploy path — built, hosted and run on Taskclan Cloud.
+              </p>
+            </div>
           </aside>
         </div>
       </div>

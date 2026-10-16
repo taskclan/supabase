@@ -7,7 +7,7 @@ import {
   PageHeaderTitle,
 } from 'ui-patterns/PageHeader'
 
-import { SecuritySettings } from '@/components/interfaces/Organization/SecuritySettings'
+import { ComingSoon } from '@/components/ui/ComingSoon'
 import { DefaultLayout } from '@/components/layouts/DefaultLayout'
 import OrganizationLayout from '@/components/layouts/OrganizationLayout'
 import { OrganizationSettingsLayout } from '@/components/layouts/ProjectLayout/OrganizationSettingsLayout'
@@ -35,7 +35,7 @@ const OrgSecuritySettings: NextPageWithLayout = () => {
           </PageHeaderSummary>
         </PageHeaderMeta>
       </PageHeader>
-      <SecuritySettings />
+      <ComingSoon description="Organization-wide security controls and MFA enforcement are coming soon to Taskclan Cloud." />
     </>
   )
 }

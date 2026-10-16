@@ -73,7 +73,7 @@ export const ToggleLegacyApiKeysPanel = () => {
         ),
       }
     : {
-        title: 'Apps using Supabase may break',
+        title: 'Apps using the API may break',
         description: (
           <>
             Your project uses apps that integrate with Supabase. Disabling the legacy API keys is a

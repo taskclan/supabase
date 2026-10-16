@@ -61,7 +61,7 @@ export const McpSecretsForm = ({
   return (
     <InterstitialShell
       title="Store an API key"
-      subtitle="Supabase is asking for this key on behalf of a tool call. It never passes through your AI client."
+      subtitle="Taskclan Cloud is asking for this key on behalf of a tool call. It never passes through your AI client."
     >
       <McpSecretsDetails request={request} />
 

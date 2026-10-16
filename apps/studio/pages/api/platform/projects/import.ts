@@ -16,6 +16,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 
 import { apiWrapper } from '@/lib/api/apiWrapper'
 import { importCloudApp, listCloudSites, taskclanConfigured } from '@/lib/taskclan/client'
+import { callerFromRequest } from '@/lib/taskclan/callerContext'
 import { toStudioProject } from '@/lib/taskclan/projects'
 import { taskclanOrg } from '@/lib/taskclan/org'
 
@@ -47,13 +48,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const name = typeof body.name === 'string' && body.name.trim() ? body.name.trim() : undefined
   const branch = typeof body.branch === 'string' && body.branch.trim() ? body.branch.trim() : undefined
 
-  const imported = await importCloudApp({ repo, name, branch })
+  const resolved = callerFromRequest(req)
+  if (!resolved.ok) {
+    return res.status(resolved.status).json({ data: null, error: { message: resolved.reason } })
+  }
+  const caller = resolved.caller
+
+  const imported = await importCloudApp({ repo, name, branch }, caller)
   if (!imported.ok) {
     const status = imported.reason === 'not_configured' ? 501 : 502
     return res.status(status).json({ data: null, error: { message: imported.detail } })
   }
 
-  const [org, sites] = await Promise.all([taskclanOrg(), listCloudSites()])
+  const [org, sites] = await Promise.all([taskclanOrg(caller), listCloudSites(caller)])
   if (!org.ok) {
     return res
       .status(502)

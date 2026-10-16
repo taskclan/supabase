@@ -2,9 +2,10 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { MessageSquare } from 'lucide-react'
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
-import { AiIconAnimation, Button } from 'ui'
+import { Button } from 'ui'
 
 import { NO_ORG_MARKER, NO_PROJECT_MARKER } from './SupportForm.utils'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 import { useTrack } from '@/lib/telemetry/track'
 
 interface AIAssistantOptionProps {
@@ -55,7 +56,7 @@ export const AIAssistantOption = ({
           <div className="flex items-center p-6">
             <div className="flex flex-col gap-3 z-2 shrink-0 w-full">
               <div>
-                <h5 className="text-sm font-medium text-foreground">Try Supabase Assistant</h5>
+                <h5 className="text-sm font-medium text-foreground">Try Kin</h5>
                 <p className="text-sm text-foreground-lighter">
                   Ask our AI assistant to help you with your support issue.
                 </p>
@@ -64,15 +65,15 @@ export const AIAssistantOption = ({
                 {onClick ? (
                   <Button
                     size="tiny"
-                    icon={<AiIconAnimation size={14} />}
+                    icon={<KinAvatar size={14} />}
                     onClick={onAiAssistantClicked}
                   >
-                    Ask the Assistant
+                    Ask Kin
                   </Button>
                 ) : (
                   <Link href={aiLink} onClick={onAiAssistantClicked}>
-                    <Button size="tiny" icon={<AiIconAnimation size={14} />}>
-                      Ask the Assistant
+                    <Button size="tiny" icon={<KinAvatar size={14} />}>
+                      Ask Kin
                     </Button>
                   </Link>
                 )}

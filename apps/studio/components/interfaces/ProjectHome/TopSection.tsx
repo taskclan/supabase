@@ -5,6 +5,7 @@ import { ShimmeringLoader } from 'ui-patterns/ShimmeringLoader'
 import { InstanceConfiguration } from '../Settings/Infrastructure/InfrastructureConfiguration/InstanceConfiguration'
 import { ActivityStats } from '@/components/interfaces/ProjectHome/ActivityStats'
 import { TaskclanOverview } from '@/components/interfaces/ProjectHome/TaskclanOverview'
+import { TaskclanHeaderUrl } from '@/components/interfaces/ProjectHome/TaskclanHeaderUrl'
 import { ProjectConnectionPopover } from '@/components/interfaces/ProjectHome/ProjectConnectionPopover'
 import { ProjectPausedState } from '@/components/layouts/ProjectLayout/PausedState/ProjectPausedState'
 import { InlineLink } from '@/components/ui/InlineLink'
@@ -80,7 +81,13 @@ export const TopSection = () => {
                   </Tooltip>
                 )}
               </div>
-              <ProjectConnectionPopover projectRef={project?.ref} />
+              {IS_PLATFORM ? (
+                <ProjectConnectionPopover projectRef={project?.ref} />
+              ) : (
+                // A Taskclan Cloud app's header URL is where it's deployed, not
+                // the stubbed Supabase API URL (localhost:8000).
+                <TaskclanHeaderUrl projectRef={project?.ref} />
+              )}
             </div>
           </div>
           {IS_PLATFORM ? (

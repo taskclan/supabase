@@ -33,7 +33,6 @@ import { useRouter } from 'next/router'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import {
-  AiIconAnimation,
   Badge,
   Button,
   Checkbox,
@@ -68,6 +67,7 @@ import { type QueryEditorHandle } from './QueryEditor'
 import { createMarkdownCellSkeleton, createQueryCellSkeleton } from './utils'
 import { checkDestructiveQuery } from '@/components/interfaces/SQLEditor/SQLEditor.utils'
 import { ButtonTooltip } from '@/components/ui/ButtonTooltip'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 import { useContentDeleteMutation } from '@/data/content/content-delete-mutation'
 import {
   evictNotebookFromCaches,
@@ -400,10 +400,7 @@ export const ExplorerNotebookTab = () => {
           <ExplorerToolbarAction
             className="group"
             icon={
-              <AiIconAnimation
-                size={16}
-                className="text-tertiary-foreground group-hover:text-brand"
-              />
+              <KinAvatar size={16} />
             }
             loading={isCreating}
             disabled={cells.length === 0}

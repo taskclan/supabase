@@ -46,10 +46,10 @@ const ApiKeysNewPage: NextPageWithLayout = () => {
         {isCli && (
           <Admonition
             type="default"
-            title="Local development with the Supabase CLI"
+            title="Local development with the CLI"
             description={
               <p>
-                The API keys are automatically managed by the Supabase CLI and are not manually
+                The API keys are automatically managed by the CLI and are not manually
                 configurable.
               </p>
             }

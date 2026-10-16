@@ -20,7 +20,7 @@ export const OptInToOpenAIToggle = () => {
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader padding="small" className="border-b">
-          <DialogTitle>Data Privacy and Supabase AI</DialogTitle>
+          <DialogTitle>Data Privacy and Taskclan AI</DialogTitle>
         </DialogHeader>
         <DialogSection
           padding="small"

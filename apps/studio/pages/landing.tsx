@@ -1,19 +1,24 @@
 /**
  * Taskclan Cloud — the console's front door.
  *
- * The console had none: `/` redirects into `/project/default`, so anyone
- * arriving at the URL landed inside someone's dashboard with no idea what the
- * product is. This is the page that answers that, in the shape supabase.com
- * uses — a hero that states the offer, a product grid, the commands you would
+ * The console had none: `/` redirected into the dashboard, so anyone arriving
+ * at the bare hostname landed inside someone's project with no idea what the
+ * product is. Since 2026-09-17 `/` serves this page, in the shape supabase.com
+ * uses: a hero that states the offer, a product grid, the commands you would
  * actually run, and what it costs.
  *
- * Not a copy of the engine's `/cloud/landing`. That one is the marketing site
- * on the Taskclan domain and stays; this is the console's own, sharing the
- * console's tokens so the page and the product it opens into look like one
- * thing.
+ * Every call to action here points at /organizations rather than a project.
+ * They used to point at `/project/default`, which is Studio's convention for a
+ * single self-hosted project and matches nothing on Taskclan Cloud, where apps
+ * have real refs. Signed out, the auth gate turns those links into sign-in with
+ * a returnTo; signed in, they open the app list.
+ *
+ * Not a copy of the engine's `/cloud/welcome`. That console no longer serves
+ * this hostname; this is the replacement's own front door, sharing the console's
+ * tokens so the page and the product it opens into look like one thing.
  *
  * Everything asserted here is a capability that exists: per-second container
- * metering, managed Postgres, review apps, instant rollback, a hard spend cap.
+ * metering, managed Postgres, branch preview deploys, a monthly spend cap.
  * A landing page that promises what the platform does not do is a support
  * ticket with a nicer font.
  */
@@ -22,53 +27,79 @@ import Head from 'next/head'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 
+import { geistSans } from '@/fonts'
+import { BASE_PATH } from '@/lib/constants'
+
 /** Products, named as the console names them so the page and the app agree. */
 const PRODUCTS: Array<{ name: string; blurb: string; href: string }> = [
   {
     name: 'Deployments',
     blurb:
-      'Push a branch or press Deploy. Builds run on Taskclan’s runners, roll the container, and keep every previous release one click away.',
-    href: '/project/default/deployments',
+      'Push a branch or press Deploy. Builds run on Taskclan’s runners, roll the container, and keep the full history of what shipped and when.',
+    href: '/organizations',
   },
   {
     name: 'Postgres',
     blurb:
-      'A managed database per app, with a table editor and SQL editor that connect as that app’s own role — never a shared one.',
-    href: '/project/default/editor',
+      'A managed database per app, with a table editor and SQL editor that connect as that app’s own role, never a shared one.',
+    href: '/organizations',
   },
   {
     name: 'Containers',
     blurb:
       'Long-running services metered per second, sized from the image, and asleep when idle so an unused app costs nothing.',
-    href: '/project/default/compute',
+    href: '/organizations',
   },
   {
     name: 'Logs & observability',
     blurb:
       'Build logs, container logs and request metrics in one place, kept long enough to answer “what changed at 3am?”.',
-    href: '/project/default/logs/explorer',
+    href: '/organizations',
   },
   {
     name: 'Environment',
     blurb:
-      'Encrypted config per app and per environment. Values are write-only by default; reading one is a deliberate, audited act.',
-    href: '/project/default/settings',
+      'Encrypted config per app and per environment. Values come back masked; revealing one takes a role that holds read_secrets.',
+    href: '/organizations',
   },
   {
     name: 'Advisors',
     blurb:
-      'Security and performance checks that read your actual schema — missing indexes, tables without RLS, policies that never match.',
-    href: '/project/default/advisors/security',
+      'Security and performance checks that read your actual schema: missing indexes, tables without RLS, policies that never match.',
+    href: '/organizations',
   },
 ]
 
+/**
+ * Only things the platform actually does, each checked against the engine
+ * rather than against a roadmap. Four claims came off this list on 2026-09-17:
+ *
+ *   "Unlimited seats, always free" — the free plan allows three members
+ *     (ORG_PLANS.free.maxMembers === 3). No plan below enterprise is unlimited.
+ *   "Review apps on every pull request" — previews are real but keyed on the
+ *     BRANCH, not on a pull request: cloudBuilder marks a build 'preview' when
+ *     its branch is not the deploy branch, and the GitHub webhook does not
+ *     handle pull_request events at all. Reworded rather than cut.
+ *   "Instant rollback to any release" — the engine has it
+ *     (POST /sites/[id]/deployments { rollbackTo }) but this console does not
+ *     expose it, so it is not something a reader of this page can do. It goes
+ *     back on the list when the UI ships.
+ *   "One-off containers for migrations and jobs" — nothing of the kind exists
+ *     anywhere in the cloud subsystem.
+ *
+ * On 2026-10-11 the spend cap stopped being "hard": at the cap the platform
+ * scales apps back to a single container and emails the owners, it does not
+ * stop them. The pricing copy below stopped saying seats are free (Free allows
+ * three members) and that there is no plan tier (Starter, Pro and Scale are
+ * sold), and the terminal now shows only commands tsk has (taskclan/tsk).
+ */
 const INCLUDED = [
-  'Unlimited seats, always free',
-  'Review apps on every pull request',
-  'Instant rollback to any release',
-  'One-off containers for migrations and jobs',
-  'A hard spend cap you set, enforced by the platform',
+  'Preview deploys for every branch you push',
+  'A monthly spend cap you set, enforced by the platform',
   'Custom domains with managed certificates',
+  'Containers that sleep when idle, billed on what runs',
+  'A managed Postgres for every app',
+  'Secrets masked by default, revealed only to a role that may',
 ]
 
 function Section({
@@ -94,7 +125,7 @@ export default function LandingPage() {
         <title>Taskclan Cloud</title>
         <meta
           name="description"
-          content="Ship a repository to a URL. Managed Postgres, per-second containers, review apps and rollback — on infrastructure you can read the bill for."
+          content="Ship a repository to a URL. Managed Postgres, per-second containers, branch previews and rollback, on infrastructure you can read the bill for."
         />
       </Head>
 
@@ -102,15 +133,18 @@ export default function LandingPage() {
           not a surface that should flip with a viewer's console preference. */}
       <div
         data-theme="dark"
-        className="min-h-screen bg-background text-foreground [font-family:var(--font-sans,Figtree,ui-sans-serif,system-ui,sans-serif)]"
+        className={`${geistSans.className} min-h-screen bg-background text-foreground`}
       >
         <header className="border-b border-muted">
           <Section className="flex h-16 items-center justify-between">
             <span className="flex items-center gap-2.5">
-              <span
+              <img
+                alt=""
                 aria-hidden
-                className="inline-block size-5 rounded-[5px] bg-brand"
-                style={{ boxShadow: '0 0 0 4px hsl(var(--brand-default) / 0.16)' }}
+                src={`${BASE_PATH}/img/taskclan-mark.svg`}
+                className="size-5"
+                width={20}
+                height={20}
               />
               <span className="text-sm font-semibold tracking-tight">Taskclan Cloud</span>
             </span>
@@ -125,7 +159,7 @@ export default function LandingPage() {
                 Pricing
               </a>
               <Link
-                href="/project/default"
+                href="/organizations"
                 className="rounded-md bg-brand px-3.5 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
               >
                 Open dashboard
@@ -147,18 +181,18 @@ export default function LandingPage() {
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-foreground-light">
             Taskclan Cloud builds your repo, runs it in a container, and gives it a managed Postgres
-            database — with the dashboard, SQL editor and deploy history in one place. Containers
-            are metered per second and sleep when idle, so an app nobody is using costs nothing.
+            database, with the dashboard, SQL editor and deploy history in one place. Containers are
+            metered per second and sleep when idle, so an app nobody is using costs nothing.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-3">
             <Link
-              href="/project/default/deployments"
+              href="/organizations"
               className="inline-flex items-center gap-2 rounded-md bg-brand px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
             >
               Deploy an app <ArrowRight size={15} />
             </Link>
             <Link
-              href="/project/default"
+              href="/organizations"
               className="inline-flex items-center gap-2 rounded-md border border-strong px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-100"
             >
               Open the dashboard
@@ -177,22 +211,22 @@ export default function LandingPage() {
             </div>
             <pre className="overflow-x-auto px-5 py-5 text-[13px] leading-7">
               <code>
-                <span className="text-foreground-lighter"># point Taskclan at a repository</span>
+                <span className="text-foreground-lighter"># sign in once</span>
                 {'\n'}
-                <span className="text-brand">tsk</span> apps create my-api --repo taskclan/my-api
+                <span className="text-brand">tsk</span> login
                 {'\n\n'}
-                <span className="text-foreground-lighter"># ship it</span>
+                <span className="text-foreground-lighter"># ship the app’s repository</span>
                 {'\n'}
-                <span className="text-brand">tsk</span> deploy
+                <span className="text-brand">tsk</span> deploy --app my-api
                 {'\n'}
                 <span className="text-foreground-light">
                   {'  '}building… rolled after 3m16s{'\n'}
                   {'  '}https://my-api.taskclan.app
                 </span>
                 {'\n\n'}
-                <span className="text-foreground-lighter"># a one-off, against the same database</span>
+                <span className="text-foreground-lighter"># roll back, no rebuild</span>
                 {'\n'}
-                <span className="text-brand">tsk</span> run -- npm run migrate
+                <span className="text-brand">tsk</span> releases:rollback --app my-api
               </code>
             </pre>
           </div>
@@ -230,15 +264,16 @@ export default function LandingPage() {
           <div className="grid gap-10 rounded-lg border border-muted p-8 lg:grid-cols-2 lg:p-12">
             <div>
               <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-                Metered per second. Seats are free.
+                Metered per second. No per-seat fees.
               </h2>
               <p className="mt-4 leading-relaxed text-foreground-light">
-                You are billed for the compute your containers actually use, not for a plan tier or
-                a headcount. Idle apps sleep and stop costing. Set a spend cap and the platform
-                enforces it — it will stop deploying before it surprises you.
+                Plans start free, and paid plans from $13 a month include usage. Past that, you pay
+                for the compute your containers use, and idle apps sleep and stop costing. Set a
+                monthly spend cap: at the cap, apps scale back to a single container and the
+                workspace owners are emailed.
               </p>
               <Link
-                href="/project/default/deployments"
+                href="/organizations"
                 className="mt-7 inline-flex items-center gap-2 rounded-md bg-brand px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
               >
                 Deploy your first app <ArrowRight size={15} />
@@ -258,7 +293,7 @@ export default function LandingPage() {
         <footer className="border-t border-muted py-8">
           <Section className="flex flex-wrap items-center justify-between gap-4 text-sm text-foreground-lighter">
             <span>Taskclan Cloud</span>
-            <Link href="/project/default" className="hover:text-foreground">
+            <Link href="/organizations" className="hover:text-foreground">
               Open dashboard
             </Link>
           </Section>

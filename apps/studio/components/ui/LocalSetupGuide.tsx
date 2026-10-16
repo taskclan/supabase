@@ -13,7 +13,7 @@ interface LocalSetupGuideProps {
 
 const VARIANT_TITLES: Record<LocalSetupGuideVariant, string> = {
   cli: 'Local development & CLI',
-  selfHosted: 'Self-Hosted Supabase',
+  selfHosted: 'Self-hosted Postgres',
 }
 
 /**

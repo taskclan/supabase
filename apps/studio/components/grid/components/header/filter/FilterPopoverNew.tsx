@@ -1,7 +1,7 @@
 import { format } from 'date-fns'
 import { Loader2 } from 'lucide-react'
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
-import { AiIconAnimation, Button, Calendar } from 'ui'
+import { Button, Calendar } from 'ui'
 import {
   CustomOptionProps,
   FilterBar,
@@ -17,6 +17,7 @@ import {
 import { columnToFilterProperty } from './FilterPopoverNew.utils'
 import { useTableFilter } from '@/components/grid/hooks/useTableFilter'
 import type { Filter } from '@/components/grid/types'
+import { KinAvatar } from '@/components/ui/KinAvatar'
 import { useSqlFilterGenerateMutation } from '@/data/ai/sql-filter-mutation'
 import { useTableEditorTableStateSnapshot } from '@/state/table-editor-table'
 
@@ -225,7 +226,7 @@ export const FilterPopoverNew = ({
   )
 
   const icon = isGenerating ? (
-    <AiIconAnimation size={16} loading />
+    <KinAvatar size={16} loading />
   ) : isRefetching ? (
     <Loader2 className="animate-spin text-brand h-4 w-4 shrink-0" aria-label="Loading table data" />
   ) : null

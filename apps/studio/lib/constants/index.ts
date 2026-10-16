@@ -94,6 +94,22 @@ export const TASKCLAN_STATUS_URL = process.env.NEXT_PUBLIC_TASKCLAN_STATUS_URL |
  * product sees.
  */
 export const TASKCLAN_PRODUCT_NAME = 'Taskclan Cloud'
+
+/**
+ * Whether this console signs people in.
+ *
+ * Derived from the presence of its own configuration rather than being a
+ * separate switch, which is the whole migration-safety story: the feature can
+ * land dark, turning it on is a CI variable change instead of a code change,
+ * and the failure mode of a half-done rollout is "auth stays off" rather than
+ * "sign-in page pointed at localhost".
+ *
+ * Build-time, because `NEXT_PUBLIC_*` is inlined by Next. Turning auth ON needs
+ * a rebuild; turning the OLD path off is `TASKCLAN_SHARED_KEY_FALLBACK`, which
+ * is deliberately a runtime variable so a rollback does not wait on one.
+ */
+export const TASKCLAN_AUTH_ENABLED =
+  !!process.env.NEXT_PUBLIC_TASKCLAN_AUTH_URL && !!process.env.NEXT_PUBLIC_TASKCLAN_AUTH_ANON_KEY
 export const SPECIAL_SYMBOLS_IN_PASSWORDS_DOCS_URL = `${DOCS_URL}/guides/database/postgres/roles#special-symbols-in-passwords`
 
 export const OPT_IN_TAGS = {

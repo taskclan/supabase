@@ -7,6 +7,7 @@ import type { paths } from './api'
 import { ERROR_PATTERNS } from './error-patterns'
 import { API_URL } from '@/lib/constants'
 import { uuidv4 } from '@/lib/helpers'
+import { liftErrorMessage } from '@/lib/taskclan/errorBody'
 import { ResponseError } from '@/types'
 import { UnknownAPIResponseError } from '@/types/api-errors'
 import { ErrorMetadata } from '@/types/base'
@@ -132,8 +133,9 @@ client.use(
 
       // handle errors
       try {
-        // attempt to parse the response body as JSON
-        let body = await response.clone().json()
+        // attempt to parse the response body as JSON, with its reason where
+        // handleError looks for it (see liftErrorMessage)
+        let body = liftErrorMessage(await response.clone().json())
 
         // add code field to body
         body.code = response.status

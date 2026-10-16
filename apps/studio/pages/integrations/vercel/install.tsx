@@ -45,7 +45,7 @@ import type { NextPageWithLayout, Organization } from '@/types'
 
 const PAGE_TITLE = buildStudioPageTitle({
   section: 'Install Vercel Integration',
-  brand: 'Supabase',
+  brand: 'Taskclan Cloud',
 })
 
 /**
@@ -265,7 +265,7 @@ const VercelIntegration: NextPageWithLayout = () => {
       <InterstitialLayout
         logo={<VercelIntegrationLogo />}
         title="Install Vercel integration"
-        description="Choose the Supabase organization Vercel can connect to"
+        description="Choose the organization Vercel can connect to"
         footer={<VercelIntegrationFooter />}
       >
         <div className="px-6 pb-6">
@@ -305,12 +305,12 @@ const VercelIntegration: NextPageWithLayout = () => {
               {noOrganizations && (
                 <Admonition
                   type="warning"
-                  title="No Supabase organizations found"
+                  title="No organizations found"
                   description={
                     <>
-                      Create a Supabase organization before installing the Vercel integration. You
+                      Create an organization before installing the Vercel integration. You
                       can create a new organization{' '}
-                      <Link href="https://supabase.com/dashboard/new" target="_blank">
+                      <Link href="/organizations" target="_blank">
                         here
                       </Link>
                       .
@@ -386,7 +386,7 @@ function OrganizationSelect({
           if (org) onSelectedOrgChange(org)
         }}
       >
-        <SelectTrigger size="small" aria-label="Supabase organization to install Vercel into">
+        <SelectTrigger size="small" aria-label="organization to install Vercel into">
           <SelectValue placeholder="Choose an organization" />
         </SelectTrigger>
         <SelectContent>
